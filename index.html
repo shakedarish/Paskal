@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paskal - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #32AF46 0%, #007350 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo h1 {
+            color: #32AF46;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Kanit', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #32AF46;
+            box-shadow: 0 0 0 3px rgba(50, 175, 70, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #32AF46 0%, #007350 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Kanit', sans-serif;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(50, 175, 70, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #32AF46;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>Paskal</h1>
+            <p>Metal Hooks Quote Management System</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Logging in...</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="your.email@example.com"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter your password"
+                    required
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                Login
+            </button>
+        </form>
+
+        <div class="footer">
+            © 2025 Paskal Group. All rights reserved.
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Check if Supabase SDK is loaded
+        if (typeof supabase === 'undefined') {
+            document.getElementById('errorMessage').textContent = 'System loading error. Please refresh the page.';
+            document.getElementById('errorMessage').classList.add('show');
+            document.getElementById('loginBtn').disabled = true;
+            console.error('Supabase SDK not loaded');
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // Handle login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Clear previous errors
+            errorMessage.classList.remove('show');
+            
+            // Show loading
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            loadingIndicator.classList.add('show');
+            loginForm.style.display = 'none';
+
+            try {
+                // 1. Sign in with Supabase
+                const { data: authData, error: authError } = await window.supabase.auth.signInWithPassword({
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value
+                });
+
+                if (authError || !authData.user) {
+                    throw new Error('Invalid email or password. Please try again.');
+                }
+
+                // 2. Get user profile and role
+                const { data: profile, error: profileError } = await window.supabase
+                    .from('profiles')
+                    .select('role, company_name, country')
+                    .eq('id', authData.user.id)
+                    .single();
+
+                if (profileError || !profile) {
+                    throw new Error('User profile not found. Please contact administrator.');
+                }
+
+                // 3. Redirect based on role
+                console.log('User logged in:', profile);
+                
+                switch (profile.role) {
+                    case 'customer':
+                        window.location.href = '/Customer_Quote_Form.html';
+                        break;
+                    case 'sales':
+                        window.location.href = '/SalesManager_Dashboard.html';
+                        break;
+                    case 'vp':
+                        window.location.href = '/VP_Dashboard.html';
+                        break;
+                    default:
+                        throw new Error('Invalid user role. Please contact administrator.');
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                // Hide loading and show form again
+                loadingIndicator.classList.remove('show');
+                loginForm.style.display = 'block';
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+                
+                // Show error message
+                showError(error.message);
+            }
+        });
+
+        // Check if user is already logged in
+        async function checkExistingSession() {
+            try {
+                const { data: { session } } = await window.supabase.auth.getSession();
+                
+                if (session) {
+                    // User is already logged in, get their role and redirect
+                    const { data: profile } = await window.supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    if (profile) {
+                        switch (profile.role) {
+                            case 'customer':
+                                window.location.href = '/Customer_Quote_Form.html';
+                                break;
+                            case 'sales':
+                                window.location.href = '/SalesManager_Dashboard.html';
+                                break;
+                            case 'vp':
+                                window.location.href = '/VP_Dashboard.html';
+                                break;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('No existing session');
+            }
+        }
+
+        // Check on page load (only if supabase is loaded)
+        if (window.supabase) {
+            checkExistingSession();
+        } else {
+            console.error('Supabase not loaded. Make sure supabase-config.js is included and credentials are set.');
+        }
+    </script>
+</body>
+</html>
