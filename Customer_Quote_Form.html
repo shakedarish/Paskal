@@ -1108,13 +1108,19 @@ if (typeof handleLogout === 'undefined') {
             return;
         }
         
+        console.log('Starting logout...');
         sessionStorage.setItem('logging_out', 'true');
         
         try {
             await logout(); // Use the logout function from supabase-config.js
+            // logout() redirects to login.html, so code below won't execute
+            // but we clear flag just in case
+            sessionStorage.removeItem('logging_out');
         } catch (err) {
             console.error('Logout exception:', err);
             sessionStorage.removeItem('logging_out');
+            // If logout fails, try manual redirect
+            window.location.href = 'login.html';
         }
     };
 }
@@ -3828,7 +3834,7 @@ const TabManager = {
         } else if (tabName === 'orders') {
             document.getElementById('ordersTab').classList.add('active');
             document.querySelectorAll('.tab')[1].classList.add('active');
-            OrdersManager.loadOrders();
+            await OrdersManager.loadOrders();
         }
     },
     
@@ -3846,8 +3852,8 @@ const TabManager = {
 };
 
 const OrdersManager = {
-    loadOrders() {
-        const quotes = QuoteStorage.getAllQuotes();
+    async loadOrders() {
+        const quotes = await QuoteStorage.getAllQuotes();
         const container = document.getElementById('ordersTableContainer');
         
         if (quotes.length === 0) {
@@ -3858,6 +3864,18 @@ const OrdersManager = {
                     <button class="btn btn-primary" onclick="TabManager.switchTab('create')" style="margin-top: 20px;">
                         📝 Create Quote
                     </button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Ensure quotes is an array
+        if (!Array.isArray(quotes)) {
+            console.error('quotes is not an array:', quotes);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>❌ Error Loading Orders</h3>
+                    <p>Please refresh the page or contact support.</p>
                 </div>
             `;
             return;
@@ -3925,8 +3943,8 @@ const OrdersManager = {
         container.innerHTML = html;
     },
     
-    refreshOrders() {
-        this.loadOrders();
+    async refreshOrders() {
+        await this.loadOrders();
         QuoteUI.showAlert('Orders refreshed!', 'success');
     },
     
@@ -4036,7 +4054,7 @@ const OrdersManager = {
         };
         
         QuoteStorage.saveQuote(newQuote);
-        this.loadOrders();
+        await this.loadOrders();
         QuoteUI.showAlert(`Quote duplicated as ${newQuote.id}`, 'success');
     },
     
@@ -4044,7 +4062,7 @@ const OrdersManager = {
         if (!confirm(`Delete quote ${quoteId}? This cannot be undone.`)) return;
         
         QuoteStorage.deleteQuote(quoteId);
-        this.loadOrders();
+        await this.loadOrders();
         QuoteUI.showAlert('Quote deleted', 'success');
     },
     
