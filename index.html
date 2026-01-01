@@ -298,36 +298,44 @@
         });
 
         // Check if user is already logged in
-        async function checkExistingSession() {
-            try {
-                const { data: { session } } = await window.supabase.auth.getSession();
-                
-                if (session) {
-                    // User is already logged in, get their role and redirect
-                    const { data: profile } = await window.supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', session.user.id)
-                        .single();
+      async function checkExistingSession() {
+        const justLoggedOut = sessionStorage.getItem('justLoggedOut');
+        if (justLoggedOut) {
+            sessionStorage.removeItem('justLoggedOut');
+            console.log('Just logged out, staying on login page');
+            return; // אל תעשה redirect!
+        }
 
-                    if (profile) {
-                        switch (profile.role) {
-                            case 'customer':
-                                window.location.href = '/Customer_Quote_Form.html';
-                                break;
-                            case 'sales':
-                                window.location.href = '/SalesManager_Dashboard.html';
-                                break;
-                            case 'vp':
-                                window.location.href = '/VP_Dashboard.html';
-                                break;
-                        }
+        try {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        
+            const { data: { session } } = await window.supabase.auth.getSession();
+        
+            if (session) {
+                const { data: profile } = await window.supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile) {
+                    switch (profile.role) {
+                        case 'customer':
+                            window.location.href = '/Customer_Quote_Form.html';
+                            break;
+                        case 'sales':
+                            window.location.href = '/SalesManager_Dashboard.html';
+                            break;
+                        case 'vp':
+                            window.location.href = '/VP_Dashboard.html';
+                            break;
                     }
                 }
-            } catch (error) {
-                console.log('No existing session');
             }
+        } catch (error) {
+            console.log('No existing session');
         }
+    }
 
         // Check on page load (only if supabase is loaded)
         if (window.supabase) {
