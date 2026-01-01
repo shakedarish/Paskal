@@ -48,11 +48,20 @@ async function requireRole(allowedRoles) {
 
 // Helper function to logout
 async function logout() {
-    const { error } = await window.supabase.auth.signOut();
-    if (error) {
+    try {
+        const { error } = await window.supabase.auth.signOut();
+        if (error) console.error('Logout error:', error);
+        
+        // Flag למנוע redirect אוטומטי
+        sessionStorage.setItem('justLoggedOut', 'true');
+        
+        // Delay קטן - וודא ש-signOut הסתיים
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        window.location.href = '/';
+    } catch (error) {
         console.error('Logout error:', error);
     }
-    window.location.href = '/login.html';
 }
 
 // Helper function to get current user
