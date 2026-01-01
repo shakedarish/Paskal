@@ -1,35 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-
-    <!-- 
-    ========================================
-    IMPORTANT - SUPABASE CONFIGURATION - FIXED VERSION
-    ========================================
-    
-    This version fixes the following errors:
-    - ✓ "Identifier 'supabase' has already been declared" - FIXED
-    - ✓ "handleLogout is not defined" - FIXED
-    - ✓ All functions now check if they're already defined
-    - ✓ Uses window.supabase to avoid redeclaration
-    
-    BEFORE DEPLOYMENT, YOU MUST:
-    1. Replace SUPABASE_URL with your actual Supabase project URL
-    2. Replace SUPABASE_ANON_KEY with your actual Supabase anon key
-    
-    Find these values around line 1010 in the JavaScript code.
-    
-    FEATURES:
-    - ✓ Session authentication check on page load
-    - ✓ Logout button in header
-    - ✓ User info display (name and email)
-    - ✓ QuoteStorage modified to save/load from Supabase
-    - ✓ All quotes saved with customer_id
-    - ✓ Loading overlay for async operations
-    - ✓ Protective checks to prevent duplicate declarations
-    
-    ========================================
-    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paskal - Customer Quote Request</title>
@@ -710,26 +681,13 @@
         }
 
 
-        /* Header Layout */
-        .header {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
-
+        /* Header Right & Logout Button */
         .header-right {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        /* Logout Button */
         .btn-logout {
             background: #ef4444;
             color: white;
@@ -740,65 +698,24 @@
             font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .btn-logout:hover {
             background: #dc2626;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .loading-overlay.show {
-            display: flex;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-</style>
+    </style>
     <!-- SheetJS for Excel generation -->
     <!-- ExcelJS - Full formatting support! -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
-    <!-- Supabase Client -->
+    <!-- Supabase Integration -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
 </head>
 <body>
-
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-</div>
-
     <div class="container">
         <!-- Tabs Navigation -->
         <div class="tabs-container">
@@ -815,20 +732,16 @@
         <!-- Tab Content: Create Quote -->
         <div id="createTab" class="tab-content active">
         <div class="header">
-            <div class="header-left">
-                <div class="logo">
-                    <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal" style="height: 45px; width: auto;">
-                </div>
-                <div class="header-text">
-                    <h1>Customer Quote Request Form</h1>
-                    <p>Module 1 - Fill your metal hooks requirements</p>
-                </div>
+            <div class="logo">
+                <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal" style="height: 45px; width: auto;">
+            </div>
+            <div class="header-text">
+                <h1>Customer Quote Request Form</h1>
+                <p>Module 1 - Fill your metal hooks requirements</p>
             </div>
             <div class="header-right">
                 <span id="userNameDisplay" style="color: white; margin-right: 15px; font-weight: 500;">Loading...</span>
-                <button class="btn-logout" onclick="handleLogout()">
-                    🚪 Logout
-                </button>
+                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
             </div>
         </div>
 
@@ -975,402 +888,6 @@
             </div>
         </div>
     </div>
-
-<script>
-// ========================================
-// SUPABASE CONFIGURATION & AUTHENTICATION - FIXED VERSION
-// ========================================
-
-// Supabase is already initialized in supabase-config.js
-// Just create an alias for convenience
-const supabaseClient = window.supabase;
-
-// Global user state
-if (typeof currentUser === 'undefined') {
-    var currentUser = null;
-}
-if (typeof currentUserProfile === 'undefined') {
-    var currentUserProfile = null;
-}
-
-// Session Check Function
-if (typeof checkSession === 'undefined') {
-    window.checkSession = async function() {
-        console.log('Checking session...');
-        
-        // Prevent session check loop
-        if (sessionStorage.getItem('checking_session') === 'true') {
-            console.log('Already checking session, skipping');
-            return false;
-        }
-        
-        sessionStorage.setItem('checking_session', 'true');
-        
-        try {
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
-            
-            if (error) {
-                console.error('Session check error:', error);
-                sessionStorage.removeItem('checking_session');
-                redirectToLogin();
-                return false;
-            }
-            
-            if (!session) {
-                console.log('No active session found');
-                sessionStorage.removeItem('checking_session');
-                redirectToLogin();
-                return false;
-            }
-            
-            console.log('Session found:', session.user.email);
-            currentUser = session.user;
-            
-            // Get user profile
-            const { data: profile, error: profileError } = await supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-            
-            if (profileError) {
-                console.error('Profile fetch error:', profileError);
-                alert('Error loading user profile');
-                sessionStorage.removeItem('checking_session');
-                return false;
-            }
-            
-            if (!profile) {
-                console.error('No profile found for user');
-                alert('User profile not found');
-                sessionStorage.removeItem('checking_session');
-                redirectToLogin();
-                return false;
-            }
-            
-            currentUserProfile = profile;
-            console.log('Profile loaded:', profile);
-            
-            // Check role
-            if (profile.role !== 'customer') {
-                console.log('User is not a customer, role:', profile.role);
-                alert('Access denied. This page is for customers only.');
-                sessionStorage.removeItem('checking_session');
-                await handleLogout();
-                return false;
-            }
-            
-            // Display user info
-            displayUserInfo();
-            
-            sessionStorage.removeItem('checking_session');
-            return true;
-            
-        } catch (err) {
-            console.error('Session check exception:', err);
-            sessionStorage.removeItem('checking_session');
-            redirectToLogin();
-            return false;
-        }
-    };
-}
-
-if (typeof redirectToLogin === 'undefined') {
-    window.redirectToLogin = function() {
-        if (sessionStorage.getItem('logging_out') === 'true') {
-            console.log('Logout in progress, not redirecting');
-            return;
-        }
-        
-        console.log('Redirecting to login page');
-        window.location.href = 'index.html';
-    };
-}
-
-if (typeof displayUserInfo === 'undefined') {
-    window.displayUserInfo = function() {
-        const userName = currentUserProfile?.name || currentUser?.email || 'Customer';
-        
-        // Update user name display in header
-        const nameDisplay = document.getElementById('userNameDisplay');
-        if (nameDisplay) {
-            nameDisplay.textContent = userName;
-        }
-    };
-}
-
-// Logout Function - simplified to use config's logout
-if (typeof handleLogout === 'undefined') {
-    window.handleLogout = async function() {
-        // Prevent multiple logout attempts
-        if (sessionStorage.getItem('logging_out') === 'true') {
-            console.log('Logout already in progress');
-            return;
-        }
-        
-        console.log('Starting logout...');
-        sessionStorage.setItem('logging_out', 'true');
-        
-        try {
-            await logout(); // Use the logout function from supabase-config.js
-            // logout() redirects to login.html, so code below won't execute
-            // but we clear flag just in case
-            sessionStorage.removeItem('logging_out');
-        } catch (err) {
-            console.error('Logout exception:', err);
-            sessionStorage.removeItem('logging_out');
-            // If logout fails, try manual redirect
-            window.location.href = 'login.html';
-        }
-    };
-}
-
-// ========================================
-// MODIFIED QUOTESTORAGE FOR SUPABASE
-// ========================================
-
-// This will override the original QuoteStorage methods after they are defined
-const SupabaseQuoteStorage = {
-    generateQuoteId() {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 1000);
-        return `Q${timestamp}${random}`;
-    },
-    
-    // SUPABASE VERSION: Save Quote
-    async saveQuote(quoteData) {
-        if (!currentUser || !currentUserProfile) {
-            console.error('User not authenticated');
-            alert('Please log in to save quotes');
-            return null;
-        }
-
-        try {
-            // Show loading
-            const loadingEl = document.getElementById('loadingOverlay');
-            if (loadingEl) loadingEl.classList.add('show');
-
-            // Ensure quote has an ID
-            if (!quoteData.id) {
-                quoteData.id = this.generateQuoteId();
-            }
-
-            // Prepare quote object for database
-            const quoteToSave = {
-                quote_id: quoteData.id,
-                customer_id: currentUser.id,
-                status: quoteData.status || 'Pending',
-                items: quoteData.items || [],
-                summary: quoteData.summary || {},
-                created_at: quoteData.dateCreated || new Date().toISOString()
-            };
-
-            console.log('Saving quote to Supabase:', quoteToSave.quote_id);
-
-            // Check if quote already exists (for updates)
-            const { data: existing } = await supabaseClient
-                .from('quotes')
-                .select('id')
-                .eq('quote_id', quoteToSave.quote_id)
-                .eq('customer_id', currentUser.id)
-                .maybeSingle();
-
-            let result;
-            if (existing) {
-                // Update existing quote
-                const { data, error } = await supabaseClient
-                    .from('quotes')
-                    .update(quoteToSave)
-                    .eq('quote_id', quoteToSave.quote_id)
-                    .eq('customer_id', currentUser.id)
-                    .select();
-
-                if (error) throw error;
-                result = data;
-                console.log('Quote updated:', quoteToSave.quote_id);
-            } else {
-                // Insert new quote
-                const { data, error } = await supabaseClient
-                    .from('quotes')
-                    .insert([quoteToSave])
-                    .select();
-
-                if (error) throw error;
-                result = data;
-                console.log('Quote created:', quoteToSave.quote_id);
-            }
-
-            // Hide loading
-            if (loadingEl) loadingEl.classList.remove('show');
-
-            return quoteToSave.quote_id;
-
-        } catch (error) {
-            console.error('Error saving quote:', error);
-            const loadingEl = document.getElementById('loadingOverlay');
-            if (loadingEl) loadingEl.classList.remove('show');
-            alert('Error saving quote: ' + error.message);
-            return null;
-        }
-    },
-
-    // SUPABASE VERSION: Get All Quotes
-    async getAllQuotes() {
-        if (!currentUser) {
-            console.error('User not authenticated');
-            return [];
-        }
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('quotes')
-                .select('*')
-                .eq('customer_id', currentUser.id)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
-            // Transform to match original format
-            const quotes = (data || []).map(dbQuote => ({
-                id: dbQuote.quote_id,
-                dateCreated: dbQuote.created_at,
-                status: dbQuote.status,
-                items: dbQuote.items || [],
-                summary: dbQuote.summary || {}
-            }));
-
-            console.log(`Loaded ${quotes.length} quotes from Supabase`);
-            return quotes;
-
-        } catch (error) {
-            console.error('Error fetching quotes:', error);
-            alert('Error loading quotes: ' + error.message);
-            return [];
-        }
-    },
-
-    // SUPABASE VERSION: Get Single Quote
-    async getQuote(quoteId) {
-        if (!currentUser) {
-            console.error('User not authenticated');
-            return null;
-        }
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('quotes')
-                .select('*')
-                .eq('quote_id', quoteId)
-                .eq('customer_id', currentUser.id)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (!data) {
-                console.log('Quote not found:', quoteId);
-                return null;
-            }
-
-            // Transform to match original format
-            const quote = {
-                id: data.quote_id,
-                dateCreated: data.created_at,
-                status: data.status,
-                items: data.items || [],
-                summary: data.summary || {}
-            };
-
-            console.log('Quote loaded:', quoteId);
-            return quote;
-
-        } catch (error) {
-            console.error('Error fetching quote:', error);
-            alert('Error loading quote: ' + error.message);
-            return null;
-        }
-    },
-
-    // SUPABASE VERSION: Delete Quote
-    async deleteQuote(quoteId) {
-        if (!currentUser) {
-            console.error('User not authenticated');
-            return false;
-        }
-
-        try {
-            const { error } = await supabaseClient
-                .from('quotes')
-                .delete()
-                .eq('quote_id', quoteId)
-                .eq('customer_id', currentUser.id);
-
-            if (error) throw error;
-
-            console.log('Quote deleted:', quoteId);
-            return true;
-
-        } catch (error) {
-            console.error('Error deleting quote:', error);
-            alert('Error deleting quote: ' + error.message);
-            return false;
-        }
-    }
-};
-
-// Replace the QuoteStorage reference after the page loads
-// This will be called after the original QuoteStorage is defined
-function initializeSupabaseStorage() {
-    if (typeof QuoteStorage !== 'undefined') {
-        console.log('Initializing Supabase storage...');
-        
-        // Backup original methods
-        QuoteStorage._original_saveQuote = QuoteStorage.saveQuote;
-        QuoteStorage._original_getAllQuotes = QuoteStorage.getAllQuotes;
-        QuoteStorage._original_getQuote = QuoteStorage.getQuote;
-        QuoteStorage._original_deleteQuote = QuoteStorage.deleteQuote;
-        
-        // Replace with Supabase versions
-        QuoteStorage.saveQuote = SupabaseQuoteStorage.saveQuote.bind(QuoteStorage);
-        QuoteStorage.getAllQuotes = SupabaseQuoteStorage.getAllQuotes.bind(QuoteStorage);
-        QuoteStorage.getQuote = SupabaseQuoteStorage.getQuote.bind(QuoteStorage);
-        QuoteStorage.deleteQuote = SupabaseQuoteStorage.deleteQuote.bind(QuoteStorage);
-        QuoteStorage.generateQuoteId = SupabaseQuoteStorage.generateQuoteId.bind(QuoteStorage);
-        
-        console.log('✓ QuoteStorage replaced with Supabase version');
-    } else {
-        console.warn('QuoteStorage not yet defined, will retry...');
-        setTimeout(initializeSupabaseStorage, 100);
-    }
-}
-
-// Initialize on page load
-if (document.readyState === 'loading') {
-    window.addEventListener('DOMContentLoaded', async () => {
-        console.log('=== Customer Quote Form - Supabase Version ===');
-        console.log('Page loaded, checking authentication...');
-        
-        const isAuthenticated = await checkSession();
-        
-        if (isAuthenticated) {
-            console.log('✓ User authenticated successfully');
-            
-            // Initialize Supabase storage
-            setTimeout(initializeSupabaseStorage, 500);
-        } else {
-            console.log('✗ Authentication failed');
-        }
-    });
-} else {
-    // Document already loaded
-    console.log('Document already loaded, initializing immediately...');
-    checkSession().then(isAuthenticated => {
-        if (isAuthenticated) {
-            setTimeout(initializeSupabaseStorage, 500);
-        }
-    });
-}
-
-</script>
 
 <script>
 // ============================================
@@ -3834,7 +3351,7 @@ const TabManager = {
         } else if (tabName === 'orders') {
             document.getElementById('ordersTab').classList.add('active');
             document.querySelectorAll('.tab')[1].classList.add('active');
-            await OrdersManager.loadOrders();
+            OrdersManager.loadOrders();
         }
     },
     
@@ -3852,8 +3369,8 @@ const TabManager = {
 };
 
 const OrdersManager = {
-    async loadOrders() {
-        const quotes = await QuoteStorage.getAllQuotes();
+    loadOrders() {
+        const quotes = QuoteStorage.getAllQuotes();
         const container = document.getElementById('ordersTableContainer');
         
         if (quotes.length === 0) {
@@ -3864,18 +3381,6 @@ const OrdersManager = {
                     <button class="btn btn-primary" onclick="TabManager.switchTab('create')" style="margin-top: 20px;">
                         📝 Create Quote
                     </button>
-                </div>
-            `;
-            return;
-        }
-        
-        // Ensure quotes is an array
-        if (!Array.isArray(quotes)) {
-            console.error('quotes is not an array:', quotes);
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>❌ Error Loading Orders</h3>
-                    <p>Please refresh the page or contact support.</p>
                 </div>
             `;
             return;
@@ -3943,8 +3448,8 @@ const OrdersManager = {
         container.innerHTML = html;
     },
     
-    async refreshOrders() {
-        await this.loadOrders();
+    refreshOrders() {
+        this.loadOrders();
         QuoteUI.showAlert('Orders refreshed!', 'success');
     },
     
@@ -4054,7 +3559,7 @@ const OrdersManager = {
         };
         
         QuoteStorage.saveQuote(newQuote);
-        await this.loadOrders();
+        this.loadOrders();
         QuoteUI.showAlert(`Quote duplicated as ${newQuote.id}`, 'success');
     },
     
@@ -4062,7 +3567,7 @@ const OrdersManager = {
         if (!confirm(`Delete quote ${quoteId}? This cannot be undone.`)) return;
         
         QuoteStorage.deleteQuote(quoteId);
-        await this.loadOrders();
+        this.loadOrders();
         QuoteUI.showAlert('Quote deleted', 'success');
     },
     
@@ -4124,6 +3629,211 @@ const OrdersManager = {
             <div id="successModalBody"></div>
         </div>
     </div>
+
+
+<script>
+// ========================================
+// SUPABASE AUTHENTICATION & INTEGRATION
+// רץ אחרון - אחרי שכל הקוד המקורי כבר נטען
+// ========================================
+
+const supabaseClient = window.supabase;
+let currentUser = null;
+let currentUserProfile = null;
+
+// Check authentication
+async function checkSession() {
+    if (sessionStorage.getItem('checking_session') === 'true') {
+        return false;
+    }
+    
+    sessionStorage.setItem('checking_session', 'true');
+    
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session) {
+            console.log('No active session found');
+            sessionStorage.removeItem('checking_session');
+            if (sessionStorage.getItem('logging_out') !== 'true') {
+                window.location.href = 'index.html';
+            }
+            return false;
+        }
+        
+        currentUser = session.user;
+        console.log('Session found:', currentUser.email);
+        
+        const { data: profile, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+        
+        if (error) {
+            console.error('Error loading profile:', error);
+            sessionStorage.removeItem('checking_session');
+            return false;
+        }
+        
+        if (profile.role !== 'customer') {
+            alert('Access denied. This page is for customers only.');
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+            return false;
+        }
+        
+        currentUserProfile = profile;
+        console.log('Profile loaded:', profile);
+        
+        // Update user display
+        const nameDisplay = document.getElementById('userNameDisplay');
+        if (nameDisplay) {
+            nameDisplay.textContent = profile.name || currentUser.email || 'Customer';
+        }
+        
+        sessionStorage.removeItem('checking_session');
+        return true;
+        
+    } catch (err) {
+        console.error('Session check error:', err);
+        sessionStorage.removeItem('checking_session');
+        return false;
+    }
+}
+
+// Logout function
+async function handleLogout() {
+    if (sessionStorage.getItem('logging_out') === 'true') {
+        console.log('Logout already in progress');
+        return;
+    }
+    
+    console.log('Starting logout...');
+    sessionStorage.setItem('logging_out', 'true');
+    
+    try {
+        await logout(); // from supabase-config.js
+        sessionStorage.removeItem('logging_out');
+    } catch (err) {
+        console.error('Logout exception:', err);
+        sessionStorage.removeItem('logging_out');
+        window.location.href = 'login.html';
+    }
+}
+
+// Override QuoteStorage for Supabase
+function initializeSupabaseStorage() {
+    console.log('Initializing Supabase storage...');
+    
+    // Check if QuoteStorage exists
+    if (typeof QuoteStorage === 'undefined') {
+        console.error('QuoteStorage not found!');
+        return;
+    }
+    
+    // Save original methods
+    const _original_saveQuote = QuoteStorage.saveQuote;
+    const _original_getAllQuotes = QuoteStorage.getAllQuotes;
+    
+    // Override saveQuote - כל שמירה תלך ל-Supabase
+    QuoteStorage.saveQuote = async function(quote) {
+        console.log('Saving quote to Supabase:', quote.id);
+        
+        if (!currentUser) {
+            console.error('User not authenticated');
+            return;
+        }
+        
+        try {
+            const quoteData = {
+                quote_id: quote.id,
+                customer_id: currentUser.id,
+                items: quote.items || [],
+                summary: quote.summary || {},
+                status: 'Pending',
+                created_at: new Date().toISOString()
+            };
+            
+            const { data, error } = await supabaseClient
+                .from('quotes')
+                .upsert(quoteData, { onConflict: 'quote_id' });
+            
+            if (error) throw error;
+            
+            console.log('✓ Quote saved to Supabase');
+            
+        } catch (error) {
+            console.error('Error saving quote:', error);
+            alert('Error saving quote: ' + error.message);
+        }
+    };
+    
+    // Override getAllQuotes - טעינה מ-Supabase
+    QuoteStorage.getAllQuotes = async function() {
+        console.log('Loading quotes from Supabase...');
+        
+        if (!currentUser) {
+            console.error('User not authenticated');
+            return [];
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('quotes')
+                .select('*')
+                .eq('customer_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            const quotes = (data || []).map(dbQuote => ({
+                id: dbQuote.quote_id,
+                dateCreated: dbQuote.created_at,
+                status: dbQuote.status,
+                items: dbQuote.items || [],
+                summary: dbQuote.summary || {}
+            }));
+            
+            console.log(`✓ Loaded ${quotes.length} quotes from Supabase`);
+            return quotes;
+            
+        } catch (error) {
+            console.error('Error fetching quotes:', error);
+            return [];
+        }
+    };
+    
+    console.log('✓ Supabase storage initialized');
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('=== Customer Quote Form - Supabase Version ===');
+        const isAuthenticated = await checkSession();
+        
+        if (isAuthenticated) {
+            // המתן קצת כדי לוודא שהקוד המקורי נטען
+            setTimeout(() => {
+                initializeSupabaseStorage();
+            }, 500);
+        }
+    });
+} else {
+    // אם ה-DOM כבר נטען
+    (async () => {
+        console.log('=== Customer Quote Form - Supabase Version ===');
+        const isAuthenticated = await checkSession();
+        
+        if (isAuthenticated) {
+            setTimeout(() => {
+                initializeSupabaseStorage();
+            }, 500);
+        }
+    })();
+}
+</script>
 
 </body>
 </html>
