@@ -83,9 +83,34 @@
             font-size: 0.95rem;
         }
 
+
         .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info-box {
             text-align: right;
         }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
 
         .user-info {
             font-size: 0.9rem;
@@ -97,27 +122,6 @@
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--paskal-green);
-        }
-
-        .back-to-dashboard-btn {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 20px;
-            background: var(--paskal-green);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .back-to-dashboard-btn:hover {
-            background: var(--paskal-dark-green);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(50, 175, 70, 0.3);
         }
 
         /* Main Content Area */
@@ -344,7 +348,7 @@
             border-radius: 12px;
             margin-bottom: 25px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
         }
 
@@ -401,11 +405,11 @@
             padding: 25px;
             border-radius: 12px;
             margin-bottom: 30px;
-            max-width: 30%;
         }
 
         .production-site-section h3 {
             color: var(--paskal-navy);
+            margin-bottom: 15px;
             font-size: 1.2rem;
             display: flex;
             align-items: center;
@@ -413,6 +417,7 @@
         }
 
         .production-site-section select {
+            width: 100%;
             padding: 15px;
             font-size: 1.1rem;
             font-weight: 600;
@@ -486,17 +491,6 @@
             background-color: var(--editable-bg);
         }
 
-        .cell-editable.unselected {
-            background-color: var(--locked-bg);
-        }
-
-        .cell-editable.unselected select,
-        .cell-editable.unselected input {
-            background-color: var(--locked-bg);
-            color: var(--gray-dark);
-            cursor: not-allowed;
-        }
-
         .cell-calculated {
             background-color: var(--calculated-bg);
             font-weight: 600;
@@ -512,24 +506,16 @@
             font-size: 0.85rem;
         }
 
-        /* Override for transport cells - CRITICAL */
-        .transport-cell input,
-        .transport-cell select {
-            width: auto !important;
-        }
-
         /* Transportation Radio Selection */
         .transport-cell {
-            padding: 4px !important;
-            vertical-align: middle;
-            min-width: 180px;
+            padding: 8px !important;
         }
 
         .transport-option {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px;
+            gap: 8px;
+            padding: 8px;
             border-radius: 6px;
             transition: all 0.2s;
         }
@@ -552,23 +538,13 @@
 
         .transport-radio {
             cursor: pointer;
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-            margin: 0;
+            width: 18px;
+            height: 18px;
         }
 
-        .transport-select {
-            flex: 1;
-            min-width: 0;
-            padding: 6px;
-            border: 1px solid var(--gray-medium);
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-        
+        .transport-select,
         .transport-cost {
-            width: 100%;
+            flex: 1;
             padding: 6px;
             border: 1px solid var(--gray-medium);
             border-radius: 4px;
@@ -697,6 +673,10 @@
             font-size: 1rem;
         }
     </style>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -710,11 +690,11 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="user-info">Logged in as:</div>
-                <div class="user-name">VP Sales</div>
-                <button class="back-to-dashboard-btn" id="headerBackBtn" style="display: none;" onclick="App.showDashboard()">
-                    ← Back to Dashboard
-                </button>
+                <div class="user-info-box">
+                    <div class="user-info">Logged in as:</div>
+                    <div class="user-name" id="userName">VP Sales</div>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
             </div>
         </div>
 
@@ -755,9 +735,9 @@
                     <div class="filter-group">
                         <label>Filter by Status</label>
                         <select id="statusFilter">
-                            <option value="" selected>All Statuses</option>
+                            <option value="">All Statuses</option>
                             <option value="Pending">Pending</option>
-                            <option value="Awaiting Approval">WAITING FOR VP APPROVAL</option>
+                            <option value="Awaiting Approval" selected>Awaiting Approval</option>
                             <option value="Approved">Approved</option>
                             <option value="Rejected">Rejected</option>
                         </select>
@@ -779,12 +759,12 @@
                             <tr>
                                 <th>Quote ID</th>
                                 <th>Customer Name</th>
+                                <th>Ship To</th>
                                 <th>Date Created</th>
                                 <th>Req. Delivery Date</th>
                                 <th>Total Items</th>
                                 <th>Total Units</th>
                                 <th>Total Boxes</th>
-                                <th>Total Pallets</th>
                                 <th>Total Weight (KG)</th>
                                 <th>Status</th>
                             </tr>
@@ -824,26 +804,18 @@
                 </div>
 
                 <!-- Production Site Selection -->
-                <div class="production-site-section">
-                    <div style="grid-column: 1 / -1;">
-                        <h3 style="margin-bottom: 15px;">
-                            🏭 Production Site <span class="required-indicator">*</span>
-                        </h3>
-                        <select id="productionSiteSelect" style="width: 100%;" onchange="QuoteDetails.updateProductionSite()">
-                            <option value="">Select Production Site...</option>
-                            <option value="Turkey">Turkey</option>
-                            <option value="Mexico">Mexico</option>
-                            <option value="Tunisia">Tunisia</option>
-                            <option value="Netherlands">Netherlands</option>
-                            <option value="Israel">Israel</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- General Remarks (shown based on Production Site) -->
-                <div id="generalRemarksSection" style="display: none; background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #d1d5db;">
-                    <h4 style="color: #002C5B; margin-top: 0; margin-bottom: 10px;">General Remarks:</h4>
-                    <div id="generalRemarksText" style="color: #4b5563; line-height: 1.6; white-space: pre-line;"></div>
+                <div class="production-site-section" style="max-width: 400px;">
+                    <h3>
+                        🏭 Production Site <span class="required-indicator">*</span>
+                    </h3>
+                    <select id="productionSiteSelect">
+                        <option value="">Select Production Site...</option>
+                        <option value="Turkey">Turkey</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="Tunisia">Tunisia</option>
+                        <option value="Netherlands">Netherlands</option>
+                        <option value="Israel">Israel</option>
+                    </select>
                 </div>
 
                 <!-- Items Table -->
@@ -857,6 +829,7 @@
                 <div class="action-buttons">
                     <button class="btn btn-approve" onclick="QuoteDetails.approveQuote()">✓ Approve Quote</button>
                     <button class="btn btn-reject" onclick="QuoteDetails.rejectQuote()">✗ Reject Quote</button>
+                    <button class="btn btn-secondary" onclick="App.showDashboard()">← Back to Dashboard</button>
                 </div>
             </div>
         </div>
@@ -922,11 +895,6 @@
             showDashboard() {
                 document.getElementById('dashboardView').classList.add('active');
                 document.getElementById('detailsView').classList.remove('active');
-                
-                // Hide back button in header
-                const backBtn = document.getElementById('headerBackBtn');
-                if (backBtn) backBtn.style.display = 'none';
-                
                 Dashboard.render();
             },
             
@@ -1009,7 +977,7 @@
             
             clearFilters() {
                 document.getElementById('searchInput').value = '';
-                document.getElementById('statusFilter').value = '';
+                document.getElementById('statusFilter').value = 'Awaiting Approval';
                 document.getElementById('dateFilter').value = '';
                 this.applyFilters();
             },
@@ -1020,7 +988,7 @@
                 if (this.filteredQuotes.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="9" style="text-align: center; padding: 40px;">
+                            <td colspan="10" style="text-align: center; padding: 40px;">
                                 <div class="empty-state">
                                     <div class="empty-state-icon">📋</div>
                                     <h3>No Quotes Found</h3>
@@ -1036,55 +1004,11 @@
                     const totalItems = quote.items ? quote.items.length : 0;
                     const totalUnits = quote.items ? quote.items.reduce((sum, item) => sum + parseInt(item.units || item.actualUnits || 0), 0) : 0;
                     const totalBoxes = quote.items ? quote.items.reduce((sum, item) => sum + parseInt(item.boxes || item.actualBoxes || 0), 0) : 0;
-                    
-                    // Calculate total pallets
-                    let totalPallets = 0;
-                    if (quote.items) {
-                        quote.items.forEach(item => {
-                            const selectedTransport = item.selectedTransportation;
-                            let boxesPerPallet = 0;
-                            
-                            if (selectedTransport === 1 && item.transportationType1) {
-                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || 0;
-                            } else if (selectedTransport === 2 && item.transportationType2) {
-                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || 0;
-                            }
-                            
-                            if (boxesPerPallet) {
-                                const itemBoxes = parseInt(item.boxes || item.actualBoxes || 0);
-                                totalPallets += itemBoxes / boxesPerPallet;
-                            }
-                        });
-                    }
-                    
-                    // Calculate total weight from items - try weightPerCarton first
                     const totalWeight = quote.items ? quote.items.reduce((sum, item) => {
                         const boxes = parseInt(item.boxes || item.actualBoxes || 0);
-                        const weight = parseFloat(item.weightPerCarton || item.weightPerBox || item.weight || item.totalWeight || 0);
-                        return sum + (boxes * weight);
+                        const weightPerBox = parseFloat(item.weightPerBox || item.weightPerCarton || 0);
+                        return sum + (boxes * weightPerBox);
                     }, 0).toFixed(2) : '0.00';
-                    
-                    // Format date created (handle both DD/MM/YY and MM/DD/YY formats)
-                    let formattedDate = quote.dateCreated;
-                    if (quote.dateCreated && quote.dateCreated.includes('T')) {
-                        // If ISO format, convert to DD/MM/YY
-                        const date = new Date(quote.dateCreated);
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const year = String(date.getFullYear()).slice(-2);
-                        formattedDate = `${day}/${month}/${year}`;
-                    }
-                    
-                    // Get req delivery date from first item (they should all have same req date)
-                    const reqDate = quote.items && quote.items.length > 0 && quote.items[0].reqDate 
-                        ? quote.items[0].reqDate 
-                        : (quote.reqDeliveryDate || 'N/A');
-                    
-                    // Format status text
-                    let displayStatus = quote.status;
-                    if (quote.status === 'Awaiting Approval') {
-                        displayStatus = 'WAITING FOR VP APPROVAL';
-                    }
                     
                     const statusClass = quote.status.toLowerCase().replace(' ', '-');
                     
@@ -1092,14 +1016,14 @@
                         <tr onclick="App.showQuoteDetails('${quote.id}')">
                             <td><strong>${quote.id}</strong></td>
                             <td>${quote.customerName}</td>
-                            <td>${formattedDate}</td>
-                            <td>${reqDate}</td>
+                            <td>${quote.shipTo || 'Multiple'}</td>
+                            <td>${quote.dateCreated}</td>
+                            <td>${quote.reqDeliveryDate || 'N/A'}</td>
                             <td>${totalItems}</td>
                             <td>${totalUnits.toLocaleString()}</td>
                             <td>${totalBoxes}</td>
-                            <td>${totalPallets.toFixed(2)}</td>
                             <td><strong>${totalWeight}</strong></td>
-                            <td><span class="status-badge status-${statusClass}">${displayStatus}</span></td>
+                            <td><span class="status-badge status-${statusClass}">${quote.status}</span></td>
                         </tr>
                     `;
                 }).join('');
@@ -1116,10 +1040,7 @@
                 this.renderQuoteInfo();
                 this.renderSummaryCards();
                 this.renderItemsTable();
-                
-                // Show back button in header
-                const backBtn = document.getElementById('headerBackBtn');
-                if (backBtn) backBtn.style.display = 'inline-block';
+                this.setupTransportationRadios();
             },
             
             loadQuote(quoteId) {
@@ -1140,9 +1061,6 @@
                 const infoSection = document.getElementById('quoteInfoSection');
                 const statusClass = this.quote.status.toLowerCase().replace(' ', '-');
                 
-                // Format date properly (remove time)
-                const dateCreated = this.quote.dateCreated ? this.quote.dateCreated.split('T')[0] : '';
-                
                 infoSection.innerHTML = `
                     <div class="info-item">
                         <div class="info-label">Quote ID</div>
@@ -1150,7 +1068,7 @@
                     </div>
                     <div class="info-item">
                         <div class="info-label">Date Created</div>
-                        <div class="info-value">${dateCreated}</div>
+                        <div class="info-value">${this.quote.dateCreated}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Status</div>
@@ -1163,6 +1081,10 @@
                     <div class="info-item">
                         <div class="info-label">Company</div>
                         <div class="info-value">${this.quote.company || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Req. Delivery Date</div>
+                        <div class="info-value">${this.quote.reqDeliveryDate || 'N/A'}</div>
                     </div>
                 `;
             },
@@ -1202,11 +1124,11 @@
                 const table = document.getElementById('itemsTable');
                 
                 if (!this.quote.items || this.quote.items.length === 0) {
-                    table.innerHTML = '<tr><td colspan="27" style="text-align: center; padding: 40px;">No items found</td></tr>';
+                    table.innerHTML = '<tr><td colspan="26" style="text-align: center; padding: 40px;">No items found</td></tr>';
                     return;
                 }
                 
-                // Build header without radio buttons
+                // Build header
                 let headerHTML = `
                     <thead>
                         <tr>
@@ -1220,7 +1142,7 @@
                             <th style="min-width: 90px;">Crop</th>
                             <th style="min-width: 90px;">Twine Type</th>
                             <th style="min-width: 140px;">Twine Color</th>
-                            <th style="min-width: 100px;">Twine on Hook (m)</th>
+                            <th style="min-width: 70px;">Twine on Hook (m)</th>
                             <th style="min-width: 90px;">Free Fall (m)</th>
                             <th style="min-width: 90px;">Total Twine (m)</th>
                             <th style="min-width: 120px;">Units</th>
@@ -1233,7 +1155,6 @@
                             <th style="min-width: 130px;">Transportation Cost 2</th>
                             <th style="min-width: 130px;">Incoterms</th>
                             <th style="min-width: 90px;">Currency</th>
-                            <th style="min-width: 130px;">Price for 1,000 units</th>
                             <th style="min-width: 130px;">Last Price</th>
                             <th style="min-width: 100px;">Boxes per Pallet</th>
                             <th style="min-width: 100px;">Total Pallets</th>
@@ -1245,8 +1166,8 @@
                 let bodyHTML = '<tbody>';
                 this.quote.items.forEach((item, index) => {
                     const selectedTransport = item.selectedTransportation || null;
-                    const transport1Class = selectedTransport === 1 ? '' : (selectedTransport === 2 ? 'unselected' : '');
-                    const transport2Class = selectedTransport === 2 ? '' : (selectedTransport === 1 ? 'unselected' : '');
+                    const transport1Class = selectedTransport === 1 ? 'selected' : (selectedTransport === 2 ? 'unselected' : '');
+                    const transport2Class = selectedTransport === 2 ? 'selected' : (selectedTransport === 1 ? 'unselected' : '');
                     
                     // Calculate boxes per pallet
                     let boxesPerPallet = '';
@@ -1263,26 +1184,6 @@
                         totalPallets = (boxes / parseInt(boxesPerPallet)).toFixed(2);
                     }
                     
-                    // Format twine color from colors array
-                    let twineColorDisplay = '';
-                    if (item.colors && Array.isArray(item.colors) && item.colors.length > 0) {
-                        // Check if it's a single color (only 1 item with quantity 1)
-                        if (item.colors.length === 1 && item.colors[0].quantity === 1) {
-                            // Single color: show only color name
-                            twineColorDisplay = item.colors[0].color;
-                        } else {
-                            // Sequence: show with quantities
-                            twineColorDisplay = item.colors.map(c => `${c.color}×${c.quantity}`).join(', ');
-                        }
-                    } else if (item.twineColor) {
-                        // If it's a single color string, show without quantity
-                        twineColorDisplay = item.twineColor;
-                    }
-                    
-                    // Format units with commas
-                    const unitsValue = item.units || item.actualUnits || '';
-                    const unitsFormatted = unitsValue ? parseInt(unitsValue).toLocaleString() : '';
-                    
                     bodyHTML += `
                         <tr>
                             <td class="cell-locked">${index + 1}</td>
@@ -1295,37 +1196,69 @@
                                     onchange="QuoteDetails.updateItem(${index}, 'shipTo', this.value)">
                             </td>
                             <td class="cell-editable">
-                                <input type="date" value="${item.reqDate || item.reqDeliveryDate || ''}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'reqDate', this.value)">
+                                <input type="date" value="${item.reqDeliveryDate || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'reqDeliveryDate', this.value)">
                             </td>
                             <td class="cell-editable">
                                 <input type="date" value="${item.estimatedDeliveryDate || ''}" 
                                     onchange="QuoteDetails.updateItem(${index}, 'estimatedDeliveryDate', this.value)">
                             </td>
-                            <td class="cell-locked">${item.hookType || ''}</td>
-                            <td class="cell-locked">${item.hookSize || ''}</td>
-                            <td class="cell-locked">${item.crop || ''}</td>
-                            <td class="cell-locked">${item.twineType || ''}</td>
-                            <td class="cell-locked">${twineColorDisplay}</td>
-                            <td class="cell-locked">${item.wireLength || item.twineOnHook || ''}</td>
-                            <td class="cell-locked">${item.freeFallLength || item.freeFall || ''}</td>
-                            <td class="cell-locked">${item.totalLength || item.totalTwine || ''}</td>
                             <td class="cell-editable">
-                                <input type="text" value="${unitsFormatted}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'units', this.value.replace(/,/g, ''))">
+                                <input type="text" value="${item.hookType || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'hookType', this.value)">
                             </td>
-                            <td class="cell-locked">${item.unitsPerBox || ''}</td>
-                            <td class="cell-locked">${item.boxes || item.actualBoxes || ''}</td>
-                            <td class="cell-locked" style="font-family: monospace; font-weight: 600;">${item.pn || ''}</td>
-                            <td class="transport-cell cell-editable ${transport1Class}">
-                                <div class="transport-option">
+                            <td class="cell-editable">
+                                <input type="text" value="${item.hookSize || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'hookSize', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.crop || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'crop', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.twineType || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'twineType', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.twineColor || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'twineColor', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.twineOnHook || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'twineOnHook', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.freeFall || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'freeFall', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.totalTwine || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'totalTwine', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.units || item.actualUnits || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'units', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.unitsPerBox || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'unitsPerBox', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.boxes || item.actualBoxes || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'boxes', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.pn || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'pn', this.value)"
+                                    style="font-family: monospace; font-weight: 600;">
+                            </td>
+                            <td class="transport-cell">
+                                <div class="transport-option ${transport1Class}" id="transport1-${index}">
                                     <input type="radio" name="transport-${index}" value="1" 
                                         class="transport-radio" data-item-index="${index}"
-                                        ${selectedTransport === 1 ? 'checked' : ''}
-                                        ${selectedTransport === 2 ? 'disabled' : ''}>
-                                    <select class="transport-select" 
-                                        onchange="QuoteDetails.updateItem(${index}, 'transportationType1', this.value)"
-                                        ${selectedTransport === 2 ? 'disabled' : ''}>
+                                        ${selectedTransport === 1 ? 'checked' : ''}>
+                                    <select class="transport-select" data-item-index="${index}" data-field="transportationType1"
+                                        onchange="QuoteDetails.updateItem(${index}, 'transportationType1', this.value)">
                                         <option value="">Select...</option>
                                         <option value="Container 40HC" ${item.transportationType1 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
                                         <option value="Container 40HC Sterilized" ${item.transportationType1 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
@@ -1337,21 +1270,20 @@
                                     </select>
                                 </div>
                             </td>
-                            <td class="transport-cell cell-editable ${transport1Class}">
-                                <input type="text" value="${item.transportationCost1 || ''}"
-                                    onchange="QuoteDetails.updateItem(${index}, 'transportationCost1', this.value)"
-                                    placeholder="Cost"
-                                    ${selectedTransport === 2 ? 'disabled' : ''}>
+                            <td class="transport-cell">
+                                <div class="transport-option ${transport1Class}">
+                                    <input type="text" class="transport-cost" value="${item.transportationCost1 || ''}"
+                                        onchange="QuoteDetails.updateItem(${index}, 'transportationCost1', this.value)"
+                                        placeholder="Cost">
+                                </div>
                             </td>
-                            <td class="transport-cell cell-editable ${transport2Class}">
-                                <div class="transport-option">
+                            <td class="transport-cell">
+                                <div class="transport-option ${transport2Class}" id="transport2-${index}">
                                     <input type="radio" name="transport-${index}" value="2" 
                                         class="transport-radio" data-item-index="${index}"
-                                        ${selectedTransport === 2 ? 'checked' : ''}
-                                        ${selectedTransport === 1 ? 'disabled' : ''}>
-                                    <select class="transport-select" 
-                                        onchange="QuoteDetails.updateItem(${index}, 'transportationType2', this.value)"
-                                        ${selectedTransport === 1 ? 'disabled' : ''}>
+                                        ${selectedTransport === 2 ? 'checked' : ''}>
+                                    <select class="transport-select" data-item-index="${index}" data-field="transportationType2"
+                                        onchange="QuoteDetails.updateItem(${index}, 'transportationType2', this.value)">
                                         <option value="">Select...</option>
                                         <option value="Container 40HC" ${item.transportationType2 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
                                         <option value="Container 40HC Sterilized" ${item.transportationType2 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
@@ -1363,11 +1295,12 @@
                                     </select>
                                 </div>
                             </td>
-                            <td class="transport-cell cell-editable ${transport2Class}">
-                                <input type="text" value="${item.transportationCost2 || ''}"
-                                    onchange="QuoteDetails.updateItem(${index}, 'transportationCost2', this.value)"
-                                    placeholder="Cost"
-                                    ${selectedTransport === 1 ? 'disabled' : ''}>
+                            <td class="transport-cell">
+                                <div class="transport-option ${transport2Class}">
+                                    <input type="text" class="transport-cost" value="${item.transportationCost2 || ''}"
+                                        onchange="QuoteDetails.updateItem(${index}, 'transportationCost2', this.value)"
+                                        placeholder="Cost">
+                                </div>
                             </td>
                             <td class="cell-editable">
                                 <select onchange="QuoteDetails.updateItem(${index}, 'incoterms', this.value)">
@@ -1388,11 +1321,6 @@
                                 </select>
                             </td>
                             <td class="cell-editable">
-                                <input type="text" value="${item.pricePer1000 || ''}"
-                                    onchange="QuoteDetails.updateItem(${index}, 'pricePer1000', this.value)"
-                                    placeholder="Price">
-                            </td>
-                            <td class="cell-editable">
                                 <input type="text" value="${item.lastPrice || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'lastPrice', this.value)"
                                     placeholder="Price">
@@ -1405,9 +1333,6 @@
                 bodyHTML += '</tbody>';
                 
                 table.innerHTML = headerHTML + bodyHTML;
-                
-                // Setup radio button listeners
-                this.setupTransportationRadios();
             },
             
             setupTransportationRadios() {
@@ -1424,7 +1349,17 @@
                             this.quote.items[itemIndex].selectedTransportation = null;
                             App.saveCurrentQuote();
                             
-                            // Re-render to update UI
+                            // Update UI - both options become available
+                            const transport1 = document.getElementById(`transport1-${itemIndex}`);
+                            const transport2 = document.getElementById(`transport2-${itemIndex}`);
+                            
+                            transport1.classList.remove('selected', 'unselected');
+                            transport2.classList.remove('selected', 'unselected');
+                            
+                            // Uncheck the radio
+                            e.target.checked = false;
+                            
+                            // Recalculate and re-render
                             this.renderItemsTable();
                             this.renderSummaryCards();
                         } else {
@@ -1432,7 +1367,23 @@
                             this.quote.items[itemIndex].selectedTransportation = selectedOption;
                             App.saveCurrentQuote();
                             
-                            // Re-render to update UI
+                            // Update UI
+                            const transport1 = document.getElementById(`transport1-${itemIndex}`);
+                            const transport2 = document.getElementById(`transport2-${itemIndex}`);
+                            
+                            if (selectedOption === 1) {
+                                transport1.classList.add('selected');
+                                transport1.classList.remove('unselected');
+                                transport2.classList.add('unselected');
+                                transport2.classList.remove('selected');
+                            } else {
+                                transport2.classList.add('selected');
+                                transport2.classList.remove('unselected');
+                                transport1.classList.add('unselected');
+                                transport1.classList.remove('selected');
+                            }
+                            
+                            // Recalculate and re-render
                             this.renderItemsTable();
                             this.renderSummaryCards();
                         }
@@ -1453,37 +1404,9 @@
                 App.saveCurrentQuote();
                 
                 // If transportation type changed or boxes changed, recalculate
-                if (field === 'transportationType1' || field === 'transportationType2' || field === 'boxes' || field === 'units') {
+                if (field === 'transportationType1' || field === 'transportationType2' || field === 'boxes') {
                     this.renderItemsTable();
                     this.renderSummaryCards();
-                }
-            },
-            
-            updateProductionSite() {
-                const productionSite = document.getElementById('productionSiteSelect').value;
-                const remarksSection = document.getElementById('generalRemarksSection');
-                const remarksText = document.getElementById('generalRemarksText');
-                
-                // General Remarks content for each production site
-                const remarks = {
-                    'Israel': 'Production site from Israel is only for Turbo Hook for either 40HC or 20HC.',
-                    'Turkey': `Remarks to shipments from Turkey:
-1. The prices quoted are based on 40ft high containers with incoterms CIF or full truck to the requested distributor destination, or, to Paskal Spain, or, to Paskal Netherlands B.V.
-2. In the case of partial shipments, the prices will be based on incoterms EXW Turkey.
-3. Orders from Turkey can be either Turbo or Tail hooks.`,
-                    'Mexico': `Remarks to shipments from Mexico:
-1. Shipment via land by truck only.
-2. Orders from Mexico can be either Turbo or Tail hooks.
-3. Each order must be approved by Paskal, with a production and shipment schedule.
-4. For orders exceeding 100k units per season, advanced planning is required.`
-                };
-                
-                // Show/hide remarks based on production site
-                if (remarks[productionSite]) {
-                    remarksText.textContent = remarks[productionSite];
-                    remarksSection.style.display = 'block';
-                } else {
-                    remarksSection.style.display = 'none';
                 }
             },
             
