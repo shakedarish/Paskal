@@ -2,8 +2,7 @@
 // Replace these with your actual Supabase project credentials
 
 const SUPABASE_URL = 'https://xtwcazepyinscfaucvft.supabase.co';  // Example: https://abcdefgh.supabase.co
-const SUPABASE_ANON_KEY = 'sb_publishable_nbxFcEmb7VCIMqExJoEVWw_K6xCaidZ';  // Your public anon key
-
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0d2NhemVweWluc2NmYXVjdmZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxOTk5NTMsImV4cCI6MjA4Mjc3NTk1M30.wHEOhg9SG4ji71vCzYFHcmt2-wcEbNt2jaPPydAzs64';
 // Initialize Supabase client (make it global)
 const { createClient } = supabase;
 window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
