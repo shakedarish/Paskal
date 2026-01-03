@@ -41,6 +41,7 @@
             border-radius: 15px 15px 0 0;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 30px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
@@ -3736,7 +3737,7 @@ function initializeSupabaseStorage() {
     const _original_saveQuote = QuoteStorage.saveQuote;
     const _original_getAllQuotes = QuoteStorage.getAllQuotes;
     
-    // Override saveQuote - כל שמירה תלך ל-Supabase
+    // Override saveQuote - שומר ל-Supabase וגם מעדכן cache
     QuoteStorage.saveQuote = async function(quote) {
         console.log('Saving quote to Supabase:', quote.id);
         
@@ -3763,14 +3764,35 @@ function initializeSupabaseStorage() {
             
             console.log('✓ Quote saved to Supabase');
             
+            // עדכן את ה-cache
+            const existingIndex = quotesCache.findIndex(q => q.id === quote.id);
+            const cacheQuote = {
+                id: quote.id,
+                dateCreated: quoteData.created_at,
+                status: 'Pending',
+                items: quote.items || [],
+                summary: quote.summary || {}
+            };
+            
+            if (existingIndex !== -1) {
+                quotesCache[existingIndex] = cacheQuote;
+            } else {
+                quotesCache.unshift(cacheQuote);
+            }
+            
+            console.log('✓ Cache updated');
+            
         } catch (error) {
             console.error('Error saving quote:', error);
             alert('Error saving quote: ' + error.message);
         }
     };
     
-    // Override getAllQuotes - טעינה מ-Supabase
-    QuoteStorage.getAllQuotes = async function() {
+    // Cache for quotes (מטמון לשמירת quotes מ-Supabase)
+    let quotesCache = [];
+    
+    // Function to load quotes from Supabase (async, runs in background)
+    async function loadQuotesFromSupabase() {
         console.log('Loading quotes from Supabase...');
         
         if (!currentUser) {
@@ -3787,7 +3809,7 @@ function initializeSupabaseStorage() {
             
             if (error) throw error;
             
-            const quotes = (data || []).map(dbQuote => ({
+            quotesCache = (data || []).map(dbQuote => ({
                 id: dbQuote.quote_id,
                 dateCreated: dbQuote.created_at,
                 status: dbQuote.status,
@@ -3795,16 +3817,29 @@ function initializeSupabaseStorage() {
                 summary: dbQuote.summary || {}
             }));
             
-            console.log(`✓ Loaded ${quotes.length} quotes from Supabase`);
-            return quotes;
+            console.log(`✓ Loaded ${quotesCache.length} quotes from Supabase`);
+            return quotesCache;
             
         } catch (error) {
             console.error('Error fetching quotes:', error);
             return [];
         }
+    }
+    
+    // Override getAllQuotes - מחזיר מה-cache (sync!)
+    QuoteStorage.getAllQuotes = function() {
+        console.log(`Getting quotes from cache (${quotesCache.length} quotes)`);
+        return quotesCache;
     };
     
     console.log('✓ Supabase storage initialized');
+    
+    // טען quotes מ-Supabase ברקע
+    loadQuotesFromSupabase().then(() => {
+        console.log('✓ Initial quotes loaded from Supabase');
+    }).catch(err => {
+        console.error('Error loading initial quotes:', err);
+    });
 }
 
 // Initialize when DOM is ready
