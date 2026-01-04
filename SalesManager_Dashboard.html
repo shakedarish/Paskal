@@ -317,25 +317,56 @@ async function handleLogout() {
 // Load quotes assigned to this sales manager
 async function loadQuotes() {
     try {
-        const { data: quotes, error } = await window.supabase
+        // Step 1: Load quotes
+        const { data: quotes, error: quotesError } = await window.supabase
             .from('quotes')
-            .select(`
-                *,
-                customer:profiles!customer_id(email, company_name, country)
-            `)
+            .select('*')
             .eq('sales_manager_id', currentUser.id)
             .order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (quotesError) throw quotesError;
         
-        allQuotes = quotes || [];
+        if (!quotes || quotes.length === 0) {
+            allQuotes = [];
+            renderQuotes();
+            updateStats();
+            return;
+        }
+        
+        // Step 2: Load customer profiles
+        const customerIds = [...new Set(quotes.map(q => q.customer_id).filter(Boolean))];
+        
+        const { data: profiles, error: profilesError } = await window.supabase
+            .from('profiles')
+            .select('id, email, company_name, country')
+            .in('id', customerIds);
+        
+        if (profilesError) {
+            console.error('Error loading profiles:', profilesError);
+        }
+        
+        // Step 3: Merge data
+        const profilesMap = {};
+        if (profiles) {
+            profiles.forEach(p => {
+                profilesMap[p.id] = p;
+            });
+        }
+        
+        allQuotes = quotes.map(quote => ({
+            ...quote,
+            customer: profilesMap[quote.customer_id] || { email: 'Unknown' }
+        }));
+        
+        console.log('✓ Loaded', allQuotes.length, 'quotes');
         renderQuotes();
         updateStats();
         
     } catch (err) {
         console.error('Error loading quotes:', err);
+        console.error('Error details:', err.message);
         document.getElementById('quotesTableBody').innerHTML = `
-            <tr><td colspan="7" style="text-align: center; color: red;">Error loading quotes</td></tr>
+            <tr><td colspan="7" style="text-align: center; color: red;">Error loading quotes: ${err.message}</td></tr>
         `;
     }
 }
