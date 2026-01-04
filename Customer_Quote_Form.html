@@ -3751,6 +3751,7 @@ function initializeSupabaseStorage() {
             const quoteData = {
                 id: quote.id,  // Q-0001 ישר ב-id!
                 customer_id: currentUser.id,
+                sales_manager_id: currentUserProfile?.assigned_sales_manager || null,
                 customer_name: currentUserProfile?.name || currentUser.email,
                 company_name: currentUserProfile?.company_name || null,
                 country: currentUserProfile?.country || null,
