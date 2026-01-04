@@ -270,10 +270,10 @@ async function checkAuth() {
             return false;
         }
         
-        if (profile.role !== 'sales_manager') {
+        if (profile.role !== 'sales') {
             console.log('Wrong role:', profile.role);
             sessionStorage.removeItem('checking_auth');
-            alert('Access denied. Sales managers only.');
+            alert('Access denied. Sales role required.');
             await window.supabase.auth.signOut();
             window.location.href = 'index.html';
             return false;
@@ -323,7 +323,7 @@ async function loadQuotes() {
                 *,
                 customer:profiles!customer_id(name, email)
             `)
-            .eq('assigned_sales_manager', currentUser.id)
+            .eq('sales_manager_id', currentUser.id)
             .order('created_at', { ascending: false });
         
         if (error) throw error;
@@ -356,15 +356,15 @@ function renderQuotes() {
         
         return `
             <tr>
-                <td><strong>${quote.quote_id}</strong></td>
+                <td><strong>${quote.id}</strong></td>
                 <td>${customerName}</td>
                 <td>${date}</td>
                 <td>${quote.items?.length || 0}</td>
                 <td>${quote.summary?.totalUnits || 0}</td>
                 <td><span class="status-badge ${statusClass}">${quote.status}</span></td>
                 <td>
-                    <button class="btn btn-primary" onclick="viewDetails('${quote.quote_id}')">View</button>
-                    ${quote.status === 'Pending' ? `<button class="btn btn-secondary" onclick="approveQuote('${quote.quote_id}')">Approve</button>` : ''}
+                    <button class="btn btn-primary" onclick="viewDetails('${quote.id}')">View</button>
+                    ${quote.status === 'Pending' ? `<button class="btn btn-secondary" onclick="approveQuote('${quote.id}')">Approve</button>` : ''}
                 </td>
             </tr>
         `;
@@ -386,7 +386,7 @@ function viewDetails(quoteId) {
     const modalBody = document.getElementById('modalBody');
     modalBody.innerHTML = `
         <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <p><strong>Quote ID:</strong> ${quote.quote_id}</p>
+            <p><strong>Quote ID:</strong> ${quote.id}</p>
             <p><strong>Customer:</strong> ${quote.customer?.name || quote.customer?.email}</p>
             <p><strong>Status:</strong> <span class="status-badge status-${quote.status.toLowerCase()}">${quote.status}</span></p>
             <p><strong>Created:</strong> ${new Date(quote.created_at).toLocaleString()}</p>
@@ -435,7 +435,7 @@ async function approveQuote(quoteId) {
         const { error } = await window.supabase
             .from('quotes')
             .update({ status: 'Waiting VP Approval' })
-            .eq('quote_id', quoteId);
+            .eq('id', quoteId);
         
         if (error) throw error;
         
