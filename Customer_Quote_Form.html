@@ -3747,21 +3747,25 @@ function initializeSupabaseStorage() {
         }
         
         try {
-            // שמור את Q-0001 בתוך summary
+            // התאמה למבנה הטבלה: id, customer_id, items, total_items, etc.
             const quoteData = {
+                id: quote.id,  // Q-0001 ישר ב-id!
                 customer_id: currentUser.id,
+                customer_name: currentUserProfile?.name || currentUser.email,
+                company_name: currentUserProfile?.company_name || null,
+                country: currentUserProfile?.country || null,
                 items: quote.items || [],
-                summary: {
-                    ...quote.summary,
-                    quoteId: quote.id  // Q-0001 נשמר כאן!
-                },
-                status: 'Pending',
-                created_at: new Date().toISOString()
+                total_items: quote.summary?.totalItems || 0,
+                total_units: quote.summary?.totalUnits || 0,
+                total_boxes: quote.summary?.totalBoxes || 0,
+                total_pallets: quote.summary?.totalPallets || 0,
+                total_weight: quote.summary?.totalWeight || 0,
+                status: 'Pending'
             };
             
             const { data, error } = await supabaseClient
                 .from('quotes')
-                .insert(quoteData)  // insert לא upsert
+                .insert(quoteData)
                 .select()
                 .single();
             
@@ -3772,12 +3776,17 @@ function initializeSupabaseStorage() {
             // עדכן את ה-cache עם הנתונים שחזרו מ-Supabase
             if (data) {
                 const cacheQuote = {
-                    id: data.summary?.quoteId || quote.id,  // Q-0001 מתוך summary
-                    db_id: data.id,  // Supabase ID
+                    id: data.id,  // Q-0001 ישר מה-id
                     dateCreated: data.created_at,
                     status: data.status,
                     items: data.items || [],
-                    summary: data.summary || {}
+                    summary: {
+                        totalItems: data.total_items,
+                        totalUnits: data.total_units,
+                        totalBoxes: data.total_boxes,
+                        totalPallets: data.total_pallets,
+                        totalWeight: data.total_weight
+                    }
                 };
                 
                 // בדוק אם כבר קיים (לפי Q-0001)
@@ -3820,12 +3829,17 @@ function initializeSupabaseStorage() {
             if (error) throw error;
             
             quotesCache = (data || []).map(dbQuote => ({
-                id: dbQuote.summary?.quoteId || `Q-${dbQuote.id}`,  // Q-0001 מתוך summary
-                db_id: dbQuote.id,  // Supabase ID
+                id: dbQuote.id,  // Q-0001 ישר מה-id
                 dateCreated: dbQuote.created_at,
                 status: dbQuote.status,
                 items: dbQuote.items || [],
-                summary: dbQuote.summary || {}
+                summary: {
+                    totalItems: dbQuote.total_items || 0,
+                    totalUnits: dbQuote.total_units || 0,
+                    totalBoxes: dbQuote.total_boxes || 0,
+                    totalPallets: dbQuote.total_pallets || 0,
+                    totalWeight: dbQuote.total_weight || 0
+                }
             }));
             
             console.log(`✓ Loaded ${quotesCache.length} quotes from Supabase`);
