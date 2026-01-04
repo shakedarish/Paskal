@@ -321,7 +321,7 @@ async function loadQuotes() {
             .from('quotes')
             .select(`
                 *,
-                customer:profiles!customer_id(name, email)
+                customer:profiles!customer_id(email, company_name, country)
             `)
             .eq('sales_manager_id', currentUser.id)
             .order('created_at', { ascending: false });
@@ -350,7 +350,7 @@ function renderQuotes() {
     }
     
     tbody.innerHTML = allQuotes.map(quote => {
-        const customerName = quote.customer?.name || quote.customer?.email || 'Unknown';
+        const customerName = quote.customer?.company_name || quote.customer?.email || 'Unknown';
         const date = new Date(quote.created_at).toLocaleDateString();
         const statusClass = `status-${quote.status.toLowerCase()}`;
         
@@ -387,7 +387,7 @@ function viewDetails(quoteId) {
     modalBody.innerHTML = `
         <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <p><strong>Quote ID:</strong> ${quote.id}</p>
-            <p><strong>Customer:</strong> ${quote.customer?.name || quote.customer?.email}</p>
+            <p><strong>Customer:</strong> ${quote.customer?.company_name || quote.customer?.email}</p>
             <p><strong>Status:</strong> <span class="status-badge status-${quote.status.toLowerCase()}">${quote.status}</span></p>
             <p><strong>Created:</strong> ${new Date(quote.created_at).toLocaleString()}</p>
         </div>
