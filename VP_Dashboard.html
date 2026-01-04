@@ -767,10 +767,6 @@
                         <div class="stat-label">Total Quotes</div>
                         <div class="stat-value" id="statTotal">0</div>
                     </div>
-                    <div class="stat-card pending">
-                        <div class="stat-label">Pending</div>
-                        <div class="stat-value" id="statPending">0</div>
-                    </div>
                     <div class="stat-card awaiting">
                         <div class="stat-label">Awaiting Approval</div>
                         <div class="stat-value" id="statAwaiting">0</div>
@@ -795,7 +791,6 @@
                         <label>Filter by Status</label>
                         <select id="statusFilter">
                             <option value="" selected>All Statuses</option>
-                            <option value="Pending">Pending</option>
                             <option value="Awaiting Approval">WAITING FOR VP APPROVAL</option>
                             <option value="Approved">Approved</option>
                             <option value="Rejected">Rejected</option>
@@ -1126,9 +1121,11 @@
                 document.getElementById('dashboardView').classList.add('active');
                 document.getElementById('detailsView').classList.remove('active');
                 
-                // Hide back button in header
+                // Hide back button, show logout button in header
                 const backBtn = document.getElementById('headerBackBtn');
+                const logoutBtn = document.querySelector('.btn-logout');
                 if (backBtn) backBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 
                 await Dashboard.render();
             },
@@ -1136,6 +1133,13 @@
             showQuoteDetails(quoteId) {
                 document.getElementById('dashboardView').classList.remove('active');
                 document.getElementById('detailsView').classList.add('active');
+                
+                // Show back button, hide logout button in header
+                const backBtn = document.getElementById('headerBackBtn');
+                const logoutBtn = document.querySelector('.btn-logout');
+                if (backBtn) backBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                
                 QuoteDetails.render(quoteId);
             },
             
@@ -1175,13 +1179,11 @@
             
             updateStatistics() {
                 const total = this.quotes.length;
-                const pending = this.quotes.filter(q => q.status === 'Pending').length;
                 const awaiting = this.quotes.filter(q => q.status === 'Awaiting Approval').length;
                 const approved = this.quotes.filter(q => q.status === 'Approved').length;
                 const rejected = this.quotes.filter(q => q.status === 'Rejected').length;
                 
                 document.getElementById('statTotal').textContent = total;
-                document.getElementById('statPending').textContent = pending;
                 document.getElementById('statAwaiting').textContent = awaiting;
                 document.getElementById('statApproved').textContent = approved;
                 document.getElementById('statRejected').textContent = rejected;
@@ -1319,15 +1321,20 @@
                 this.renderQuoteInfo();
                 this.renderSummaryCards();
                 this.renderItemsTable();
-                
-                // Show back button in header
-                const backBtn = document.getElementById('headerBackBtn');
-                if (backBtn) backBtn.style.display = 'inline-block';
             },
             
             loadQuote(quoteId) {
                 const quotes = App.getAllQuotes();
                 this.quote = quotes.find(q => q.id === quoteId);
+                
+                // Check if quote was found
+                if (!this.quote) {
+                    console.error('Quote not found:', quoteId);
+                    alert('Quote not found. Please return to dashboard.');
+                    App.showDashboard();
+                    return;
+                }
+                
                 App.currentQuote = this.quote;
                 
                 // Set production site if already selected
