@@ -6913,6 +6913,7 @@
                     this.allQuotes = quotes.map(dbQuote => ({
                         id: dbQuote.id,  // Q-0001
                         customerName: dbQuote.customer_name || profilesMap[dbQuote.customer_id]?.company_name || 'Unknown',
+                        company: dbQuote.company_name || profilesMap[dbQuote.customer_id]?.company_name || 'N/A',
                         shipTo: dbQuote.country || profilesMap[dbQuote.customer_id]?.country || '',
                         dateCreated: dbQuote.created_at?.split('T')[0] || '',
                         reqDeliveryDate: dbQuote.req_delivery_date || '',
@@ -8166,20 +8167,33 @@
                     return;
                 }
                 
+                // Recalculate totals from items before saving
+                const totalItems = currentQuote.items ? currentQuote.items.length : 0;
+                const totalUnits = currentQuote.items ? currentQuote.items.reduce((sum, item) => sum + (parseInt(item.actualUnits) || 0), 0) : 0;
+                const totalBoxes = currentQuote.items ? currentQuote.items.reduce((sum, item) => sum + (parseInt(item.actualBoxes) || 0), 0) : 0;
+                const totalWeight = currentQuote.items ? currentQuote.items.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0) : 0;
+                
+                // Update currentQuote
+                currentQuote.totalItems = totalItems;
+                currentQuote.totalUnits = totalUnits;
+                currentQuote.totalBoxes = totalBoxes;
+                currentQuote.totalWeight = totalWeight;
+                
                 // Update Supabase
                 const { error } = await window.supabase
                     .from('quotes')
                     .update({
                         // Map back to database format
                         customer_name: currentQuote.customerName,
+                        company_name: currentQuote.company,
                         country: currentQuote.shipTo,
-                        req_delivery_date: currentQuote.reqDeliveryDate,
+                        req_delivery_date: currentQuote.reqDeliveryDate || null,
                         items: currentQuote.items,
-                        total_items: currentQuote.totalItems,
-                        total_units: currentQuote.totalUnits,
-                        total_boxes: currentQuote.totalBoxes,
+                        total_items: totalItems,
+                        total_units: totalUnits,
+                        total_boxes: totalBoxes,
                         total_pallets: currentQuote.totalPallets,
-                        total_weight: currentQuote.totalWeight,
+                        total_weight: totalWeight,
                         status: currentQuote.status,
                         production_site: currentQuote._dbData.production_site,
                         general_remarks: currentQuote._dbData.general_remarks,
