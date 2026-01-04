@@ -740,7 +740,7 @@
                         <div class="stat-value" id="pendingQuotes">0</div>
                     </div>
                     <div class="stat-card approval-requested">
-                        <div class="stat-label">Awaiting Approval</div>
+                        <div class="stat-label">Waiting VP Approval</div>
                         <div class="stat-value" id="approvalQuotes">0</div>
                     </div>
                     <div class="stat-card approved">
@@ -766,7 +766,7 @@
                                 <option value="">All Statuses</option>
                                 <option value="Pending">Pending</option>
                                 <option value="Price Approval Requested">Price Approval Requested</option>
-                                <option value="Awaiting Approval">Awaiting Approval</option>
+                                <option value="Waiting VP Approval">Waiting VP Approval</option>
                                 <option value="Approved">Approved</option>
                                 <option value="Rejected">Rejected</option>
                             </select>
@@ -823,7 +823,7 @@
                 <div class="header-left">
                     <div class="logo">Paskal</div>
                 </div>
-                <button class="back-btn" onclick="App.showDashboard()">← Back to Dashboard</button>
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
             </div>
 
             <!-- Main Card -->
@@ -7087,10 +7087,10 @@
                     const shipTo = firstItem.shipTo || 'N/A';
                     const reqDate = firstItem.reqDate || '';
                     
-                    // Get summary data
-                    const totalItems = quote.summary ? quote.summary.totalItems : 0;
-                    const totalUnits = quote.summary ? quote.summary.totalUnits : 0;
-                    const totalBoxes = quote.summary ? quote.summary.totalBoxes : 0;
+                    // Get summary data directly from quote (not from summary object)
+                    const totalItems = quote.totalItems || 0;
+                    const totalUnits = quote.totalUnits || 0;
+                    const totalBoxes = quote.totalBoxes || 0;
                     
                     // Calculate weight dynamically using WeightCalculator
                     const totalWeight = WeightCalculator.calculateQuoteWeight(quote);
@@ -7125,7 +7125,7 @@
                 const total = this.filteredQuotes.length;
                 const pending = this.filteredQuotes.filter(q => q.status === 'Pending').length;
                 const approval = this.filteredQuotes.filter(q => 
-                    q.status === 'Price Approval Requested' || q.status === 'Awaiting Approval'
+                    q.status === 'Price Approval Requested' || q.status === 'Waiting VP Approval'
                 ).length;
                 const approved = this.filteredQuotes.filter(q => q.status === 'Approved').length;
                 const rejected = this.filteredQuotes.filter(q => q.status === 'Rejected').length;
@@ -7142,7 +7142,7 @@
                 const statusMap = {
                     'Pending': 'status-pending',
                     'Price Approval Requested': 'status-approval-requested',
-                    'Awaiting Approval': 'status-awaiting-approval',
+                    'Waiting VP Approval': 'status-waiting-vp-approval',
                     'Approved': 'status-approved',
                     'Rejected': 'status-rejected'
                 };
@@ -8248,7 +8248,7 @@
             
             // If all valid, confirm and send
             if (confirm('Send this quote to VP for approval?')) {
-                currentQuote.status = 'Awaiting Approval';
+                currentQuote.status = 'Waiting VP Approval';
                 saveQuote();
                 showAlert('success', 'Quote sent to VP for approval!');
                 setTimeout(() => {
@@ -8256,6 +8256,18 @@
                     renderActionButtons();
                 }, 1000);
             }
+        }
+
+
+        // Back to Dashboard with auto-save
+        async function backToDashboard() {
+            // Auto-save before going back
+            await saveQuote();
+            
+            // Wait a bit for save to complete
+            setTimeout(() => {
+                App.showDashboard();
+            }, 500);
         }
 
         function showValidationModal(missingFields) {
