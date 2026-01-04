@@ -3747,40 +3747,50 @@ function initializeSupabaseStorage() {
         }
         
         try {
+            // שמור את Q-0001 בתוך summary
             const quoteData = {
-                quote_id: quote.id,
                 customer_id: currentUser.id,
                 items: quote.items || [],
-                summary: quote.summary || {},
+                summary: {
+                    ...quote.summary,
+                    quoteId: quote.id  // Q-0001 נשמר כאן!
+                },
                 status: 'Pending',
                 created_at: new Date().toISOString()
             };
             
             const { data, error } = await supabaseClient
                 .from('quotes')
-                .upsert(quoteData, { onConflict: 'quote_id' });
+                .insert(quoteData)  // insert לא upsert
+                .select()
+                .single();
             
             if (error) throw error;
             
             console.log('✓ Quote saved to Supabase');
             
-            // עדכן את ה-cache
-            const existingIndex = quotesCache.findIndex(q => q.id === quote.id);
-            const cacheQuote = {
-                id: quote.id,
-                dateCreated: quoteData.created_at,
-                status: 'Pending',
-                items: quote.items || [],
-                summary: quote.summary || {}
-            };
-            
-            if (existingIndex !== -1) {
-                quotesCache[existingIndex] = cacheQuote;
-            } else {
-                quotesCache.unshift(cacheQuote);
+            // עדכן את ה-cache עם הנתונים שחזרו מ-Supabase
+            if (data) {
+                const cacheQuote = {
+                    id: data.summary?.quoteId || quote.id,  // Q-0001 מתוך summary
+                    db_id: data.id,  // Supabase ID
+                    dateCreated: data.created_at,
+                    status: data.status,
+                    items: data.items || [],
+                    summary: data.summary || {}
+                };
+                
+                // בדוק אם כבר קיים (לפי Q-0001)
+                const existingIndex = quotesCache.findIndex(q => q.id === cacheQuote.id);
+                
+                if (existingIndex !== -1) {
+                    quotesCache[existingIndex] = cacheQuote;
+                } else {
+                    quotesCache.unshift(cacheQuote);
+                }
+                
+                console.log('✓ Cache updated with quote:', cacheQuote.id);
             }
-            
-            console.log('✓ Cache updated');
             
         } catch (error) {
             console.error('Error saving quote:', error);
@@ -3810,7 +3820,8 @@ function initializeSupabaseStorage() {
             if (error) throw error;
             
             quotesCache = (data || []).map(dbQuote => ({
-                id: dbQuote.quote_id,
+                id: dbQuote.summary?.quoteId || `Q-${dbQuote.id}`,  // Q-0001 מתוך summary
+                db_id: dbQuote.id,  // Supabase ID
                 dateCreated: dbQuote.created_at,
                 status: dbQuote.status,
                 items: dbQuote.items || [],
