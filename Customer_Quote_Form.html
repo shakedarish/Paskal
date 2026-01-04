@@ -3690,7 +3690,7 @@ async function checkSession() {
         // Update user display
         const nameDisplay = document.getElementById('userNameDisplay');
         if (nameDisplay) {
-            nameDisplay.textContent = profile.name || currentUser.email || 'Customer';
+            nameDisplay.textContent = profile.company_name || currentUser.email || 'Customer';
         }
         
         sessionStorage.removeItem('checking_session');
@@ -3848,6 +3848,7 @@ function initializeSupabaseStorage() {
             
         } catch (error) {
             console.error('Error fetching quotes:', error);
+            console.error('Error details:', error.message, error.details);
             return [];
         }
     }
