@@ -43,6 +43,7 @@
             margin: 0 auto;
         }
 
+        /* View Management */
         .view {
             display: none;
         }
@@ -51,6 +52,7 @@
             display: block;
         }
 
+        /* Header */
         .header {
             background: var(--paskal-navy);
             color: white;
@@ -77,7 +79,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
+        
         .logo-container img {
             height: 45px;
             width: auto;
@@ -94,30 +96,7 @@
         }
 
         .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-info-box {
             text-align: right;
-        }
-
-        .btn-logout {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .btn-logout:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
         }
 
         .user-info {
@@ -132,23 +111,28 @@
             color: var(--paskal-green);
         }
 
-        .back-btn {
-            background: var(--gray-medium);
-            color: var(--paskal-navy);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .back-btn:hover {
-            background: var(--gray-dark);
+        .back-to-dashboard-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: var(--paskal-green);
             color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
         }
 
+        .back-to-dashboard-btn:hover {
+            background: var(--paskal-dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(50, 175, 70, 0.3);
+        }
+
+        /* Main Content Area */
         .main-content {
             background: white;
             padding: 40px;
@@ -157,9 +141,10 @@
             min-height: 600px;
         }
 
+        /* Statistics Cards */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -179,6 +164,7 @@
         }
 
         .stat-card.total { border-left-color: #1e5a3c; }
+        .stat-card.pending { border-left-color: var(--orange); }
         .stat-card.awaiting { border-left-color: var(--info-blue); }
         .stat-card.approved { border-left-color: var(--success-green); }
         .stat-card.rejected { border-left-color: var(--error-red); }
@@ -196,6 +182,7 @@
             color: var(--paskal-navy);
         }
 
+        /* Search & Filter Section */
         .filter-section {
             background: var(--gray-light);
             padding: 25px;
@@ -257,6 +244,7 @@
         .btn-primary:hover {
             background: var(--paskal-dark-green);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(50, 175, 70, 0.3);
         }
 
         .btn-secondary {
@@ -276,6 +264,8 @@
 
         .btn-approve:hover {
             background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .btn-reject {
@@ -285,8 +275,11 @@
 
         .btn-reject:hover {
             background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
         }
 
+        /* Quotes Table */
         .table-container {
             overflow-x: auto;
             border-radius: 12px;
@@ -328,28 +321,372 @@
         }
 
         .status-badge {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
             display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .status-waiting-vp-approval {
-            background: #bfdbfe;
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-awaiting {
+            background: #dbeafe;
             color: #1e40af;
         }
 
         .status-approved {
-            background: #bbf7d0;
-            color: #166534;
+            background: #d1fae5;
+            color: #065f46;
         }
 
         .status-rejected {
-            background: #fecaca;
+            background: #fee2e2;
             color: #991b1b;
         }
 
+        /* Quote Details View */
+        .quote-info {
+            background: var(--gray-light);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--gray-dark);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--paskal-navy);
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--paskal-green) 0%, var(--paskal-dark-green) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(50, 175, 70, 0.2);
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* Production Site Dropdown */
+        .production-site-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid var(--warning-yellow);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            max-width: 30%;
+        }
+
+        .production-site-section h3 {
+            color: var(--paskal-navy);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .production-site-section select {
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: 2px solid var(--warning-yellow);
+            border-radius: 8px;
+            background: white;
+            color: var(--paskal-navy);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .production-site-section select:focus {
+            outline: none;
+            border-color: var(--paskal-green);
+            box-shadow: 0 0 0 3px rgba(50, 175, 70, 0.1);
+        }
+
+        .required-indicator {
+            color: var(--error-red);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        /* Items Table */
+        .items-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .items-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .items-table thead {
+            background: var(--paskal-navy);
+            color: white;
+        }
+
+        .items-table th {
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .items-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--gray-medium);
+            font-size: 0.85rem;
+        }
+
+        .items-table tbody tr:hover {
+            background-color: #f0f9ff;
+        }
+
+        /* Cell Styling */
+        .cell-locked {
+            background-color: var(--locked-bg);
+            color: var(--gray-dark);
+        }
+
+        .cell-editable {
+            background-color: var(--editable-bg);
+        }
+
+        .cell-editable.unselected {
+            background-color: var(--locked-bg);
+        }
+
+        .cell-editable.unselected select,
+        .cell-editable.unselected input {
+            background-color: var(--locked-bg);
+            color: var(--gray-dark);
+            cursor: not-allowed;
+        }
+
+        .cell-calculated {
+            background-color: var(--calculated-bg);
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .cell-editable input,
+        .cell-editable select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--gray-medium);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Override for transport cells - CRITICAL */
+        .transport-cell input,
+        .transport-cell select {
+            width: auto !important;
+        }
+
+        /* Transportation Radio Selection */
+        .transport-cell {
+            padding: 4px !important;
+            vertical-align: middle;
+            min-width: 180px;
+        }
+
+        .transport-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .transport-option.selected {
+            background-color: white;
+        }
+
+        .transport-option.unselected {
+            background-color: #e5e7eb;
+            opacity: 0.6;
+        }
+
+        .transport-option.unselected select,
+        .transport-option.unselected input {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .transport-radio {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        .transport-select {
+            flex: 1;
+            min-width: 0;
+            padding: 6px;
+            border: 1px solid var(--gray-medium);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .transport-cost {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--gray-medium);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .action-buttons .btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+        }
+
+        .modal-header h2 {
+            color: var(--paskal-navy);
+            font-size: 1.5rem;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .modal-body textarea:focus {
+            outline: none;
+            border-color: var(--paskal-green);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+            }
+        }
+
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -368,232 +705,18 @@
             color: var(--paskal-navy);
         }
 
-        /* Quote Details View */
-        .quote-info {
-            background: var(--gray-light);
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .info-label {
-            font-size: 0.85rem;
-            color: var(--gray-dark);
-            font-weight: 500;
-        }
-
-        .info-value {
-            font-size: 1.1rem;
-            color: var(--paskal-navy);
-            font-weight: 600;
-        }
-
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--paskal-green);
-        }
-
-        .summary-label {
-            font-size: 0.85rem;
-            color: var(--gray-dark);
-            margin-bottom: 8px;
-        }
-
-        .summary-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--paskal-navy);
-        }
-
-        .production-site-section {
-            background: #fef3c7;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 2px solid var(--warning-yellow);
-        }
-
-        .production-site-section h3 {
-            color: var(--paskal-navy);
-            margin-bottom: 15px;
-        }
-
-        .production-site-section select {
-            padding: 12px;
-            border: 2px solid var(--gray-medium);
-            border-radius: 8px;
+        .empty-state p {
             font-size: 1rem;
-            width: 100%;
-        }
-
-        .required-indicator {
-            color: var(--error-red);
-        }
-
-        .items-table-container {
-            overflow-x: auto;
-            margin-bottom: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        .items-table thead {
-            background: var(--paskal-navy);
-            color: white;
-            position: sticky;
-            top: 0;
-        }
-
-        .items-table th,
-        .items-table td {
-            padding: 12px;
-            text-align: left;
-            border: 1px solid var(--gray-medium);
-            font-size: 0.85rem;
-        }
-
-        .items-table tbody tr:hover {
-            background-color: #f0f9ff;
-        }
-
-        .items-table input,
-        .items-table select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--gray-medium);
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .items-table input:focus,
-        .items-table select:focus {
-            outline: none;
-            border-color: var(--paskal-green);
-        }
-
-        .locked-field {
-            background-color: var(--locked-bg);
-            cursor: not-allowed;
-        }
-
-        .calculated-field {
-            background-color: var(--calculated-bg);
-            font-weight: 600;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-
-        .modal-header h2 {
-            color: var(--paskal-navy);
-        }
-
-        .modal-body textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 12px;
-            border: 2px solid var(--gray-medium);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-family: 'Montserrat', sans-serif;
-            resize: vertical;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 1400px) {
-            .stats-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .filter-section {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <div class="header-left">
                 <div class="logo-container">
-                    <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal" style="height: 45px; width: auto;">
+                    <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal">
                 </div>
                 <div class="header-text">
                     <h1>VP Sales Approval Dashboard</h1>
@@ -601,25 +724,30 @@
                 </div>
             </div>
             <div class="header-right">
-                <button class="back-btn" id="headerBackBtn" onclick="App.showDashboard()" style="display: none;">← Back to Dashboard</button>
-                <div class="user-info-box">
-                    <div class="user-info">Logged in as:</div>
-                    <div class="user-name" id="userName">Loading...</div>
-                </div>
-                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+                <div class="user-info">Logged in as:</div>
+                <div class="user-name">VP Sales</div>
+                <button class="back-to-dashboard-btn" id="headerBackBtn" style="display: none;" onclick="App.showDashboard()">
+                    ← Back to Dashboard
+                </button>
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="main-content">
             <!-- Dashboard View -->
             <div id="dashboardView" class="view active">
+                <!-- Statistics Cards -->
                 <div class="stats-container">
                     <div class="stat-card total">
                         <div class="stat-label">Total Quotes</div>
                         <div class="stat-value" id="statTotal">0</div>
                     </div>
+                    <div class="stat-card pending">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="statPending">0</div>
+                    </div>
                     <div class="stat-card awaiting">
-                        <div class="stat-label">Waiting VP Approval</div>
+                        <div class="stat-label">Awaiting Approval</div>
                         <div class="stat-value" id="statAwaiting">0</div>
                     </div>
                     <div class="stat-card approved">
@@ -632,6 +760,7 @@
                     </div>
                 </div>
 
+                <!-- Search & Filter -->
                 <div class="filter-section">
                     <div class="filter-group">
                         <label>Search Quote ID or Customer Name</label>
@@ -640,8 +769,9 @@
                     <div class="filter-group">
                         <label>Filter by Status</label>
                         <select id="statusFilter">
-                            <option value="">All Statuses</option>
-                            <option value="Waiting VP Approval" selected>Waiting VP Approval</option>
+                            <option value="" selected>All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Awaiting Approval">WAITING FOR VP APPROVAL</option>
                             <option value="Approved">Approved</option>
                             <option value="Rejected">Rejected</option>
                         </select>
@@ -651,37 +781,30 @@
                         <input type="date" id="dateFilter">
                     </div>
                     <div class="filter-buttons">
-                        <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
-                        <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                        <button class="btn btn-primary" onclick="Dashboard.applyFilters()">Apply Filters</button>
+                        <button class="btn btn-secondary" onclick="Dashboard.clearFilters()">Clear</button>
                     </div>
                 </div>
 
+                <!-- Quotes Table -->
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Quote ID</th>
                                 <th>Customer Name</th>
-                                <th>Company</th>
                                 <th>Date Created</th>
                                 <th>Req. Delivery Date</th>
                                 <th>Total Items</th>
                                 <th>Total Units</th>
                                 <th>Total Boxes</th>
+                                <th>Total Pallets</th>
                                 <th>Total Weight (KG)</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="quotesTableBody">
-                            <tr>
-                                <td colspan="10" style="text-align: center; padding: 40px;">
-                                    <div class="empty-state">
-                                        <div class="empty-state-icon">📋</div>
-                                        <h3>Loading quotes...</h3>
-                                        <p>Please wait...</p>
-                                    </div>
-                                </td>
-                            </tr>
+                            <!-- Populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -689,8 +812,12 @@
 
             <!-- Quote Details View -->
             <div id="detailsView" class="view">
-                <div class="quote-info" id="quoteInfoSection"></div>
+                <!-- Quote Info -->
+                <div class="quote-info" id="quoteInfoSection">
+                    <!-- Populated by JavaScript -->
+                </div>
 
+                <!-- Summary Cards -->
                 <div class="summary-cards">
                     <div class="summary-card">
                         <div class="summary-label">Total Items</div>
@@ -710,31 +837,54 @@
                     </div>
                 </div>
 
+                <!-- Production Site Selection -->
                 <div class="production-site-section">
-                    <h3>🏭 Production Site <span class="required-indicator">*</span></h3>
-                    <select id="productionSiteSelect" onchange="QuoteDetails.updateProductionSite()">
-                        <option value="">Select Production Site...</option>
-                        <option value="Turkey">Turkey</option>
-                        <option value="Mexico">Mexico</option>
-                        <option value="Tunisia">Tunisia</option>
-                        <option value="Netherlands">Netherlands</option>
-                        <option value="Israel">Israel</option>
-                    </select>
+                    <div style="grid-column: 1 / -1;">
+                        <h3 style="margin-bottom: 15px;">
+                            🏭 Production Site <span class="required-indicator">*</span>
+                        </h3>
+                        <select id="productionSiteSelect" style="width: 100%;" onchange="QuoteDetails.updateProductionSite()">
+                            <option value="">Select Production Site...</option>
+                            <option value="Turkey">Turkey</option>
+                            <option value="Mexico">Mexico</option>
+                            <option value="Tunisia">Tunisia</option>
+                            <option value="Netherlands">Netherlands</option>
+                            <option value="Israel">Israel</option>
+                        </select>
+                    </div>
                 </div>
 
+                <!-- General Remarks (shown based on Production Site) -->
                 <div id="generalRemarksSection" style="display: none; background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #d1d5db;">
                     <h4 style="color: #002C5B; margin-top: 0; margin-bottom: 10px;">General Remarks:</h4>
                     <div id="generalRemarksText" style="color: #4b5563; line-height: 1.6; white-space: pre-line;"></div>
                 </div>
 
+                <!-- Items Table -->
                 <div class="items-table-container">
-                    <table class="items-table" id="itemsTable"></table>
+                    <table class="items-table" id="itemsTable">
+                        <!-- Populated by JavaScript -->
+                    </table>
                 </div>
 
+                <!-- Action Buttons -->
                 <div class="action-buttons">
                     <button class="btn btn-approve" onclick="QuoteDetails.approveQuote()">✓ Approve Quote</button>
                     <button class="btn btn-reject" onclick="QuoteDetails.rejectQuote()">✗ Reject Quote</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Round Up Modal -->
+    <div id="roundUpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">⚠️</div>
+                <h3>Partial Box Detected</h3>
+            </div>
+            <div class="modal-body" id="roundUpModalBody">
+                <!-- Populated by JavaScript -->
             </div>
         </div>
     </div>
@@ -760,16 +910,9 @@
     </div>
 
     <script>
-        // ============================================
-        // GLOBAL STATE
-        // ============================================
-        let currentUser = null;
-        let currentProfile = null;
-        let allQuotes = [];
-        let filteredQuotes = [];
-        let currentQuote = null;
-
-        // Boxes per pallet mapping
+        // ===== DATA STRUCTURES =====
+        
+        // Boxes per pallet mapping based on transportation type
         const BOXES_PER_PALLET = {
             'Container 40HC': 72,
             'Container 40HC Sterilized': 64,
@@ -780,338 +923,297 @@
             'Air Freight': 72
         };
 
-        // ============================================
-        // AUTHENTICATION
-        // ============================================
-        async function checkAuth() {
-            if (sessionStorage.getItem('checking_auth') === 'true') {
-                return false;
-            }
+        // ===== APP CONTROLLER =====
+        
+        const App = {
+            currentQuote: null,
             
-            sessionStorage.setItem('checking_auth', 'true');
+            init() {
+                this.showDashboard();
+                this.setupEventListeners();
+            },
             
-            try {
-                const { data: { session } } = await window.supabase.auth.getSession();
-                
-                if (!session) {
-                    sessionStorage.removeItem('checking_auth');
-                    window.location.href = 'index.html';
-                    return false;
-                }
-                
-                currentUser = session.user;
-                
-                const { data: profile, error } = await window.supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-                
-                if (error || !profile) {
-                    console.error('Profile error:', error);
-                    sessionStorage.removeItem('checking_auth');
-                    alert('Error loading profile');
-                    window.location.href = 'index.html';
-                    return false;
-                }
-                
-                if (profile.role !== 'vp') {
-                    console.log('Wrong role:', profile.role);
-                    sessionStorage.removeItem('checking_auth');
-                    alert('Access denied. VP role required.');
-                    await window.supabase.auth.signOut();
-                    window.location.href = 'index.html';
-                    return false;
-                }
-                
-                currentProfile = profile;
-                
-                const nameDisplay = document.getElementById('userName');
-                if (nameDisplay) {
-                    nameDisplay.textContent = profile.name || profile.email || 'VP Sales';
-                }
-                
-                sessionStorage.removeItem('checking_auth');
-                return true;
-                
-            } catch (err) {
-                console.error('Auth error:', err);
-                sessionStorage.removeItem('checking_auth');
-                window.location.href = 'index.html';
-                return false;
-            }
-        }
-
-        async function handleLogout() {
-            if (sessionStorage.getItem('logging_out') === 'true') {
-                return;
-            }
-            
-            sessionStorage.setItem('logging_out', 'true');
-            
-            try {
-                await window.supabase.auth.signOut();
-                sessionStorage.removeItem('logging_out');
-                sessionStorage.removeItem('checking_auth');
-                window.location.href = 'index.html';
-            } catch (err) {
-                console.error('Logout error:', err);
-                sessionStorage.removeItem('logging_out');
-                sessionStorage.removeItem('checking_auth');
-                window.location.href = 'index.html';
-            }
-        }
-
-        // ============================================
-        // LOAD QUOTES
-        // ============================================
-        async function loadQuotes() {
-            try {
-                console.log('Loading quotes from Supabase...');
-                
-                const { data: quotes, error: quotesError } = await window.supabase
-                    .from('quotes')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (quotesError) throw quotesError;
-                
-                if (!quotes || quotes.length === 0) {
-                    console.log('No quotes found');
-                    allQuotes = [];
-                    filteredQuotes = [];
-                    renderQuotes();
-                    updateStats();
-                    return;
-                }
-                
-                console.log('✓ Loaded', quotes.length, 'quotes');
-                
-                const customerIds = [...new Set(quotes.map(q => q.customer_id).filter(Boolean))];
-                
-                const { data: profiles, error: profilesError } = await window.supabase
-                    .from('profiles')
-                    .select('id, email, name, company_name, country')
-                    .in('id', customerIds);
-                
-                if (profilesError) {
-                    console.error('Error loading profiles:', profilesError);
-                }
-                
-                const profilesMap = {};
-                if (profiles) {
-                    profiles.forEach(p => {
-                        profilesMap[p.id] = p;
+            setupEventListeners() {
+                // Production site change
+                const productionSiteSelect = document.getElementById('productionSiteSelect');
+                if (productionSiteSelect) {
+                    productionSiteSelect.addEventListener('change', () => {
+                        if (this.currentQuote) {
+                            this.currentQuote.productionSite = productionSiteSelect.value;
+                            this.saveCurrentQuote();
+                        }
                     });
                 }
-                
-                allQuotes = quotes.map(dbQuote => ({
-                    id: dbQuote.id,
-                    customerName: profilesMap[dbQuote.customer_id]?.name || dbQuote.customer_name || 'Unknown',
-                    company: dbQuote.company_name || profilesMap[dbQuote.customer_id]?.company_name || 'N/A',
-                    dateCreated: dbQuote.created_at?.split('T')[0] || '',
-                    reqDeliveryDate: dbQuote.req_delivery_date || 'N/A',
-                    totalItems: dbQuote.total_items || 0,
-                    totalUnits: dbQuote.total_units || 0,
-                    totalBoxes: dbQuote.total_boxes || 0,
-                    totalWeight: dbQuote.total_weight || 0,
-                    status: dbQuote.status || 'Pending',
-                    items: dbQuote.items || [],
-                    productionSite: dbQuote.production_site || '',
-                    generalRemarks: dbQuote.general_remarks || '',
-                    rejectionReason: dbQuote.rejection_reason || '',
-                    _dbData: dbQuote
-                }));
-                
-                console.log('✓ Quotes mapped:', allQuotes.length);
-                applyFilters();
-                
-            } catch (err) {
-                console.error('Error loading quotes:', err);
-                document.getElementById('quotesTableBody').innerHTML = `
-                    <tr><td colspan="10" style="text-align: center; color: red;">Error loading quotes: ${err.message}</td></tr>
-                `;
-            }
-        }
-
-        // ============================================
-        // FILTERS
-        // ============================================
-        function applyFilters() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
+            },
             
-            filteredQuotes = allQuotes.filter(quote => {
-                const matchesSearch = !searchTerm || 
-                    quote.id.toLowerCase().includes(searchTerm) ||
-                    (quote.customerName && quote.customerName.toLowerCase().includes(searchTerm)) ||
-                    (quote.company && quote.company.toLowerCase().includes(searchTerm));
-                
-                const matchesStatus = !statusFilter || quote.status === statusFilter;
-                
-                const matchesDate = !dateFilter || 
-                    (quote.dateCreated && quote.dateCreated.startsWith(dateFilter));
-                
-                return matchesSearch && matchesStatus && matchesDate;
-            });
-            
-            renderQuotes();
-            updateStats();
-        }
-
-        function clearFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = 'Waiting VP Approval';
-            document.getElementById('dateFilter').value = '';
-            applyFilters();
-        }
-
-        // ============================================
-        // UPDATE STATS
-        // ============================================
-        function updateStats() {
-            document.getElementById('statTotal').textContent = filteredQuotes.length;
-            document.getElementById('statAwaiting').textContent = filteredQuotes.filter(q => q.status === 'Waiting VP Approval').length;
-            document.getElementById('statApproved').textContent = filteredQuotes.filter(q => q.status === 'Approved').length;
-            document.getElementById('statRejected').textContent = filteredQuotes.filter(q => q.status === 'Rejected').length;
-        }
-
-        // ============================================
-        // RENDER QUOTES
-        // ============================================
-        function renderQuotes() {
-            const tbody = document.getElementById('quotesTableBody');
-            
-            if (filteredQuotes.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="10" style="text-align: center; padding: 40px;">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">📋</div>
-                                <h3>No Quotes Found</h3>
-                                <p>No quotes match your current filters.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            tbody.innerHTML = filteredQuotes.map(quote => {
-                const statusClass = getStatusClass(quote.status);
-                
-                return `
-                    <tr onclick="App.showQuoteDetails('${quote.id}')">
-                        <td><strong>${quote.id}</strong></td>
-                        <td>${quote.customerName || '-'}</td>
-                        <td>${quote.company || '-'}</td>
-                        <td>${formatDate(quote.dateCreated)}</td>
-                        <td>${formatDate(quote.reqDeliveryDate)}</td>
-                        <td>${quote.totalItems}</td>
-                        <td>${quote.totalUnits.toLocaleString()}</td>
-                        <td>${quote.totalBoxes.toLocaleString()}</td>
-                        <td><strong>${quote.totalWeight > 0 ? quote.totalWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' KG' : 'N/A'}</strong></td>
-                        <td><span class="status-badge ${statusClass}">${quote.status}</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function getStatusClass(status) {
-            const statusMap = {
-                'Waiting VP Approval': 'status-waiting-vp-approval',
-                'Approved': 'status-approved',
-                'Rejected': 'status-rejected'
-            };
-            return statusMap[status] || 'status-waiting-vp-approval';
-        }
-
-        function formatDate(dateString) {
-            if (!dateString || dateString === 'N/A') return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB');
-        }
-
-        // ============================================
-        // APP CONTROLLER
-        // ============================================
-        const App = {
             showDashboard() {
                 document.getElementById('dashboardView').classList.add('active');
                 document.getElementById('detailsView').classList.remove('active');
-                document.getElementById('headerBackBtn').style.display = 'none';
-                loadQuotes();
+                
+                // Hide back button in header
+                const backBtn = document.getElementById('headerBackBtn');
+                if (backBtn) backBtn.style.display = 'none';
+                
+                Dashboard.render();
             },
-
-            async showQuoteDetails(quoteId) {
-                const quote = allQuotes.find(q => q.id === quoteId);
-                if (!quote) {
-                    alert('Quote not found');
-                    return;
-                }
-                
-                currentQuote = quote;
-                
+            
+            showQuoteDetails(quoteId) {
                 document.getElementById('dashboardView').classList.remove('active');
                 document.getElementById('detailsView').classList.add('active');
-                document.getElementById('headerBackBtn').style.display = 'inline-block';
+                QuoteDetails.render(quoteId);
+            },
+            
+            saveCurrentQuote() {
+                if (!this.currentQuote) return;
                 
-                QuoteDetails.render();
+                const quotes = this.getAllQuotes();
+                const index = quotes.findIndex(q => q.id === this.currentQuote.id);
+                
+                if (index !== -1) {
+                    quotes[index] = this.currentQuote;
+                    localStorage.setItem('paskal_quotes', JSON.stringify(quotes));
+                }
+            },
+            
+            getAllQuotes() {
+                const quotesJson = localStorage.getItem('paskal_quotes');
+                return quotesJson ? JSON.parse(quotesJson) : [];
             }
         };
 
-        // ============================================
-        // QUOTE DETAILS
-        // ============================================
-        const QuoteDetails = {
+        // ===== DASHBOARD =====
+        
+        const Dashboard = {
+            quotes: [],
+            filteredQuotes: [],
+            
             render() {
+                this.loadQuotes();
+                this.updateStatistics();
+                this.applyFilters();
+            },
+            
+            loadQuotes() {
+                this.quotes = App.getAllQuotes();
+            },
+            
+            updateStatistics() {
+                const total = this.quotes.length;
+                const pending = this.quotes.filter(q => q.status === 'Pending').length;
+                const awaiting = this.quotes.filter(q => q.status === 'Awaiting Approval').length;
+                const approved = this.quotes.filter(q => q.status === 'Approved').length;
+                const rejected = this.quotes.filter(q => q.status === 'Rejected').length;
+                
+                document.getElementById('statTotal').textContent = total;
+                document.getElementById('statPending').textContent = pending;
+                document.getElementById('statAwaiting').textContent = awaiting;
+                document.getElementById('statApproved').textContent = approved;
+                document.getElementById('statRejected').textContent = rejected;
+            },
+            
+            applyFilters() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const statusFilter = document.getElementById('statusFilter').value;
+                const dateFilter = document.getElementById('dateFilter').value;
+                
+                this.filteredQuotes = this.quotes.filter(quote => {
+                    // Search filter
+                    const matchesSearch = !searchTerm || 
+                        quote.id.toLowerCase().includes(searchTerm) ||
+                        quote.customerName.toLowerCase().includes(searchTerm);
+                    
+                    // Status filter
+                    const matchesStatus = !statusFilter || quote.status === statusFilter;
+                    
+                    // Date filter
+                    const matchesDate = !dateFilter || quote.dateCreated === dateFilter;
+                    
+                    return matchesSearch && matchesStatus && matchesDate;
+                });
+                
+                this.renderTable();
+            },
+            
+            clearFilters() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                this.applyFilters();
+            },
+            
+            renderTable() {
+                const tbody = document.getElementById('quotesTableBody');
+                
+                if (this.filteredQuotes.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px;">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📋</div>
+                                    <h3>No Quotes Found</h3>
+                                    <p>No quotes match your current filters.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = this.filteredQuotes.map(quote => {
+                    const totalItems = quote.items ? quote.items.length : 0;
+                    const totalUnits = quote.items ? quote.items.reduce((sum, item) => sum + parseInt(item.units || item.actualUnits || 0), 0) : 0;
+                    const totalBoxes = quote.items ? quote.items.reduce((sum, item) => sum + parseInt(item.boxes || item.actualBoxes || 0), 0) : 0;
+                    
+                    // Calculate total pallets
+                    let totalPallets = 0;
+                    if (quote.items) {
+                        quote.items.forEach(item => {
+                            const selectedTransport = item.selectedTransportation;
+                            let boxesPerPallet = 0;
+                            
+                            if (selectedTransport === 1 && item.transportationType1) {
+                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || 0;
+                            } else if (selectedTransport === 2 && item.transportationType2) {
+                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || 0;
+                            }
+                            
+                            if (boxesPerPallet) {
+                                const itemBoxes = parseInt(item.boxes || item.actualBoxes || 0);
+                                totalPallets += itemBoxes / boxesPerPallet;
+                            }
+                        });
+                    }
+                    
+                    // Calculate total weight from items - try weightPerCarton first
+                    const totalWeight = quote.items ? quote.items.reduce((sum, item) => {
+                        const boxes = parseInt(item.boxes || item.actualBoxes || 0);
+                        const weight = parseFloat(item.weightPerCarton || item.weightPerBox || item.weight || item.totalWeight || 0);
+                        return sum + (boxes * weight);
+                    }, 0).toFixed(2) : '0.00';
+                    
+                    // Format date created (handle both DD/MM/YY and MM/DD/YY formats)
+                    let formattedDate = quote.dateCreated;
+                    if (quote.dateCreated && quote.dateCreated.includes('T')) {
+                        // If ISO format, convert to DD/MM/YY
+                        const date = new Date(quote.dateCreated);
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = String(date.getFullYear()).slice(-2);
+                        formattedDate = `${day}/${month}/${year}`;
+                    }
+                    
+                    // Get req delivery date from first item (they should all have same req date)
+                    const reqDate = quote.items && quote.items.length > 0 && quote.items[0].reqDate 
+                        ? quote.items[0].reqDate 
+                        : (quote.reqDeliveryDate || 'N/A');
+                    
+                    // Format status text
+                    let displayStatus = quote.status;
+                    if (quote.status === 'Awaiting Approval') {
+                        displayStatus = 'WAITING FOR VP APPROVAL';
+                    }
+                    
+                    const statusClass = quote.status.toLowerCase().replace(' ', '-');
+                    
+                    return `
+                        <tr onclick="App.showQuoteDetails('${quote.id}')">
+                            <td><strong>${quote.id}</strong></td>
+                            <td>${quote.customerName}</td>
+                            <td>${formattedDate}</td>
+                            <td>${reqDate}</td>
+                            <td>${totalItems}</td>
+                            <td>${totalUnits.toLocaleString()}</td>
+                            <td>${totalBoxes}</td>
+                            <td>${totalPallets.toFixed(2)}</td>
+                            <td><strong>${totalWeight}</strong></td>
+                            <td><span class="status-badge status-${statusClass}">${displayStatus}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        };
+
+        // ===== QUOTE DETAILS =====
+        
+        const QuoteDetails = {
+            quote: null,
+            
+            render(quoteId) {
+                this.loadQuote(quoteId);
                 this.renderQuoteInfo();
                 this.renderSummaryCards();
-                this.renderProductionSite();
                 this.renderItemsTable();
+                
+                // Show back button in header
+                const backBtn = document.getElementById('headerBackBtn');
+                if (backBtn) backBtn.style.display = 'inline-block';
             },
-
+            
+            loadQuote(quoteId) {
+                const quotes = App.getAllQuotes();
+                this.quote = quotes.find(q => q.id === quoteId);
+                App.currentQuote = this.quote;
+                
+                // Set production site if already selected
+                const productionSiteSelect = document.getElementById('productionSiteSelect');
+                if (productionSiteSelect && this.quote.productionSite) {
+                    productionSiteSelect.value = this.quote.productionSite;
+                } else if (productionSiteSelect) {
+                    productionSiteSelect.value = '';
+                }
+            },
+            
             renderQuoteInfo() {
                 const infoSection = document.getElementById('quoteInfoSection');
-                const statusClass = getStatusClass(currentQuote.status);
+                const statusClass = this.quote.status.toLowerCase().replace(' ', '-');
+                
+                // Format date properly (remove time)
+                const dateCreated = this.quote.dateCreated ? this.quote.dateCreated.split('T')[0] : '';
                 
                 infoSection.innerHTML = `
                     <div class="info-item">
                         <div class="info-label">Quote ID</div>
-                        <div class="info-value">${currentQuote.id}</div>
+                        <div class="info-value">${this.quote.id}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Date Created</div>
-                        <div class="info-value">${formatDate(currentQuote.dateCreated)}</div>
+                        <div class="info-value">${dateCreated}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Status</div>
-                        <div class="info-value"><span class="status-badge ${statusClass}">${currentQuote.status}</span></div>
+                        <div class="info-value"><span class="status-badge status-${statusClass}">${this.quote.status}</span></div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Customer</div>
-                        <div class="info-value">${currentQuote.customerName || 'N/A'}</div>
+                        <div class="info-value">${this.quote.customerName}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Company</div>
-                        <div class="info-value">${currentQuote.company || 'N/A'}</div>
+                        <div class="info-value">${this.quote.company || 'N/A'}</div>
                     </div>
                 `;
             },
-
+            
             renderSummaryCards() {
-                const totalItems = currentQuote.items ? currentQuote.items.length : 0;
-                const totalUnits = currentQuote.items ? currentQuote.items.reduce((sum, item) => sum + (parseInt(item.actualUnits) || 0), 0) : 0;
-                const totalBoxes = currentQuote.items ? currentQuote.items.reduce((sum, item) => sum + (parseInt(item.actualBoxes) || 0), 0) : 0;
+                const totalItems = this.quote.items ? this.quote.items.length : 0;
+                const totalUnits = this.quote.items ? this.quote.items.reduce((sum, item) => sum + parseInt(item.units || item.actualUnits || 0), 0) : 0;
+                const totalBoxes = this.quote.items ? this.quote.items.reduce((sum, item) => sum + parseInt(item.boxes || item.actualBoxes || 0), 0) : 0;
                 
+                // Calculate total pallets
                 let totalPallets = 0;
-                if (currentQuote.items) {
-                    currentQuote.items.forEach(item => {
-                        const transport = item.transportationType1 || item.transportationType2;
-                        const boxesPerPallet = BOXES_PER_PALLET[transport] || 72;
-                        const itemBoxes = parseInt(item.actualBoxes) || 0;
-                        if (boxesPerPallet > 0) {
+                if (this.quote.items) {
+                    this.quote.items.forEach(item => {
+                        const selectedTransport = item.selectedTransportation;
+                        let boxesPerPallet = 0;
+                        
+                        if (selectedTransport === 1 && item.transportationType1) {
+                            boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || 0;
+                        } else if (selectedTransport === 2 && item.transportationType2) {
+                            boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || 0;
+                        }
+                        
+                        if (boxesPerPallet) {
+                            const itemBoxes = parseInt(item.boxes || item.actualBoxes || 0);
                             totalPallets += itemBoxes / boxesPerPallet;
                         }
                     });
@@ -1122,190 +1224,433 @@
                 document.getElementById('summaryBoxes').textContent = totalBoxes;
                 document.getElementById('summaryPallets').textContent = totalPallets.toFixed(2);
             },
-
-            renderProductionSite() {
-                const select = document.getElementById('productionSiteSelect');
-                if (select) {
-                    select.value = currentQuote.productionSite || '';
-                }
-            },
-
-            updateProductionSite() {
-                const select = document.getElementById('productionSiteSelect');
-                currentQuote.productionSite = select.value;
-                
-                // Show/hide general remarks based on selection
-                const remarksSection = document.getElementById('generalRemarksSection');
-                if (select.value) {
-                    remarksSection.style.display = 'block';
-                    document.getElementById('generalRemarksText').textContent = currentQuote.generalRemarks || 'No remarks';
-                } else {
-                    remarksSection.style.display = 'none';
-                }
-            },
-
+            
             renderItemsTable() {
                 const table = document.getElementById('itemsTable');
                 
-                if (!currentQuote.items || currentQuote.items.length === 0) {
+                if (!this.quote.items || this.quote.items.length === 0) {
                     table.innerHTML = '<tr><td colspan="27" style="text-align: center; padding: 40px;">No items found</td></tr>';
                     return;
                 }
                 
-                let html = `
+                // Build header without radio buttons
+                let headerHTML = `
                     <thead>
                         <tr>
-                            <th>Item #</th>
-                            <th>Grower</th>
-                            <th>Ship To</th>
-                            <th>Req. Delivery Date</th>
-                            <th>Est. Delivery Date</th>
-                            <th>Hook Type</th>
-                            <th>Hook Size</th>
-                            <th>Crop</th>
-                            <th>Twine Type</th>
-                            <th>Twine Color</th>
-                            <th>Twine on Hook (m)</th>
-                            <th>Free Fall (m)</th>
-                            <th>Total Twine (m)</th>
-                            <th>Units</th>
-                            <th>Units/Box</th>
-                            <th>Boxes</th>
-                            <th>PN</th>
-                            <th>Transportation Type 1</th>
-                            <th>Transportation Cost 1</th>
-                            <th>Transportation Type 2</th>
-                            <th>Transportation Cost 2</th>
-                            <th>Incoterms</th>
-                            <th>Currency</th>
-                            <th>Price for 1,000 units</th>
-                            <th>Last Price</th>
-                            <th>Boxes per Pallet</th>
-                            <th>Total Pallets</th>
+                            <th style="min-width: 60px;">Item #</th>
+                            <th style="min-width: 100px;">Grower</th>
+                            <th style="min-width: 100px;">Ship To</th>
+                            <th style="min-width: 120px;">Req. Delivery Date</th>
+                            <th style="min-width: 140px;">Est. Delivery Date</th>
+                            <th style="min-width: 90px;">Hook Type</th>
+                            <th style="min-width: 90px;">Hook Size</th>
+                            <th style="min-width: 90px;">Crop</th>
+                            <th style="min-width: 90px;">Twine Type</th>
+                            <th style="min-width: 140px;">Twine Color</th>
+                            <th style="min-width: 100px;">Twine on Hook (m)</th>
+                            <th style="min-width: 90px;">Free Fall (m)</th>
+                            <th style="min-width: 90px;">Total Twine (m)</th>
+                            <th style="min-width: 120px;">Units</th>
+                            <th style="min-width: 80px;">Units/Box</th>
+                            <th style="min-width: 70px;">Boxes</th>
+                            <th style="min-width: 250px;">PN</th>
+                            <th style="min-width: 180px;">Transportation Type 1</th>
+                            <th style="min-width: 130px;">Transportation Cost 1</th>
+                            <th style="min-width: 180px;">Transportation Type 2</th>
+                            <th style="min-width: 130px;">Transportation Cost 2</th>
+                            <th style="min-width: 130px;">Incoterms</th>
+                            <th style="min-width: 90px;">Currency</th>
+                            <th style="min-width: 130px;">Price for 1,000 units</th>
+                            <th style="min-width: 130px;">Last Price</th>
+                            <th style="min-width: 100px;">Boxes per Pallet</th>
+                            <th style="min-width: 100px;">Total Pallets</th>
                         </tr>
                     </thead>
-                    <tbody>
                 `;
                 
-                currentQuote.items.forEach((item, index) => {
-                    html += `
+                // Build rows
+                let bodyHTML = '<tbody>';
+                this.quote.items.forEach((item, index) => {
+                    const selectedTransport = item.selectedTransportation || null;
+                    const transport1Class = selectedTransport === 1 ? '' : (selectedTransport === 2 ? 'unselected' : '');
+                    const transport2Class = selectedTransport === 2 ? '' : (selectedTransport === 1 ? 'unselected' : '');
+                    
+                    // Calculate boxes per pallet
+                    let boxesPerPallet = '';
+                    let totalPallets = '';
+                    
+                    if (selectedTransport === 1 && item.transportationType1) {
+                        boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || '';
+                    } else if (selectedTransport === 2 && item.transportationType2) {
+                        boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || '';
+                    }
+                    
+                    if (boxesPerPallet && (item.boxes || item.actualBoxes)) {
+                        const boxes = parseInt(item.boxes || item.actualBoxes || 0);
+                        totalPallets = (boxes / parseInt(boxesPerPallet)).toFixed(2);
+                    }
+                    
+                    // Format twine color from colors array
+                    let twineColorDisplay = '';
+                    if (item.colors && Array.isArray(item.colors) && item.colors.length > 0) {
+                        // Check if it's a single color (only 1 item with quantity 1)
+                        if (item.colors.length === 1 && item.colors[0].quantity === 1) {
+                            // Single color: show only color name
+                            twineColorDisplay = item.colors[0].color;
+                        } else {
+                            // Sequence: show with quantities
+                            twineColorDisplay = item.colors.map(c => `${c.color}×${c.quantity}`).join(', ');
+                        }
+                    } else if (item.twineColor) {
+                        // If it's a single color string, show without quantity
+                        twineColorDisplay = item.twineColor;
+                    }
+                    
+                    // Format units with commas
+                    const unitsValue = item.units || item.actualUnits || '';
+                    const unitsFormatted = unitsValue ? parseInt(unitsValue).toLocaleString() : '';
+                    
+                    bodyHTML += `
                         <tr>
-                            <td class="locked-field">${index + 1}</td>
-                            <td class="locked-field">${item.grower || '-'}</td>
-                            <td class="locked-field">${item.shipTo || '-'}</td>
-                            <td class="locked-field">${formatDate(item.reqDate)}</td>
-                            <td class="locked-field">${formatDate(item.estimatedDeliveryDate)}</td>
-                            <td class="locked-field">${item.hookType || '-'}</td>
-                            <td class="locked-field">${item.hookSize || '-'}</td>
-                            <td class="locked-field">${item.crop || '-'}</td>
-                            <td class="locked-field">${item.twineType || '-'}</td>
-                            <td class="locked-field">${item.colors ? item.colors.map(c => c.color).join(', ') : '-'}</td>
-                            <td class="locked-field">${item.wireLength || '-'}</td>
-                            <td class="locked-field">${item.freeFallLength || '-'}</td>
-                            <td class="calculated-field">${item.totalWireLength || '-'}</td>
-                            <td class="locked-field">${item.quantity || item.actualUnits || '-'}</td>
-                            <td class="calculated-field">${item.unitsPerBox || '-'}</td>
-                            <td class="calculated-field">${item.actualBoxes || '-'}</td>
-                            <td class="locked-field">${item.pn || '-'}</td>
-                            <td class="locked-field">${item.transportationType1 || '-'}</td>
-                            <td class="locked-field">${item.transportationCost1 || '-'}</td>
-                            <td class="locked-field">${item.transportationType2 || '-'}</td>
-                            <td class="locked-field">${item.transportationCost2 || '-'}</td>
-                            <td class="locked-field">${item.incoterms || '-'}</td>
-                            <td class="locked-field">${item.currency || '-'}</td>
-                            <td class="locked-field">${item.pricePer1000 || '-'}</td>
-                            <td class="locked-field">${item.lastPrice || '-'}</td>
-                            <td class="calculated-field">-</td>
-                            <td class="calculated-field">-</td>
+                            <td class="cell-locked">${index + 1}</td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.grower || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'grower', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.shipTo || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'shipTo', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="date" value="${item.reqDate || item.reqDeliveryDate || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'reqDate', this.value)">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="date" value="${item.estimatedDeliveryDate || ''}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'estimatedDeliveryDate', this.value)">
+                            </td>
+                            <td class="cell-locked">${item.hookType || ''}</td>
+                            <td class="cell-locked">${item.hookSize || ''}</td>
+                            <td class="cell-locked">${item.crop || ''}</td>
+                            <td class="cell-locked">${item.twineType || ''}</td>
+                            <td class="cell-locked">${twineColorDisplay}</td>
+                            <td class="cell-locked">${item.wireLength || item.twineOnHook || ''}</td>
+                            <td class="cell-locked">${item.freeFallLength || item.freeFall || ''}</td>
+                            <td class="cell-locked">${item.totalLength || item.totalTwine || ''}</td>
+                            <td class="cell-editable">
+                                <input type="text" value="${unitsFormatted}" 
+                                    onchange="QuoteDetails.updateItem(${index}, 'units', this.value.replace(/,/g, ''))">
+                            </td>
+                            <td class="cell-locked">${item.unitsPerBox || ''}</td>
+                            <td class="cell-locked">${item.boxes || item.actualBoxes || ''}</td>
+                            <td class="cell-locked" style="font-family: monospace; font-weight: 600;">${item.pn || ''}</td>
+                            <td class="transport-cell cell-editable ${transport1Class}">
+                                <div class="transport-option">
+                                    <input type="radio" name="transport-${index}" value="1" 
+                                        class="transport-radio" data-item-index="${index}"
+                                        ${selectedTransport === 1 ? 'checked' : ''}
+                                        ${selectedTransport === 2 ? 'disabled' : ''}>
+                                    <select class="transport-select" 
+                                        onchange="QuoteDetails.updateItem(${index}, 'transportationType1', this.value)"
+                                        ${selectedTransport === 2 ? 'disabled' : ''}>
+                                        <option value="">Select...</option>
+                                        <option value="Container 40HC" ${item.transportationType1 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
+                                        <option value="Container 40HC Sterilized" ${item.transportationType1 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
+                                        <option value="Container 20HC" ${item.transportationType1 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
+                                        <option value="Truck (Europe)" ${item.transportationType1 === 'Truck (Europe)' ? 'selected' : ''}>Truck (Europe)</option>
+                                        <option value="Truck (Americas)" ${item.transportationType1 === 'Truck (Americas)' ? 'selected' : ''}>Truck (Americas)</option>
+                                        <option value="LCL" ${item.transportationType1 === 'LCL' ? 'selected' : ''}>LCL</option>
+                                        <option value="Air Freight" ${item.transportationType1 === 'Air Freight' ? 'selected' : ''}>Air Freight</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td class="transport-cell cell-editable ${transport1Class}">
+                                <input type="text" value="${item.transportationCost1 || ''}"
+                                    onchange="QuoteDetails.updateItem(${index}, 'transportationCost1', this.value)"
+                                    placeholder="Cost"
+                                    ${selectedTransport === 2 ? 'disabled' : ''}>
+                            </td>
+                            <td class="transport-cell cell-editable ${transport2Class}">
+                                <div class="transport-option">
+                                    <input type="radio" name="transport-${index}" value="2" 
+                                        class="transport-radio" data-item-index="${index}"
+                                        ${selectedTransport === 2 ? 'checked' : ''}
+                                        ${selectedTransport === 1 ? 'disabled' : ''}>
+                                    <select class="transport-select" 
+                                        onchange="QuoteDetails.updateItem(${index}, 'transportationType2', this.value)"
+                                        ${selectedTransport === 1 ? 'disabled' : ''}>
+                                        <option value="">Select...</option>
+                                        <option value="Container 40HC" ${item.transportationType2 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
+                                        <option value="Container 40HC Sterilized" ${item.transportationType2 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
+                                        <option value="Container 20HC" ${item.transportationType2 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
+                                        <option value="Truck (Europe)" ${item.transportationType2 === 'Truck (Europe)' ? 'selected' : ''}>Truck (Europe)</option>
+                                        <option value="Truck (Americas)" ${item.transportationType2 === 'Truck (Americas)' ? 'selected' : ''}>Truck (Americas)</option>
+                                        <option value="LCL" ${item.transportationType2 === 'LCL' ? 'selected' : ''}>LCL</option>
+                                        <option value="Air Freight" ${item.transportationType2 === 'Air Freight' ? 'selected' : ''}>Air Freight</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td class="transport-cell cell-editable ${transport2Class}">
+                                <input type="text" value="${item.transportationCost2 || ''}"
+                                    onchange="QuoteDetails.updateItem(${index}, 'transportationCost2', this.value)"
+                                    placeholder="Cost"
+                                    ${selectedTransport === 1 ? 'disabled' : ''}>
+                            </td>
+                            <td class="cell-editable">
+                                <select onchange="QuoteDetails.updateItem(${index}, 'incoterms', this.value)">
+                                    <option value="">Select...</option>
+                                    <option value="CIF" ${item.incoterms === 'CIF' ? 'selected' : ''}>CIF</option>
+                                    <option value="DDP" ${item.incoterms === 'DDP' ? 'selected' : ''}>DDP</option>
+                                    <option value="DAP" ${item.incoterms === 'DAP' ? 'selected' : ''}>DAP</option>
+                                    <option value="EXW" ${item.incoterms === 'EXW' ? 'selected' : ''}>EXW</option>
+                                </select>
+                            </td>
+                            <td class="cell-editable">
+                                <select onchange="QuoteDetails.updateItem(${index}, 'currency', this.value)">
+                                    <option value="">Select...</option>
+                                    <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
+                                    <option value="EUR" ${item.currency === 'EUR' ? 'selected' : ''}>EUR</option>
+                                    <option value="ILS" ${item.currency === 'ILS' ? 'selected' : ''}>ILS</option>
+                                    <option value="GBP" ${item.currency === 'GBP' ? 'selected' : ''}>GBP</option>
+                                </select>
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.pricePer1000 || ''}"
+                                    onchange="QuoteDetails.updateItem(${index}, 'pricePer1000', this.value)"
+                                    placeholder="Price">
+                            </td>
+                            <td class="cell-editable">
+                                <input type="text" value="${item.lastPrice || ''}"
+                                    onchange="QuoteDetails.updateItem(${index}, 'lastPrice', this.value)"
+                                    placeholder="Price">
+                            </td>
+                            <td class="cell-calculated">${boxesPerPallet}</td>
+                            <td class="cell-calculated">${totalPallets}</td>
                         </tr>
                     `;
                 });
+                bodyHTML += '</tbody>';
                 
-                html += '</tbody>';
-                table.innerHTML = html;
+                table.innerHTML = headerHTML + bodyHTML;
+                
+                // Setup radio button listeners
+                this.setupTransportationRadios();
             },
-
-            async approveQuote() {
+            
+            setupTransportationRadios() {
+                const radios = document.querySelectorAll('.transport-radio');
+                radios.forEach(radio => {
+                    radio.addEventListener('click', (e) => {
+                        const itemIndex = parseInt(e.target.dataset.itemIndex);
+                        const selectedOption = parseInt(e.target.value);
+                        const currentSelection = this.quote.items[itemIndex].selectedTransportation;
+                        
+                        // If clicking on already selected radio, deselect it
+                        if (currentSelection === selectedOption) {
+                            e.preventDefault();
+                            this.quote.items[itemIndex].selectedTransportation = null;
+                            App.saveCurrentQuote();
+                            
+                            // Re-render to update UI
+                            this.renderItemsTable();
+                            this.renderSummaryCards();
+                        } else {
+                            // Normal selection
+                            this.quote.items[itemIndex].selectedTransportation = selectedOption;
+                            App.saveCurrentQuote();
+                            
+                            // Re-render to update UI
+                            this.renderItemsTable();
+                            this.renderSummaryCards();
+                        }
+                    });
+                });
+            },
+            
+            updateItem(index, field, value) {
+                this.quote.items[index][field] = value;
+                
+                // Update related fields
+                if (field === 'units') {
+                    this.quote.items[index].actualUnits = value;
+                    
+                    // Check for round up (partial boxes)
+                    const item = this.quote.items[index];
+                    const qty = parseInt(value);
+                    const unitsPerBox = parseInt(item.unitsPerBox);
+                    
+                    if (qty && unitsPerBox && !isNaN(unitsPerBox) && item.unitsPerBox !== 'N/A') {
+                        const remainder = qty % unitsPerBox;
+                        if (remainder !== 0) {
+                            const boxesNeeded = Math.ceil(qty / unitsPerBox);
+                            const roundedQty = boxesNeeded * unitsPerBox;
+                            const difference = roundedQty - qty;
+                            
+                            // Show round up modal
+                            this.showRoundUpModal(index, qty, unitsPerBox, boxesNeeded, roundedQty, difference);
+                            return; // Stop here, modal will handle the update
+                        }
+                    }
+                } else if (field === 'boxes') {
+                    this.quote.items[index].actualBoxes = value;
+                }
+                
+                App.saveCurrentQuote();
+                
+                // If transportation type changed or boxes changed, recalculate
+                if (field === 'transportationType1' || field === 'transportationType2' || field === 'boxes' || field === 'units') {
+                    this.renderItemsTable();
+                    this.renderSummaryCards();
+                }
+            },
+            
+            updateProductionSite() {
                 const productionSite = document.getElementById('productionSiteSelect').value;
+                const remarksSection = document.getElementById('generalRemarksSection');
+                const remarksText = document.getElementById('generalRemarksText');
                 
+                // General Remarks content for each production site
+                const remarks = {
+                    'Israel': 'Production site from Israel is only for Turbo Hook for either 40HC or 20HC.',
+                    'Turkey': `Remarks to shipments from Turkey:
+1. The prices quoted are based on 40ft high containers with incoterms CIF or full truck to the requested distributor destination, or, to Paskal Spain, or, to Paskal Netherlands B.V.
+2. In the case of partial shipments, the prices will be based on incoterms EXW Turkey.
+3. Orders from Turkey can be either Turbo or Tail hooks.`,
+                    'Mexico': `Remarks to shipments from Mexico:
+1. Shipment via land by truck only.
+2. Orders from Mexico can be either Turbo or Tail hooks.
+3. Each order must be approved by Paskal, with a production and shipment schedule.
+4. For orders exceeding 100k units per season, advanced planning is required.`
+                };
+                
+                // Show/hide remarks based on production site
+                if (remarks[productionSite]) {
+                    remarksText.textContent = remarks[productionSite];
+                    remarksSection.style.display = 'block';
+                } else {
+                    remarksSection.style.display = 'none';
+                }
+            },
+            
+            approveQuote() {
+                // Validation: Production Site
+                const productionSite = document.getElementById('productionSiteSelect').value;
                 if (!productionSite) {
-                    alert('Please select a Production Site before approving!');
+                    alert('⚠️ Production Site is required!\n\nPlease select a production site before approving the quote.');
+                    document.getElementById('productionSiteSelect').focus();
                     return;
                 }
                 
-                if (!confirm('Approve this quote?')) {
+                // Validation: Transportation Selection
+                let allItemsHaveTransportation = true;
+                this.quote.items.forEach((item, index) => {
+                    if (!item.selectedTransportation) {
+                        allItemsHaveTransportation = false;
+                    }
+                });
+                
+                if (!allItemsHaveTransportation) {
+                    alert('⚠️ Transportation Selection Required!\n\nPlease select a transportation option (Type 1 or Type 2) for all items before approving.');
                     return;
                 }
                 
-                try {
-                    const { error } = await window.supabase
-                        .from('quotes')
-                        .update({
-                            status: 'Approved',
-                            production_site: productionSite,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentQuote.id);
-                    
-                    if (error) throw error;
-                    
-                    alert('Quote approved successfully!');
-                    App.showDashboard();
-                    
-                } catch (err) {
-                    console.error('Error approving quote:', err);
-                    alert('Error approving quote: ' + err.message);
+                // Confirm approval
+                if (!confirm('✅ Approve this quote?\n\nThis will update the status to "Approved" and notify the Sales Manager.')) {
+                    return;
                 }
+                
+                // Update status
+                this.quote.status = 'Approved';
+                this.quote.productionSite = productionSite;
+                this.quote.approvedDate = new Date().toISOString().split('T')[0];
+                
+                App.saveCurrentQuote();
+                
+                alert('✅ Quote Approved Successfully!\n\nThe Sales Manager has been notified.');
+                App.showDashboard();
             },
-
+            
             rejectQuote() {
-                document.getElementById('rejectModal').classList.add('show');
+                document.getElementById('rejectModal').classList.add('active');
             },
-
+            
             closeRejectModal() {
-                document.getElementById('rejectModal').classList.remove('show');
+                document.getElementById('rejectModal').classList.remove('active');
                 document.getElementById('rejectionReason').value = '';
             },
-
-            async confirmReject() {
+            
+            confirmReject() {
                 const reason = document.getElementById('rejectionReason').value.trim();
                 
                 if (!reason) {
-                    alert('Please provide a reason for rejection!');
+                    alert('⚠️ Rejection reason is required!\n\nPlease provide a detailed reason for rejecting this quote.');
                     return;
                 }
                 
-                try {
-                    const { error } = await window.supabase
-                        .from('quotes')
-                        .update({
-                            status: 'Rejected',
-                            rejection_reason: reason,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentQuote.id);
+                // Update status
+                this.quote.status = 'Rejected';
+                this.quote.rejectionReason = reason;
+                this.quote.rejectedDate = new Date().toISOString().split('T')[0];
+                
+                App.saveCurrentQuote();
+                
+                this.closeRejectModal();
+                alert('❌ Quote Rejected\n\nThe Sales Manager has been notified with your feedback.');
+                App.showDashboard();
+            },
+            
+            showRoundUpModal(index, originalQty, unitsPerBox, boxes, roundedQty, difference) {
+                const modal = document.getElementById('roundUpModal');
+                const body = document.getElementById('roundUpModalBody');
+                
+                body.innerHTML = `
+                    <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="margin: 5px 0;"><strong>You entered:</strong> ${originalQty.toLocaleString()} units</p>
+                        <p style="margin: 5px 0;"><strong>Units per box:</strong> ${unitsPerBox}</p>
+                        <p style="margin: 5px 0;"><strong>This equals:</strong> ${(originalQty / unitsPerBox).toFixed(2)} boxes</p>
+                    </div>
                     
-                    if (error) throw error;
+                    <p style="color: #dc2626; font-size: 1rem; margin-bottom: 20px; font-weight: 600; background: #fee2e2; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+                        ⚠️ We cannot ship partial boxes. Your quantity will be automatically rounded up to full boxes.
+                    </p>
                     
-                    this.closeRejectModal();
-                    alert('Quote rejected.');
-                    App.showDashboard();
+                    <div style="background: #dcfce7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #16a34a;">
+                        <p style="margin: 5px 0;"><strong>${boxes} boxes</strong> = ${roundedQty.toLocaleString()} units</p>
+                        <p style="margin: 5px 0; color: #16a34a;">(+${difference} units)</p>
+                    </div>
                     
-                } catch (err) {
-                    console.error('Error rejecting quote:', err);
-                    alert('Error rejecting quote: ' + err.message);
+                    <button class="btn btn-primary" onclick="QuoteDetails.applyRoundUp(${index}, ${roundedQty})" style="width: 60%; margin: 0 auto; display: block;">
+                        ✓ Round Up to ${roundedQty.toLocaleString()} units
+                    </button>
+                `;
+                
+                modal.classList.add('active');
+            },
+            
+            applyRoundUp(index, roundedQty) {
+                if (this.quote && this.quote.items && this.quote.items[index]) {
+                    this.quote.items[index].units = roundedQty;
+                    this.quote.items[index].actualUnits = roundedQty;
+                    
+                    // Recalculate boxes
+                    const unitsPerBox = parseInt(this.quote.items[index].unitsPerBox);
+                    if (unitsPerBox && !isNaN(unitsPerBox)) {
+                        this.quote.items[index].actualBoxes = Math.ceil(roundedQty / unitsPerBox);
+                        this.quote.items[index].boxes = this.quote.items[index].actualBoxes;
+                    }
                 }
+                
+                document.getElementById('roundUpModal').classList.remove('active');
+                this.renderItemsTable();
+                this.renderSummaryCards();
+                App.saveCurrentQuote();
             }
         };
 
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        window.addEventListener('DOMContentLoaded', async () => {
-            const authenticated = await checkAuth();
-            if (authenticated) {
-                await loadQuotes();
-            }
+        // ===== INITIALIZATION =====
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
         });
     </script>
 </body>
