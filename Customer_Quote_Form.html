@@ -2148,7 +2148,8 @@ const QuoteUI = {
             summary: {
                 totalItems: QuoteData.items.length,
                 totalUnits: QuoteData.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0),
-                totalBoxes: QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0)
+                totalBoxes: QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0),
+                totalWeight: QuoteData.items.reduce((sum, item) => sum + (item.weight || 0), 0)
             },
             status: 'Pending'
         };
