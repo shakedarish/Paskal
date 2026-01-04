@@ -110,6 +110,28 @@
             font-weight: 600;
             color: var(--paskal-green);
         }
+        
+        .user-info-box {
+            text-align: right;
+            margin-right: 15px;
+        }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
 
         .back-to-dashboard-btn {
             display: inline-block;
@@ -724,11 +746,14 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="user-info">Logged in as:</div>
-                <div class="user-name">VP Sales</div>
                 <button class="back-to-dashboard-btn" id="headerBackBtn" style="display: none;" onclick="App.showDashboard()">
                     ← Back to Dashboard
                 </button>
+                <div class="user-info-box">
+                    <div class="user-info">Logged in as:</div>
+                    <div class="user-name" id="userName">Loading...</div>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
             </div>
         </div>
 
@@ -910,6 +935,157 @@
     </div>
 
     <script>
+        // ============================================
+        // AUTHENTICATION & GLOBAL STATE
+        // ============================================
+        let currentUser = null;
+        let currentProfile = null;
+        let currentQuote = null;
+
+        async function checkAuth() {
+            if (sessionStorage.getItem('checking_auth') === 'true') {
+                return false;
+            }
+            
+            sessionStorage.setItem('checking_auth', 'true');
+            
+            try {
+                const { data: { session } } = await window.supabase.auth.getSession();
+                
+                if (!session) {
+                    sessionStorage.removeItem('checking_auth');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                currentUser = session.user;
+                
+                const { data: profile, error } = await window.supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (error || !profile) {
+                    console.error('Profile error:', error);
+                    sessionStorage.removeItem('checking_auth');
+                    alert('Error loading profile');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                if (profile.role !== 'vp') {
+                    console.log('Wrong role:', profile.role);
+                    sessionStorage.removeItem('checking_auth');
+                    alert('Access denied. VP role required.');
+                    await window.supabase.auth.signOut();
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                currentProfile = profile;
+                
+                const nameDisplay = document.getElementById('userName');
+                if (nameDisplay) {
+                    nameDisplay.textContent = profile.name || profile.email || 'VP Sales';
+                }
+                
+                sessionStorage.removeItem('checking_auth');
+                return true;
+                
+            } catch (err) {
+                console.error('Auth error:', err);
+                sessionStorage.removeItem('checking_auth');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        async function handleLogout() {
+            if (sessionStorage.getItem('logging_out') === 'true') {
+                return;
+            }
+            
+            sessionStorage.setItem('logging_out', 'true');
+            
+            try {
+                await window.supabase.auth.signOut();
+                sessionStorage.removeItem('logging_out');
+                sessionStorage.removeItem('checking_auth');
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error('Logout error:', err);
+                sessionStorage.removeItem('logging_out');
+                sessionStorage.removeItem('checking_auth');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // ============================================
+        // LOAD QUOTES FROM SUPABASE
+        // ============================================
+        async function loadAllQuotes() {
+            try {
+                console.log('Loading quotes from Supabase...');
+                
+                const { data: quotes, error: quotesError } = await window.supabase
+                    .from('quotes')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (quotesError) throw quotesError;
+                
+                if (!quotes || quotes.length === 0) {
+                    console.log('No quotes found');
+                    return [];
+                }
+                
+                console.log('✓ Loaded', quotes.length, 'quotes');
+                
+                // Load customer profiles
+                const customerIds = [...new Set(quotes.map(q => q.customer_id).filter(Boolean))];
+                
+                const { data: profiles, error: profilesError } = await window.supabase
+                    .from('profiles')
+                    .select('id, email, name, company_name, country')
+                    .in('id', customerIds);
+                
+                if (profilesError) {
+                    console.error('Error loading profiles:', profilesError);
+                }
+                
+                const profilesMap = {};
+                if (profiles) {
+                    profiles.forEach(p => {
+                        profilesMap[p.id] = p;
+                    });
+                }
+                
+                // Map to quote format
+                return quotes.map(dbQuote => ({
+                    id: dbQuote.id,
+                    customerName: profilesMap[dbQuote.customer_id]?.name || dbQuote.customer_name || 'Unknown',
+                    company: dbQuote.company_name || profilesMap[dbQuote.customer_id]?.company_name || 'N/A',
+                    dateCreated: dbQuote.created_at?.split('T')[0] || '',
+                    reqDeliveryDate: dbQuote.req_delivery_date || 'N/A',
+                    totalItems: dbQuote.total_items || 0,
+                    totalUnits: dbQuote.total_units || 0,
+                    totalBoxes: dbQuote.total_boxes || 0,
+                    totalWeight: dbQuote.total_weight || 0,
+                    status: dbQuote.status || 'Pending',
+                    items: dbQuote.items || [],
+                    productionSite: dbQuote.production_site || '',
+                    generalRemarks: dbQuote.general_remarks || '',
+                    rejectionReason: dbQuote.rejection_reason || '',
+                    _dbData: dbQuote
+                }));
+                
+            } catch (err) {
+                console.error('Error loading quotes:', err);
+                return [];
+            }
+        }
+
         // ===== DATA STRUCTURES =====
         
         // Boxes per pallet mapping based on transportation type
@@ -928,8 +1104,8 @@
         const App = {
             currentQuote: null,
             
-            init() {
-                this.showDashboard();
+            async init() {
+                await this.showDashboard();
                 this.setupEventListeners();
             },
             
@@ -946,7 +1122,7 @@
                 }
             },
             
-            showDashboard() {
+            async showDashboard() {
                 document.getElementById('dashboardView').classList.add('active');
                 document.getElementById('detailsView').classList.remove('active');
                 
@@ -954,7 +1130,7 @@
                 const backBtn = document.getElementById('headerBackBtn');
                 if (backBtn) backBtn.style.display = 'none';
                 
-                Dashboard.render();
+                await Dashboard.render();
             },
             
             showQuoteDetails(quoteId) {
@@ -987,14 +1163,14 @@
             quotes: [],
             filteredQuotes: [],
             
-            render() {
-                this.loadQuotes();
+            async render() {
+                await this.loadQuotes();
                 this.updateStatistics();
                 this.applyFilters();
             },
             
-            loadQuotes() {
-                this.quotes = App.getAllQuotes();
+            async loadQuotes() {
+                this.quotes = await loadAllQuotes();
             },
             
             updateStatistics() {
@@ -1649,8 +1825,11 @@
 
         // ===== INITIALIZATION =====
         
-        document.addEventListener('DOMContentLoaded', () => {
-            App.init();
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authenticated = await checkAuth();
+            if (authenticated) {
+                await App.init();
+            }
         });
     </script>
 </body>
