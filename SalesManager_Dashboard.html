@@ -236,10 +236,19 @@ let allQuotes = [];
 
 // Authentication check
 async function checkAuth() {
+    // מנע multiple checks במקביל
+    if (sessionStorage.getItem('checking_auth') === 'true') {
+        console.log('Auth check already in progress');
+        return false;
+    }
+    
+    sessionStorage.setItem('checking_auth', 'true');
+    
     try {
         const { data: { session } } = await window.supabase.auth.getSession();
         
         if (!session) {
+            sessionStorage.removeItem('checking_auth');
             window.location.href = 'index.html';
             return false;
         }
@@ -254,12 +263,16 @@ async function checkAuth() {
             .single();
         
         if (error || !profile) {
+            console.error('Profile error:', error);
+            sessionStorage.removeItem('checking_auth');
             alert('Error loading profile');
             window.location.href = 'index.html';
             return false;
         }
         
         if (profile.role !== 'sales_manager') {
+            console.log('Wrong role:', profile.role);
+            sessionStorage.removeItem('checking_auth');
             alert('Access denied. Sales managers only.');
             await window.supabase.auth.signOut();
             window.location.href = 'index.html';
@@ -269,9 +282,11 @@ async function checkAuth() {
         currentProfile = profile;
         document.getElementById('userName').textContent = profile.name || session.user.email;
         
+        sessionStorage.removeItem('checking_auth');
         return true;
     } catch (err) {
         console.error('Auth error:', err);
+        sessionStorage.removeItem('checking_auth');
         window.location.href = 'index.html';
         return false;
     }
@@ -279,7 +294,24 @@ async function checkAuth() {
 
 // Logout handler
 async function handleLogout() {
-    await logout();
+    if (sessionStorage.getItem('logging_out') === 'true') {
+        console.log('Logout already in progress');
+        return;
+    }
+    
+    console.log('Starting logout...');
+    sessionStorage.setItem('logging_out', 'true');
+    
+    try {
+        await logout(); // from supabase-config.js
+        sessionStorage.removeItem('logging_out');
+        sessionStorage.removeItem('checking_auth'); // נקה גם auth flag
+    } catch (err) {
+        console.error('Logout exception:', err);
+        sessionStorage.removeItem('logging_out');
+        sessionStorage.removeItem('checking_auth');
+        window.location.href = 'login.html';
+    }
 }
 
 // Load quotes assigned to this sales manager
