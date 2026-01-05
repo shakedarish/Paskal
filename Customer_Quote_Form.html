@@ -2602,18 +2602,37 @@ const QuoteUI = {
                 req_delivery_date: firstItem?.reqDate || null
             };
             
-            // Insert to Supabase
-            const { data, error } = await window.supabase
-                .from('quotes')
-                .insert([supabaseData]);
+            // Save to Supabase - UPDATE if editing, INSERT if new
+            let data, error;
+            
+            if (this.editingQuoteId) {
+                // EDIT MODE: Update existing quote
+                const result = await window.supabase
+                    .from('quotes')
+                    .update(supabaseData)
+                    .eq('id', quoteId);
+                
+                data = result.data;
+                error = result.error;
+                
+                console.log('✅ Quote updated in Supabase:', quoteId);
+            } else {
+                // NEW MODE: Insert new quote
+                const result = await window.supabase
+                    .from('quotes')
+                    .insert([supabaseData]);
+                
+                data = result.data;
+                error = result.error;
+                
+                console.log('✅ Quote saved to Supabase:', quoteId);
+            }
             
             if (error) {
                 console.error('Error saving to Supabase:', error);
                 this.showAlert('Error saving quote to database: ' + error.message, 'error');
                 return;
             }
-            
-            console.log('✅ Quote saved to Supabase:', quoteId);
             
             // Also save to localStorage for backward compatibility
             if (this.editingQuoteId) {
