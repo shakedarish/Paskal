@@ -845,7 +845,7 @@
             </div>
             <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
                 <span id="userName" style="font-size: 1rem; font-weight: 500; color: white;"></span>
-                <button onclick="logout()" style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.95rem; transition: background 0.2s;">
+                <button onclick="logout()" style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.95rem;">
                     Logout
                 </button>
             </div>
@@ -3784,12 +3784,13 @@ Best regards`;
 
 window.QuoteUI = QuoteUI;
 
-// Initialize on load - with authentication check
+// Initialize on load
+// Initialize on load with auth check
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Check authentication and role
+        // Check authentication
         const result = await requireRole(['customer']);
-        if (!result) return; // redirected to login
+        if (!result) return;
         
         const { user, profile } = result;
         
@@ -3800,16 +3801,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             nameDisplay.textContent = displayName;
         }
         
-        // Store user info for later use
+        // Store globally for loadOrders
         window.currentUser = user;
         window.currentProfile = profile;
         
-        // Initialize UI
+        // Initialize UI (original code)
         QuoteUI.init();
         
     } catch (error) {
-        console.error('Initialization error:', error);
-        alert('Error loading page. Please refresh or contact support.');
+        console.error('Init error:', error);
     }
 });
 
@@ -4177,25 +4177,23 @@ const OrdersManager = {
         try {
             const container = document.getElementById('ordersTableContainer');
             
-            // Show loading state
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>⏳ Loading your orders...</h3>
-                </div>
-            `;
-            
-            // Get current user
+            // Check user
             if (!window.currentUser) {
                 console.error('No current user');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>❌ Not logged in</h3>
+                        <p>Please refresh the page</p>
+                    </div>
+                `;
                 return;
             }
             
-            // Load quotes from Supabase for this customer only
-            const { data: quotes, error } = await window.supabase
+            // Load from Supabase
+            const { data: dbQuotes, error } = await window.supabase
                 .from('quotes')
                 .select('*')
-                .eq('customer_id', window.currentUser.id)
-                .order('created_at', { ascending: false });
+                .eq('customer_id', window.currentUser.id);
             
             if (error) {
                 console.error('Error loading quotes:', error);
@@ -4203,15 +4201,26 @@ const OrdersManager = {
                     <div class="empty-state">
                         <h3>❌ Error Loading Orders</h3>
                         <p>${error.message}</p>
-                        <button class="btn btn-primary" onclick="OrdersManager.loadOrders()" style="margin-top: 20px;">
-                            🔄 Retry
-                        </button>
                     </div>
                 `;
                 return;
             }
             
-            if (!quotes || quotes.length === 0) {
+            // Map Supabase format to QuoteStorage format
+            const quotes = (dbQuotes || []).map(dbQuote => ({
+                id: dbQuote.id,
+                dateCreated: dbQuote.created_at || dbQuote.updated_at,
+                status: dbQuote.status || 'Pending',
+                summary: {
+                    totalItems: dbQuote.total_items || 0,
+                    totalUnits: dbQuote.total_units || 0,
+                    totalBoxes: dbQuote.total_boxes || 0
+                },
+                items: dbQuote.items || []
+            }));
+            
+            // Rest of original code stays the same
+            if (quotes.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <h3>📭 No Orders Yet</h3>
@@ -4224,18 +4233,8 @@ const OrdersManager = {
                 return;
             }
             
-            // Map Supabase quotes to local format
-            const mappedQuotes = quotes.map(dbQuote => ({
-                id: dbQuote.id,
-                dateCreated: dbQuote.created_at || dbQuote.updated_at,
-                status: dbQuote.status || 'Pending',
-                summary: {
-                    totalItems: dbQuote.total_items || 0,
-                    totalUnits: dbQuote.total_units || 0,
-                    totalBoxes: dbQuote.total_boxes || 0
-                },
-                items: dbQuote.items || []
-            }));
+            // Sort by date (newest first)
+            quotes.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
             
             let html = `
                 <table class="orders-table">
@@ -4253,7 +4252,7 @@ const OrdersManager = {
                     <tbody>
             `;
             
-            mappedQuotes.forEach(quote => {
+            quotes.forEach(quote => {
                 const statusClass = `status-${(quote.status || 'pending').toLowerCase()}`;
                 const quoteAge = this.getQuoteAge(quote);
                 
@@ -4312,36 +4311,11 @@ const OrdersManager = {
             const container = document.getElementById('ordersTableContainer');
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>❌ Error Loading Orders</h3>
-                    <p>Please refresh the page or contact support</p>
+                    <h3>❌ Error</h3>
+                    <p>Please refresh or contact support</p>
                 </div>
             `;
         }
-    },
-                        </button>
-                        <button class="action-btn" onclick="(async () => await OrdersManager.downloadQuote('${quote.id}'))()" title="Download Excel">
-                            📥
-                        </button>
-                        <button class="action-btn" ${canEdit ? '' : 'disabled'} onclick="OrdersManager.editQuote('${quote.id}')" title="${editTooltip}">
-                            ✏️
-                        </button>
-                        <button class="action-btn" ${canDuplicate ? '' : 'disabled'} onclick="OrdersManager.duplicateQuote('${quote.id}')" title="${duplicateTooltip}">
-                            📋
-                        </button>
-                        <button class="action-btn" ${canDelete ? '' : 'disabled'} onclick="OrdersManager.deleteQuote('${quote.id}')" title="Delete">
-                            🗑
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                </tbody>
-            </table>
-        `;
-        
-        container.innerHTML = html;
     },
     
     refreshOrders() {
