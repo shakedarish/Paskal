@@ -815,6 +815,10 @@
     <!-- ExcelJS - Full formatting support! -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -838,6 +842,12 @@
             <div class="header-text">
                 <h1>Customer Quote Request Form</h1>
                 <p>Fill out your metal hooks requirements</p>
+            </div>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+                <span id="userName" style="font-size: 1rem; font-weight: 500; color: white;"></span>
+                <button onclick="logout()" style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.95rem; transition: background 0.2s;">
+                    Logout
+                </button>
             </div>
         </div>
         
@@ -3774,8 +3784,34 @@ Best regards`;
 
 window.QuoteUI = QuoteUI;
 
-// Initialize on load
-document.addEventListener('DOMContentLoaded', () => QuoteUI.init());
+// Initialize on load - with authentication check
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Check authentication and role
+        const result = await requireRole(['customer']);
+        if (!result) return; // redirected to login
+        
+        const { user, profile } = result;
+        
+        // Display user name
+        const nameDisplay = document.getElementById('userName');
+        if (nameDisplay && profile) {
+            const displayName = profile.name && profile.name.trim() !== '' ? profile.name : profile.email;
+            nameDisplay.textContent = displayName;
+        }
+        
+        // Store user info for later use
+        window.currentUser = user;
+        window.currentProfile = profile;
+        
+        // Initialize UI
+        QuoteUI.init();
+        
+    } catch (error) {
+        console.error('Initialization error:', error);
+        alert('Error loading page. Please refresh or contact support.');
+    }
+});
 
 // ============================================
 // QUOTE STORAGE - localStorage management
@@ -4137,71 +4173,151 @@ const OrdersManager = {
         return diffDays;
     },
     
-    loadOrders() {
-        const quotes = QuoteStorage.getAllQuotes();
-        const container = document.getElementById('ordersTableContainer');
-        
-        if (quotes.length === 0) {
+    async loadOrders() {
+        try {
+            const container = document.getElementById('ordersTableContainer');
+            
+            // Show loading state
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>📭 No Orders Yet</h3>
-                    <p>Create your first quote to see it here!</p>
-                    <button class="btn btn-primary" onclick="TabManager.switchTab('create')" style="margin-top: 20px;">
-                        📝 Create Quote
-                    </button>
+                    <h3>⏳ Loading your orders...</h3>
                 </div>
             `;
-            return;
-        }
-        
-        // Sort by date (newest first)
-        quotes.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
-        
-        let html = `
-            <table class="orders-table">
-                <thead>
+            
+            // Get current user
+            if (!window.currentUser) {
+                console.error('No current user');
+                return;
+            }
+            
+            // Load quotes from Supabase for this customer only
+            const { data: quotes, error } = await window.supabase
+                .from('quotes')
+                .select('*')
+                .eq('customer_id', window.currentUser.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading quotes:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>❌ Error Loading Orders</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="OrdersManager.loadOrders()" style="margin-top: 20px;">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (!quotes || quotes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 No Orders Yet</h3>
+                        <p>Create your first quote to see it here!</p>
+                        <button class="btn btn-primary" onclick="TabManager.switchTab('create')" style="margin-top: 20px;">
+                            📝 Create Quote
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Map Supabase quotes to local format
+            const mappedQuotes = quotes.map(dbQuote => ({
+                id: dbQuote.id,
+                dateCreated: dbQuote.created_at || dbQuote.updated_at,
+                status: dbQuote.status || 'Pending',
+                summary: {
+                    totalItems: dbQuote.total_items || 0,
+                    totalUnits: dbQuote.total_units || 0,
+                    totalBoxes: dbQuote.total_boxes || 0
+                },
+                items: dbQuote.items || []
+            }));
+            
+            let html = `
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Quote ID</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Units</th>
+                            <th>Boxes</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            mappedQuotes.forEach(quote => {
+                const statusClass = `status-${(quote.status || 'pending').toLowerCase()}`;
+                const quoteAge = this.getQuoteAge(quote);
+                
+                // Edit restrictions: only within 14 days
+                const withinEditWindow = quoteAge <= 14;
+                const canEdit = withinEditWindow && (quote.status === 'Pending' || quote.status === 'Rejected' || quote.status === 'Draft');
+                
+                // Duplicate: always available for Pending/Approved, OR if quote is older than 14 days
+                const canDuplicate = quote.status === 'Pending' || quote.status === 'Approved' || !withinEditWindow;
+                
+                const canDelete = quote.status === 'Pending' || quote.status === 'Rejected' || quote.status === 'Draft';
+                
+                // Age indicator for tooltips
+                const ageText = quoteAge === 0 ? 'Today' : quoteAge === 1 ? '1 day old' : `${quoteAge} days old`;
+                const editTooltip = withinEditWindow ? 'Edit' : `Edit disabled (${ageText}, >14 days)`;
+                const duplicateTooltip = !withinEditWindow ? `Duplicate (Edit locked after 14 days)` : 'Duplicate';
+                
+                html += `
                     <tr>
-                        <th>Quote ID</th>
-                        <th>Date</th>
-                        <th>Items</th>
-                        <th>Units</th>
-                        <th>Boxes</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <td><strong>${quote.id}</strong></td>
+                        <td>${new Date(quote.dateCreated).toLocaleDateString()}</td>
+                        <td>${quote.summary?.totalItems || 0}</td>
+                        <td>${quote.summary?.totalUnits?.toLocaleString() || 0}</td>
+                        <td>${quote.summary?.totalBoxes || 0}</td>
+                        <td><span class="status-badge ${statusClass}">${quote.status || 'Pending'}</span></td>
+                        <td style="white-space: nowrap; min-width: 400px;">
+                            <button class="action-btn" onclick="OrdersManager.viewDetails('${quote.id}')" title="View Details">
+                                👁
+                            </button>
+                            <button class="action-btn" onclick="(async () => await OrdersManager.downloadQuote('${quote.id}'))()" title="Download Excel">
+                                📥
+                            </button>
+                            <button class="action-btn" ${canEdit ? '' : 'disabled'} onclick="OrdersManager.editQuote('${quote.id}')" title="${editTooltip}">
+                                ✏️
+                            </button>
+                            <button class="action-btn" ${canDuplicate ? '' : 'disabled'} onclick="OrdersManager.duplicateQuote('${quote.id}')" title="${duplicateTooltip}">
+                                📋
+                            </button>
+                            <button class="action-btn" ${canDelete ? '' : 'disabled'} onclick="OrdersManager.deleteQuote('${quote.id}')" title="Delete">
+                                🗑
+                            </button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        quotes.forEach(quote => {
-            const statusClass = `status-${(quote.status || 'pending').toLowerCase()}`;
-            const quoteAge = this.getQuoteAge(quote);
-            
-            // Edit restrictions: only within 14 days
-            const withinEditWindow = quoteAge <= 14;
-            const canEdit = withinEditWindow && (quote.status === 'Pending' || quote.status === 'Rejected' || quote.status === 'Draft');
-            
-            // Duplicate: always available for Pending/Approved, OR if quote is older than 14 days
-            const canDuplicate = quote.status === 'Pending' || quote.status === 'Approved' || !withinEditWindow;
-            
-            const canDelete = quote.status === 'Pending' || quote.status === 'Rejected' || quote.status === 'Draft';
-            
-            // Age indicator for tooltips
-            const ageText = quoteAge === 0 ? 'Today' : quoteAge === 1 ? '1 day old' : `${quoteAge} days old`;
-            const editTooltip = withinEditWindow ? 'Edit' : `Edit disabled (${ageText}, >14 days)`;
-            const duplicateTooltip = !withinEditWindow ? `Duplicate (Edit locked after 14 days)` : 'Duplicate';
+                `;
+            });
             
             html += `
-                <tr>
-                    <td><strong>${quote.id}</strong></td>
-                    <td>${new Date(quote.dateCreated).toLocaleDateString()}</td>
-                    <td>${quote.summary?.totalItems || 0}</td>
-                    <td>${quote.summary?.totalUnits?.toLocaleString() || 0}</td>
-                    <td>${quote.summary?.totalBoxes || 0}</td>
-                    <td><span class="status-badge ${statusClass}">${quote.status || 'Pending'}</span></td>
-                    <td style="white-space: nowrap; min-width: 400px;">
-                        <button class="action-btn" onclick="OrdersManager.viewDetails('${quote.id}')" title="View Details">
-                            👁
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Error in loadOrders:', error);
+            const container = document.getElementById('ordersTableContainer');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>❌ Error Loading Orders</h3>
+                    <p>Please refresh the page or contact support</p>
+                </div>
+            `;
+        }
+    },
                         </button>
                         <button class="action-btn" onclick="(async () => await OrdersManager.downloadQuote('${quote.id}'))()" title="Download Excel">
                             📥
