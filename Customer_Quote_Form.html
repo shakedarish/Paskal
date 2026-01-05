@@ -38,28 +38,29 @@
             background: var(--paskal-navy);
             color: white;
             padding: 25px 40px;
-            border-radius: 15px 15px 0 0;
+            border-radius: 15px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 30px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
         }
 
         .logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px 20px;
+            padding: 15px 30px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            min-width: 180px;
-            min-height: 60px;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #3CB44B;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 200px;
+            min-height: 70px;
+        }
+        
+        .logo img {
+            height: 55px;
+            width: auto;
         }
 
         .header-text h1 {
@@ -75,7 +76,7 @@
         /* Main Card */
         .main-card {
             background: white;
-            border-radius: 0 0 15px 15px;
+            border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
@@ -218,6 +219,120 @@
             background: #fff7ed;
         }
 
+        /* Duplicate Preview - Blue highlight */
+        .quote-table tbody tr.duplicate-preview {
+            background: #bfdbfe !important;  /* Stronger blue */
+            border: none !important;
+            box-shadow: inset 0 0 0 2px #3b82f6;  /* Inner border */
+            transition: all 0.3s ease;
+        }
+        
+        .quote-table tbody tr.duplicate-preview td {
+            background: transparent !important;  /* Ensure cells don't override */
+        }
+        
+        .quote-table tbody tr.duplicate-preview .cell-calculated,
+        .quote-table tbody tr.duplicate-preview input,
+        .quote-table tbody tr.duplicate-preview select {
+            background: transparent !important;  /* Override all backgrounds */
+        }
+
+        /* Duplicated rows - Yellow highlight */
+        .quote-table tbody tr.duplicate-highlight {
+            background: #fde68a !important;  /* Stronger yellow */
+            border: none !important;
+            box-shadow: inset 0 0 0 2px #f59e0b;  /* Inner border */
+            animation: pulse-yellow 1s ease-in-out 3;
+        }
+        
+        .quote-table tbody tr.duplicate-highlight td {
+            background: transparent !important;  /* Ensure cells don't override */
+        }
+        
+        .quote-table tbody tr.duplicate-highlight .cell-calculated,
+        .quote-table tbody tr.duplicate-highlight input,
+        .quote-table tbody tr.duplicate-highlight select {
+            background: transparent !important;  /* Override all backgrounds */
+        }
+
+        @keyframes pulse-yellow {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: inset 0 0 0 2px #f59e0b, 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+            50% {
+                transform: scale(1.01);
+                box-shadow: inset 0 0 0 2px #f59e0b, 0 0 0 8px rgba(245, 158, 11, 0);
+            }
+        }
+
+        /* Selection Mode Sticky Banner */
+        .selection-banner {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #e0f2fe;
+            border: 2px solid #0284c7;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .selection-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .selection-banner-icon {
+            font-size: 1.5rem;
+            color: #0284c7;
+        }
+
+        .selection-banner-text {
+            color: #0c4a6e;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .selection-banner-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #0284c7;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .selection-banner-close:hover {
+            background: #bae6fd;
+            color: #0c4a6e;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Cell Inputs */
         .cell-input,
         .cell-select {
@@ -239,6 +354,15 @@
         input[type="date"].cell-input::-webkit-calendar-picker-indicator {
             cursor: pointer;
             font-size: 1.1rem;
+        }
+        
+        /* Date display input with calendar icon */
+        .date-display-input {
+            padding-right: 35px !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2332AF46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 18px 18px;
         }
         
         /* Center select text for color dropdowns */
@@ -642,6 +766,11 @@
             color: #92400e;
         }
         
+        .status-draft {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
         .status-approved {
             background: #d1fae5;
             color: #065f46;
@@ -681,40 +810,11 @@
             margin-bottom: 10px;
         }
 
-
-        /* Header Right & Logout Button */
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .btn-logout {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .btn-logout:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-        }
-
-    </style>
+</style>
     <!-- SheetJS for Excel generation -->
     <!-- ExcelJS - Full formatting support! -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Supabase Integration -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -722,7 +822,7 @@
         <div class="tabs-container">
             <div class="tabs">
                 <button class="tab active" onclick="TabManager.switchTab('create')">
-                    📝 Create Quote
+                    📝 Create New Quote
                 </button>
                 <button class="tab" onclick="TabManager.switchTab('orders')">
                     📋 My Orders
@@ -730,22 +830,19 @@
             </div>
         </div>
         
-        <!-- Tab Content: Create Quote -->
-        <div id="createTab" class="tab-content active">
+        <!-- Logo Header - Fixed at top -->
         <div class="header">
             <div class="logo">
-                <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal" style="height: 45px; width: auto;">
+                <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal Logo" style="height: 55px; width: auto; display: block;">
             </div>
             <div class="header-text">
                 <h1>Customer Quote Request Form</h1>
-                <p>Module 1 - Fill your metal hooks requirements</p>
-            </div>
-            <div class="header-right">
-                <span id="userNameDisplay" style="color: white; margin-right: 15px; font-weight: 500;">Loading...</span>
-                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+                <p>Fill out your metal hooks requirements</p>
             </div>
         </div>
-
+        
+        <!-- Tab Content: Create Quote -->
+        <div id="createTab" class="tab-content active">
         <div class="main-card">
             <div id="alertBox" class="alert"></div>
 
@@ -756,9 +853,12 @@
                 </div>
             </div>
             
-            <div style="margin-top: 20px; margin-left: 10px;">
+            <div style="margin-top: 20px; margin-left: 10px; display: flex; gap: 15px;">
                 <button class="btn btn-success" onclick="QuoteUI.addRow()" style="padding: 12px 35px; font-size: 1rem;">
                     ➕ Add Item
+                </button>
+                <button class="btn btn-secondary" onclick="QuoteUI.toggleSelectionMode()" id="duplicateBtn" style="padding: 12px 35px; font-size: 1rem;">
+                    📋 Duplicate Item
                 </button>
             </div>
             
@@ -780,9 +880,29 @@
                 </div>
             </div>
             
+            <!-- Customer Special Requests -->
+            <div style="margin-top: 30px; padding: 20px; background: #fff; border-radius: 8px; border: 2px solid var(--paskal-teal);">
+                <label for="specialRequests" style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--paskal-navy); font-size: 1.1rem;">
+                    💬 Customer Special Requests <span style="color: #888; font-weight: normal; font-size: 0.9rem;">(Optional)</span>
+                </label>
+                <textarea 
+                    id="specialRequests" 
+                    rows="4" 
+                    maxlength="500"
+                    placeholder="Enter any special requests or notes for this order (max 500 characters)..."
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 1rem; resize: vertical; min-height: 100px; max-height: 150px;"
+                ></textarea>
+                <div style="text-align: right; margin-top: 5px; font-size: 0.85rem; color: #666;">
+                    <span id="charCount">0</span>/500 characters
+                </div>
+            </div>
+            
             <div style="text-align: center; margin-top: 30px;">
                 <button class="btn btn-primary" onclick="QuoteUI.generateQuote()" id="generateQuoteBtn" style="padding: 15px 50px; font-size: 1.2rem;">
                     📋 Generate Quote
+                </button>
+                <button class="btn btn-secondary" onclick="QuoteUI.cancelEdit()" id="cancelEditBtn" style="padding: 15px 50px; font-size: 1.2rem; display: none; margin-left: 15px;">
+                    ↩️ Cancel Edit
                 </button>
             </div>
             
@@ -799,6 +919,84 @@
                         <strong>• Auto-Calculations:</strong> Boxes and Product Number (PN) are calculated automatically based on your selections.
                     </li>
                 </ul>
+            </div>
+
+            <!-- Duplicate Confirmation Modal -->
+            <div id="duplicateConfirmModal" class="modal">
+                <div class="modal-content" style="max-width: 450px;">
+                    <h2 style="margin-bottom: 20px; color: var(--paskal-navy);">📋 Duplicate Rows</h2>
+                    
+                    <p style="margin-bottom: 20px; color: #666; font-size: 1.1rem;">
+                        Duplicate <strong id="confirmRowCount">0</strong> selected row(s)?
+                    </p>
+                    
+                    <p style="margin-bottom: 20px; color: #888; font-size: 0.9rem;">
+                        This will create <strong id="confirmNewCount">0</strong> new row(s) at the end of your table.
+                    </p>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn btn-secondary" onclick="QuoteUI.closeConfirmModal()">
+                            Cancel
+                        </button>
+                        <button class="btn btn-primary" onclick="QuoteUI.executeDuplicate()">
+                            ✓ Yes, Duplicate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions Modal for Selection Mode -->
+            <div id="instructionsModal" class="modal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <h2 style="margin-bottom: 25px; color: var(--paskal-navy); display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 2rem;">ℹ️</span>
+                        How to Duplicate Multiple Rows
+                    </h2>
+                    
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
+                        <p style="margin: 0 0 15px 0; color: #0c4a6e; font-size: 1rem;">
+                            Follow these simple steps:
+                        </p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</span>
+                                <div>
+                                    <strong style="color: #0c4a6e;">Check boxes next to rows</strong>
+                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Select the rows you want to duplicate using the checkboxes</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</span>
+                                <div>
+                                    <strong style="color: #0c4a6e;">Click "Duplicate X Rows" button</strong>
+                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">The button appears after you select at least one row</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</span>
+                                <div>
+                                    <strong style="color: #0c4a6e;">Confirm duplication</strong>
+                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Review and confirm to create new rows</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;">
+                            <strong>💡 Tip:</strong> Use the "Select All" checkbox in the table header to quickly select all rows!
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-primary" onclick="QuoteUI.closeInstructionsModal()" style="padding: 12px 40px; font-size: 1rem;">
+                            Got it!
+                        </button>
+                    </div>
+                </div>
             </div>
 
 
@@ -929,6 +1127,16 @@ const CONFIG = {
     
     // Twine types
     TWINE_TYPES: ['1000', '1200', '1300', '1500', 'Bio250', 'Bio390'],
+    
+    // Display names for twine types (especially for BIO)
+    TWINE_DISPLAY_NAMES: {
+        '1000': '1000',
+        '1200': '1200',
+        '1300': '1300',
+        '1500': '1500',
+        'Bio250': 'strPas-Bio250N',
+        'Bio390': 'strPas-Bio390N'
+    },
     
     // Wire length validation ranges per twine type
     WIRE_RANGES: {
@@ -1547,10 +1755,12 @@ const QuoteData = {
             hookSize: '',
             twineType: '',
             wireLength: '',
-            freeFallLength: '0',
+            freeFallLength: '',
             totalLength: 0,
             crop: '',
             colors: [],
+            colorMode: 'single',  // 'single' or 'sequence'
+            colorUIMode: 'single',  // UI state: 'single' or 'sequence'
             quantity: '',
             actualUnits: 0,
             actualBoxes: 0,
@@ -1563,23 +1773,35 @@ const QuoteData = {
     addItem() {
         const item = {
             id: this.nextId++,
+            itemNum: this.nextId - 1,  // Same as id for now
             grower: '',
             shipTo: '',
             reqDate: '',
+            estimatedDeliveryDate: '',
             hookType: '',
             hookSize: '',
             twineType: '',
             wireLength: '',
-            freeFallLength: '0',
+            freeFallLength: '',
             totalLength: 0,
             crop: '',
             colors: [],
+            colorMode: 'single',  // 'single' or 'sequence'
+            colorUIMode: 'single',  // UI state: 'single' or 'sequence'
             quantity: '',
             actualUnits: 0,
+            unitsPerBox: 0,
             actualBoxes: 0,
             totalPallets: 0,
             weight: 0,
-            pn: ''
+            pn: '',
+            transportationType1: '',
+            transportationCost1: 0,
+            transportationType2: '',
+            transportationCost2: 0,
+            incoterms: '',
+            currency: '',
+            lastPrice: 0
         };
         this.items.push(item);
         return item;
@@ -1698,10 +1920,11 @@ const QuoteData = {
         item.unitsPerBox = cartonData ? cartonData.unitsPerCarton : null;
         
         // Calculate actual units (rounded to full boxes)
-        const requestedQty = parseInt(String(item.quantity).replace(/,/g, '')) || 0;
+        const requestedQty = parseInt(item.quantity) || 0;
         if (requestedQty > 0 && cartonData) {
             const cartonsNeeded = Math.ceil(requestedQty / cartonData.unitsPerCarton);
             item.actualUnits = cartonsNeeded * cartonData.unitsPerCarton;
+            item.unitsPerBox = cartonData.unitsPerCarton;
             item.actualBoxes = cartonsNeeded;
             
             // Calculate weight
@@ -1826,16 +2049,25 @@ const QuoteUI = {
     currentColorsMode: null,
     
     init() {
-        QuoteData.load();
-        if (QuoteData.items.length === 0) {
-            QuoteData.addItem();
-        }
+        // Always start with one empty item (clean form)
+        QuoteData.items = [];
+        QuoteData.nextId = 1;
+        QuoteData.addItem();
         
         // Load saved date format preference
         const savedFormat = localStorage.getItem('preferredDateFormat') || 'DD/MM/YYYY'; // Changed default to DD/MM/YYYY
         const selector = document.getElementById('dateFormatSelector');
         if (selector) {
             selector.value = savedFormat;
+        }
+        
+        // Setup character counter for special requests
+        const specialRequests = document.getElementById('specialRequests');
+        const charCount = document.getElementById('charCount');
+        if (specialRequests && charCount) {
+            specialRequests.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+            });
         }
         
         this.render();
@@ -1876,7 +2108,7 @@ const QuoteUI = {
             if (item && item.reqDate) {
                 input.value = this.formatDateForDisplay(item.reqDate);
             }
-            input.placeholder = format;
+            input.placeholder = '📅 ' + format;
         });
         
         this.showAlert(`Date format changed to ${format}`, 'success');
@@ -1943,27 +2175,6 @@ const QuoteUI = {
         const item = QuoteData.getItem(id);
         if (!item) return;
         
-        // Validate wire length range
-        if (item.twineType && item.wireLength) {
-            const range = CONFIG.WIRE_RANGES[item.twineType];
-            if (range) {
-                const val = parseFloat(item.wireLength);
-                if (!isNaN(val) && (val < range.min || val > range.max)) {
-                    QuoteUI.showAlert(`Wire length must be between ${range.min}m and ${range.max}m for ${item.twineType}`, 'error');
-                    return;
-                }
-            }
-        }
-        
-        // Validate free fall range
-        if (item.freeFallLength !== '' && item.freeFallLength !== null) {
-            const ff = parseFloat(item.freeFallLength);
-            if (!isNaN(ff) && (ff < CONFIG.FREE_FALL_RANGE.min || ff > CONFIG.FREE_FALL_RANGE.max)) {
-                QuoteUI.showAlert(`Free Fall must be between ${CONFIG.FREE_FALL_RANGE.min}m and ${CONFIG.FREE_FALL_RANGE.max}m`, 'error');
-                return;
-            }
-        }
-        
         // Calculate total twine
         const wire = parseFloat(item.wireLength) || 0;
         const ff = parseFloat(item.freeFallLength) || 0;
@@ -1974,46 +2185,8 @@ const QuoteUI = {
         
         // Recalculate if all fields are ready
         QuoteData.calculate(id);
-        
-        // Check for round up issues after calculation
-        QuoteUI.checkRoundUpIssue(id);
 
         // Note: render() will update display on blur
-    },
-    
-    checkRoundUpIssue(id) {
-        const item = QuoteData.getItem(id);
-        if (!item) return;
-        
-        // First, recalculate to ensure unitsPerBox is up to date
-        QuoteData.calculate(id);
-        
-        // Skip if no quantity or unitsPerBox
-        if (!item.quantity || !item.unitsPerBox) return;
-        
-        // Skip validation if units per carton is N/A
-        if (item.unitsPerBox === 'N/A') return;
-        
-        const qty = parseInt(item.quantity);
-        const unitsPerCarton = parseInt(item.unitsPerBox);
-        
-        if (isNaN(qty) || isNaN(unitsPerCarton) || unitsPerCarton === 0) return;
-        
-        // Check if there's a partial carton
-        const remainder = qty % unitsPerCarton;
-        if (remainder !== 0) {
-            const cartonsNeeded = Math.ceil(qty / unitsPerCarton);
-            const roundedQty = cartonsNeeded * unitsPerCarton;
-            const difference = roundedQty - qty;
-            
-            // Re-render to show updated unitsPerBox
-            QuoteUI.render();
-            
-            // Show the rounding modal (same as when entering quantity)
-            this.showRoundingModal(id, qty, unitsPerCarton, cartonsNeeded, roundedQty, difference);
-            return true; // Has round up issue
-        }
-        return false; // No issue
     },
     
     addRow() {
@@ -2025,7 +2198,18 @@ const QuoteUI = {
     duplicateRow(id) {
         const item = QuoteData.getItem(id);
         if (item) {
-            const newItem = { ...item, id: Date.now() };
+            // Create new item with explicit field copying
+            const newItem = { 
+                ...item,
+                id: Date.now(),
+                itemNum: Date.now(),
+                // Explicitly copy quantity to ensure it's preserved
+                quantity: item.quantity,
+                actualUnits: item.actualUnits,
+                actualBoxes: item.actualBoxes,
+                // Deep copy colors array
+                colors: [...(item.colors || [])]
+            };
             QuoteData.items.push(newItem);
             QuoteData.save();
             this.render();
@@ -2033,9 +2217,212 @@ const QuoteUI = {
         }
     },
     
+    // Smart Duplicate Feature
+    // Multi-Select Duplicate System
+    selectionMode: false,
+    selectedRows: new Set(),
+    bannerDismissed: false,
+    
+    toggleSelectionMode() {
+        if (QuoteData.items.length === 0) {
+            this.showAlert('No items to duplicate. Please add items first.', 'warning', false);
+            return;
+        }
+        
+        this.selectionMode = !this.selectionMode;
+        const btn = document.getElementById('duplicateBtn');
+        
+        if (this.selectionMode) {
+            // Entering selection mode
+            btn.textContent = '❌ Exit Selection';
+            btn.className = 'btn btn-secondary';
+            this.selectedRows.clear();
+            this.bannerDismissed = false; // Reset banner
+            this.render();
+            
+            // Show instructions modal
+            document.getElementById('instructionsModal').classList.add('show');
+        } else {
+            // Exiting selection mode
+            btn.textContent = '📋 Duplicate Item';
+            btn.className = 'btn btn-secondary';
+            this.selectedRows.clear();
+            this.render();
+        }
+        
+        this.updateDuplicateButton();
+    },
+    
+    dismissBanner() {
+        this.bannerDismissed = true;
+        this.render();
+    },
+    
+    closeInstructionsModal() {
+        document.getElementById('instructionsModal').classList.remove('show');
+    },
+    
+    toggleRowSelection(itemId, checked) {
+        if (checked) {
+            this.selectedRows.add(itemId);
+        } else {
+            this.selectedRows.delete(itemId);
+        }
+        
+        this.render();
+        this.updateDuplicateButton();
+        this.updateSelectAllCheckbox();
+    },
+    
+    toggleSelectAll(checked) {
+        if (checked) {
+            // Select all
+            QuoteData.items.forEach(item => {
+                this.selectedRows.add(item.id);
+            });
+        } else {
+            // Deselect all
+            this.selectedRows.clear();
+        }
+        
+        this.render();
+        this.updateDuplicateButton();
+    },
+    
+    updateSelectAllCheckbox() {
+        const checkbox = document.getElementById('selectAllCheckbox');
+        if (checkbox) {
+            const totalItems = QuoteData.items.length;
+            const selectedCount = this.selectedRows.size;
+            
+            if (selectedCount === 0) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+            } else if (selectedCount === totalItems) {
+                checkbox.checked = true;
+                checkbox.indeterminate = false;
+            } else {
+                checkbox.checked = false;
+                checkbox.indeterminate = true;
+            }
+        }
+    },
+    
+    updateDuplicateButton() {
+        // Add or update duplicate button
+        let duplicateActionBtn = document.getElementById('duplicateActionBtn');
+        const count = this.selectedRows.size;
+        
+        if (this.selectionMode && count > 0) {
+            if (!duplicateActionBtn) {
+                // Create button if doesn't exist
+                const btnContainer = document.querySelector('.btn.btn-secondary').parentElement;
+                duplicateActionBtn = document.createElement('button');
+                duplicateActionBtn.id = 'duplicateActionBtn';
+                duplicateActionBtn.className = 'btn btn-primary';
+                duplicateActionBtn.onclick = () => this.openConfirmModal();
+                duplicateActionBtn.style.padding = '12px 35px';
+                duplicateActionBtn.style.fontSize = '1rem';
+                btnContainer.appendChild(duplicateActionBtn);
+            }
+            
+            duplicateActionBtn.textContent = `✓ Duplicate ${count} Row${count > 1 ? 's' : ''}`;
+            duplicateActionBtn.style.display = 'inline-block';
+        } else if (duplicateActionBtn) {
+            duplicateActionBtn.style.display = 'none';
+        }
+    },
+    
+    openConfirmModal() {
+        const count = this.selectedRows.size;
+        if (count === 0) return;
+        
+        document.getElementById('confirmRowCount').textContent = count;
+        document.getElementById('confirmNewCount').textContent = count;
+        document.getElementById('duplicateConfirmModal').classList.add('show');
+    },
+    
+    closeConfirmModal() {
+        document.getElementById('duplicateConfirmModal').classList.remove('show');
+    },
+    
+    executeDuplicate() {
+        const selectedIds = Array.from(this.selectedRows);
+        if (selectedIds.length === 0) return;
+        
+        this.closeConfirmModal();
+        
+        // Get original items
+        const originalItems = selectedIds.map(id => 
+            QuoteData.items.find(item => item.id === id)
+        ).filter(Boolean);
+        
+        // Create duplicates
+        const newItems = originalItems.map(item => ({
+            ...item,
+            id: QuoteData.nextId++,
+            quantity: '' // Clear quantity
+        }));
+        
+        // Add to items
+        QuoteData.items.push(...newItems);
+        QuoteData.save();
+        
+        // Get IDs for highlighting
+        const originalIds = selectedIds;
+        const newIds = newItems.map(item => item.id);
+        const allHighlightIds = [...originalIds, ...newIds];
+        
+        // Exit selection mode
+        this.selectionMode = false;
+        this.selectedRows.clear();
+        this.bannerDismissed = false; // Reset banner for next time
+        const btn = document.getElementById('duplicateBtn');
+        btn.textContent = '📋 Duplicate Item';
+        
+        // Render
+        this.render();
+        this.updateSummary();
+        this.updateDuplicateButton();
+        
+        // Highlight all rows (originals + new)
+        setTimeout(() => {
+            const table = document.querySelector('.quote-table tbody');
+            if (table) {
+                const rows = table.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const itemId = parseInt(row.dataset.itemId);
+                    if (allHighlightIds.includes(itemId)) {
+                        row.classList.add('duplicate-highlight');
+                    }
+                });
+                
+                // Scroll to first new row
+                const firstNewId = newIds[0];
+                const firstNewRow = Array.from(rows).find(row => 
+                    parseInt(row.dataset.itemId) === firstNewId
+                );
+                if (firstNewRow) {
+                    firstNewRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                // Remove highlights after 4 seconds
+                setTimeout(() => {
+                    document.querySelectorAll('.duplicate-highlight').forEach(row => {
+                        row.classList.remove('duplicate-highlight');
+                    });
+                }, 4000);
+            }
+        }, 100);
+        
+        // Show alert
+        this.showAlert(`✓ ${originalIds.length} row${originalIds.length > 1 ? 's' : ''} duplicated successfully`, 'success', false);
+    },
+    
     deleteRow(id) {
         if (QuoteData.items.length === 1) {
-            this.showAlert('Cannot delete the last item.', 'warning');
+            this.showAlert('Cannot delete the first item. At least one item is required.', 'warning', false);
             return;
         }
         
@@ -2078,39 +2465,6 @@ const QuoteUI = {
             if (missing.length > 0) {
                 errors.push(`Row ${index + 1} - Missing: ${missing.join(', ')}`);
             }
-            
-            // Validate wire length range
-            if (item.twineType && item.wireLength) {
-                const range = CONFIG.WIRE_RANGES[item.twineType];
-                if (range) {
-                    const val = parseFloat(item.wireLength);
-                    if (!isNaN(val) && (val < range.min || val > range.max)) {
-                        errors.push(`Row ${index + 1} - Wire length must be between ${range.min}m and ${range.max}m for ${item.twineType}`);
-                    }
-                }
-            }
-            
-            // Validate free fall range
-            if (item.freeFallLength !== '' && item.freeFallLength !== null) {
-                const ff = parseFloat(item.freeFallLength);
-                if (!isNaN(ff) && (ff < CONFIG.FREE_FALL_RANGE.min || ff > CONFIG.FREE_FALL_RANGE.max)) {
-                    errors.push(`Row ${index + 1} - Free Fall must be between ${CONFIG.FREE_FALL_RANGE.min}m and ${CONFIG.FREE_FALL_RANGE.max}m`);
-                }
-            }
-            
-            // Validate round up (partial cartons) - Skip if units per carton is N/A
-            if (item.quantity && item.unitsPerBox && item.unitsPerBox !== 'N/A') {
-                const qty = parseInt(item.quantity);
-                const unitsPerCarton = parseInt(item.unitsPerBox);
-                
-                if (!isNaN(qty) && !isNaN(unitsPerCarton) && unitsPerCarton > 0) {
-                    const remainder = qty % unitsPerCarton;
-                    if (remainder !== 0) {
-                        const needed = unitsPerCarton - remainder;
-                        errors.push(`Row ${index + 1} - Partial carton detected! Current: ${qty} units, Need to add: ${needed} units to complete carton (${unitsPerCarton} units/carton)`);
-                    }
-                }
-            }
         });
         
         if (errors.length > 0) {
@@ -2118,11 +2472,11 @@ const QuoteUI = {
             const body = document.getElementById('validationModalBody');
             
             body.innerHTML = `
-                <h3 style="color: #dc2626; margin-bottom: 15px;">⚠️ Validation Errors</h3>
-                <ul style="list-style: none; padding: 0; max-height: 400px; overflow-y: auto;">
-                    ${errors.map(err => `<li style="padding: 8px; background: #fee; margin: 5px 0; border-radius: 4px; font-size: 0.9rem;">${err}</li>`).join('')}
+                <h3 style="color: #dc2626; margin-bottom: 15px;">⚠️ Required Fields Missing</h3>
+                <ul style="list-style: none; padding: 0;">
+                    ${errors.map(err => `<li style="padding: 8px; background: #fee; margin: 5px 0; border-radius: 4px;">${err}</li>`).join('')}
                 </ul>
-                <button class="btn btn-primary" onclick="document.getElementById('validationModal').classList.remove('show')" style="width: 60%; margin: 15px auto 0; display: block;">
+                <button class="btn btn-primary" onclick="document.getElementById('validationModal').classList.remove('show')" style="width: 60%; margin: 0 auto; display: block;">
                     Got it, I'll fix them
                 </button>
             `;
@@ -2141,15 +2495,18 @@ const QuoteUI = {
         const today = new Date();
         
         // Collect all quote data
+        const specialRequestsField = document.getElementById('specialRequests');
+        const specialRequests = specialRequestsField ? specialRequestsField.value.trim() : '';
+        
         const quoteData = {
             id: quoteId,
             dateCreated: today.toISOString(),
             items: QuoteData.items.map(item => ({...item})),
+            specialRequests: specialRequests,
             summary: {
                 totalItems: QuoteData.items.length,
                 totalUnits: QuoteData.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0),
-                totalBoxes: QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0),
-                totalWeight: QuoteData.items.reduce((sum, item) => sum + (item.weight || 0), 0)
+                totalBoxes: QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0)
             },
             status: 'Pending'
         };
@@ -2159,10 +2516,16 @@ const QuoteUI = {
             QuoteStorage.updateQuote(quoteId, quoteData);
             this.editingQuoteId = null; // Clear edit mode
             
-            // Reset button immediately
+            // Reset Generate button
             const btn = document.getElementById('generateQuoteBtn');
             if (btn) {
-                btn.innerHTML = '🎯 Generate Quote';
+                btn.innerHTML = '📋 Generate Quote';
+            }
+            
+            // Hide Cancel button
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
             }
         } else {
             QuoteStorage.saveQuote(quoteData);
@@ -2207,7 +2570,7 @@ const QuoteUI = {
                     <button class="btn btn-secondary" onclick="TabManager.viewMyOrders()" style="flex: 1;">
                         👁 View My Orders
                     </button>
-                    <button class="btn btn-secondary" onclick="QuoteUI.closeSuccessModal()" style="flex: 1;">
+                    <button class="btn btn-secondary" onclick="QuoteUI.closeSuccessModal(); TabManager.switchTab('create')" style="flex: 1;">
                         ✖️ Close
                     </button>
                 </div>
@@ -2221,21 +2584,170 @@ const QuoteUI = {
         document.getElementById('successModal').classList.remove('show');
         
         // Clear form for new quote with one empty row
-        QuoteData.items = [QuoteData.createEmptyItem(1)];
+        QuoteData.items = [];
+        QuoteData.nextId = 1;
+        QuoteData.addItem();
         QuoteUI.editingQuoteId = null;
+        
+        // Clear any alerts
+        const alertBox = document.getElementById('alertBox');
+        if (alertBox) {
+            alertBox.classList.remove('show');
+        }
         
         // Reset button text
         const btn = document.getElementById('generateQuoteBtn');
         if (btn) {
-            btn.innerHTML = '🎯 Generate Quote';
+            btn.innerHTML = '📋 Generate Quote';
         }
         
-        // Render fresh form with one empty row (like View My Orders does)
+        // Hide Cancel button
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
+        }
+        
+        // Clear special requests
+        const specialRequests = document.getElementById('specialRequests');
+        const charCount = document.getElementById('charCount');
+        if (specialRequests) {
+            specialRequests.value = '';
+            if (charCount) charCount.textContent = '0';
+        }
+        
+        // Return to MY ORDERS to see the created/updated quote
+        TabManager.switchTab('orders');
+        
+        // Render fresh form with one empty row
         QuoteUI.render();
         QuoteUI.updateSummary();
         
         // Scroll to top
         window.scrollTo(0, 0);
+    },
+    
+    clearEditMode() {
+        // Clear edit mode WITHOUT confirmation
+        this.editingQuoteId = null;
+        
+        // Clear any alerts
+        const alertBox = document.getElementById('alertBox');
+        if (alertBox) {
+            alertBox.classList.remove('show');
+        }
+        
+        // Clear form
+        QuoteData.items = [];
+        QuoteData.nextId = 1;
+        QuoteData.addItem();
+        
+        // Reset Generate button
+        const generateBtn = document.getElementById('generateQuoteBtn');
+        if (generateBtn) {
+            generateBtn.innerHTML = '📋 Generate Quote';
+        }
+        
+        // Hide Cancel button
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
+        }
+        
+        // Clear special requests
+        const specialRequests = document.getElementById('specialRequests');
+        const charCount = document.getElementById('charCount');
+        if (specialRequests) {
+            specialRequests.value = '';
+            if (charCount) charCount.textContent = '0';
+        }
+        
+        // Re-render
+        this.render();
+        this.updateSummary();
+    },
+    
+    cancelEdit() {
+        if (!confirm('Cancel editing? All unsaved changes will be lost.')) {
+            return;
+        }
+        
+        // User confirmed - clear edit mode
+        this.clearEditMode();
+        
+        // Return to MY ORDERS
+        TabManager.switchTab('orders');
+        
+        this.showAlert('Edit cancelled', 'info');
+    },
+    
+    hasUnsavedData() {
+        // Check if there's any data entered that hasn't been saved
+        if (this.editingQuoteId) {
+            return false; // In edit mode, different logic
+        }
+        
+        if (QuoteData.items.length === 0) {
+            return false; // No items
+        }
+        
+        // Check if any item has data
+        for (const item of QuoteData.items) {
+            if (item.shipTo || item.reqDate || item.hookType || item.hookSize || 
+                item.twineType || item.wireLength || item.freeFallLength || 
+                item.crop || item.colors.length > 0 || item.quantity) {
+                return true; // Has data
+            }
+        }
+        
+        // Check special requests
+        const specialRequests = document.getElementById('specialRequests');
+        if (specialRequests && specialRequests.value.trim()) {
+            return true;
+        }
+        
+        return false; // No meaningful data
+    },
+    
+    saveDraft() {
+        // Generate draft ID
+        const draftId = QuoteStorage.generateQuoteId('DRAFT');
+        const today = new Date();
+        
+        // Collect data
+        const specialRequestsField = document.getElementById('specialRequests');
+        const specialRequests = specialRequestsField ? specialRequestsField.value.trim() : '';
+        
+        const draftData = {
+            id: draftId,
+            dateCreated: today.toISOString(),
+            items: QuoteData.items.map(item => ({...item})),
+            specialRequests: specialRequests,
+            summary: {
+                totalItems: QuoteData.items.length,
+                totalUnits: QuoteData.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0),
+                totalBoxes: QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0)
+            },
+            status: 'Draft'
+        };
+        
+        // Save to localStorage
+        QuoteStorage.saveQuote(draftData);
+        
+        // Show success message
+        this.showAlert('✓ Draft saved successfully!', 'success');
+        
+        // Clear form
+        QuoteData.items = [];
+        QuoteData.nextId = 1;
+        
+        // Clear special requests
+        if (specialRequestsField) {
+            specialRequestsField.value = '';
+            const charCount = document.getElementById('charCount');
+            if (charCount) charCount.textContent = '0';
+        }
+        
+        return true;
     },
     
     closeEmailModal() {
@@ -2455,10 +2967,27 @@ Best regards`;
         
         // Set single color
         item.colors = [{ color: color, quantity: item.unitsPerBox || 0 }];
+        item.colorUIMode = 'single';  // Ensure stays in single mode
         
         QuoteData.save();
         this.render();
         this.updateSummary();
+    },
+    
+    toggleColorUI(id, mode) {
+        // Toggle between single and sequence UI modes
+        const item = QuoteData.getItem(id);
+        if (!item) return;
+        
+        item.colorUIMode = mode;
+        
+        // If switching to single and has sequence colors, clear them
+        if (mode === 'single' && item.colors.length > 1) {
+            item.colors = [];
+        }
+        
+        QuoteData.save();
+        this.render();
     },
     
     openColorsModal(id, mode) {
@@ -2500,6 +3029,7 @@ Best regards`;
                 { color: '', quantity: 1 }
             ];
             
+            html += '<div id="modalAlertBox" class="alert" style="display: none; margin-bottom: 15px;"></div>';
             html += '<div style="margin-bottom: 20px;">';
             html += '<p style="color: #666; margin-bottom: 10px;"><strong>Create a color sequence (2-10 colors required)</strong></p>';
             html += '<p style="color: #999; font-size: 0.85rem; margin-bottom: 15px;">Example: Red ×2, Blue ×3, Yellow ×1 (repeating pattern)</p>';
@@ -2577,18 +3107,37 @@ Best regards`;
         });
         
         if (colors.length < 2) {
-            this.showAlert('Sequence mode requires at least 2 colors. Please add more colors or use single color mode.', 'warning');
+            const modalAlert = document.getElementById('modalAlertBox');
+            if (modalAlert) {
+                modalAlert.className = 'alert alert-warning';
+                modalAlert.style.display = 'block';
+                modalAlert.innerHTML = `
+                    <span>Sequence mode requires at least 2 colors. Please add more colors or use single color mode.</span>
+                    <button onclick="this.parentElement.style.display='none'" 
+                            style="margin-left: 15px; padding: 5px 12px; background: rgba(255,255,255,0.3); border: none; border-radius: 4px; cursor: pointer; color: inherit; font-weight: 600;">✕</button>
+                `;
+            }
             return;
         }
         
         if (colors.length > 10) {
-            this.showAlert('Maximum 10 colors allowed', 'warning');
+            const modalAlert = document.getElementById('modalAlertBox');
+            if (modalAlert) {
+                modalAlert.className = 'alert alert-warning';
+                modalAlert.style.display = 'block';
+                modalAlert.innerHTML = `
+                    <span>Maximum 10 colors allowed</span>
+                    <button onclick="this.parentElement.style.display='none'" 
+                            style="margin-left: 15px; padding: 5px 12px; background: rgba(255,255,255,0.3); border: none; border-radius: 4px; cursor: pointer; color: inherit; font-weight: 600;">✕</button>
+                `;
+            }
             return;
         }
         
         const item = QuoteData.getItem(this.currentColorsRow);
         if (item) {
             item.colors = colors;
+            item.colorUIMode = 'sequence';  // Stay in sequence mode
             QuoteData.calculate(this.currentColorsRow);
             QuoteData.save();
             this.render();
@@ -2668,7 +3217,12 @@ Best regards`;
     },
     
     handleQuantityInput(id, input) {
-        let value = input.value.replace(/,/g, '');
+        // Remove all non-numeric characters except comma
+        let value = input.value.replace(/[^0-9,]/g, '');
+        input.value = value;
+        
+        // Remove commas for calculation
+        value = value.replace(/,/g, '');
         if (value && !isNaN(value)) {
             const numValue = parseInt(value);
             input.value = numValue.toLocaleString();
@@ -2779,10 +3333,38 @@ Best regards`;
             return;
         }
         
-        let html = `
+        let html = '';
+        
+        // Add sticky banner in selection mode
+        if (this.selectionMode && !this.bannerDismissed) {
+            html += `
+                <div class="selection-banner" id="selectionBanner">
+                    <div class="selection-banner-content">
+                        <div class="selection-banner-icon">ℹ️</div>
+                        <div class="selection-banner-text">
+                            Select rows using checkboxes, then click "Duplicate X Rows" button
+                        </div>
+                    </div>
+                    <button class="selection-banner-close" onclick="QuoteUI.dismissBanner()" title="Close">
+                        ✕
+                    </button>
+                </div>
+            `;
+        }
+        
+        html += `
             <table class="quote-table">
                 <thead>
                     <tr>
+                        ${this.selectionMode ? `
+                        <th style="min-width: 50px; text-align: center;">
+                            <input type="checkbox" 
+                                   id="selectAllCheckbox"
+                                   onchange="QuoteUI.toggleSelectAll(this.checked)"
+                                   style="width: 18px; height: 18px; cursor: pointer;"
+                                   title="Select All">
+                        </th>
+                        ` : ''}
                         <th style="min-width: 40px;">#</th>
                         <th style="min-width: 100px;">Grower<br><span style="font-weight: normal; font-size: 0.75rem;">(Optional)</span></th>
                         <th style="min-width: 120px;">Ship To *</th>
@@ -2820,7 +3402,15 @@ Best regards`;
                 : 'Not set';
             
             html += `
-                <tr>
+                <tr data-item-id="${item.id}" ${this.selectedRows.has(item.id) ? 'class="duplicate-preview"' : ''}>
+                    ${this.selectionMode ? `
+                    <td style="text-align: center; background: ${this.selectedRows.has(item.id) ? 'transparent' : 'white'};">
+                        <input type="checkbox" 
+                               ${this.selectedRows.has(item.id) ? 'checked' : ''}
+                               onchange="QuoteUI.toggleRowSelection(${item.id}, this.checked)"
+                               style="width: 18px; height: 18px; cursor: pointer;">
+                    </td>
+                    ` : ''}
                     <td class="row-number">${index + 1}</td>
                     
                     <td>
@@ -2844,10 +3434,10 @@ Best regards`;
                                    class="cell-input date-display-input" 
                                    data-item-id="${item.id}"
                                    value="${QuoteUI.formatDateForDisplay(item.reqDate)}" 
-                                   placeholder="${localStorage.getItem('preferredDateFormat') || 'DD/MM/YYYY'}"
+                                   placeholder="📅 ${localStorage.getItem('preferredDateFormat') || 'DD/MM/YYYY'}"
                                    readonly
                                    onclick="document.getElementById('datePicker_${item.id}').showPicker();"
-                                   style="margin-top: 5px; cursor: pointer; background: white;">
+                                   style="cursor: pointer; background: white;">
                             <input type="date" 
                                    id="datePicker_${item.id}"
                                    style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;"
@@ -2859,7 +3449,11 @@ Best regards`;
                     
                     <td>
                         <select class="cell-select" 
-                                onchange="QuoteData.updateItem(${item.id}, 'hookType', this.value); QuoteUI.render(); QuoteUI.updateSummary(); setTimeout(() => QuoteUI.checkRoundUpIssue(${item.id}), 10);">
+                                onchange="QuoteData.updateItem(${item.id}, 'hookType', this.value); 
+                                          if (this.value === 'No Free Fall') {
+                                              QuoteData.updateItem(${item.id}, 'freeFallLength', '0');
+                                          }
+                                          QuoteUI.render(); QuoteUI.updateSummary();">
                             <option value="">Select...</option>
                             ${CONFIG.HOOK_TYPES.map(t => `<option value="${t}" ${item.hookType === t ? 'selected' : ''}>${t}</option>`).join('')}
                         </select>
@@ -2867,7 +3461,7 @@ Best regards`;
                     
                     <td>
                         <select class="cell-select" 
-                                onchange="QuoteData.updateItem(${item.id}, 'hookSize', this.value); QuoteUI.render(); QuoteUI.updateSummary(); setTimeout(() => QuoteUI.checkRoundUpIssue(${item.id}), 10);">
+                                onchange="QuoteData.updateItem(${item.id}, 'hookSize', this.value); QuoteUI.render(); QuoteUI.updateSummary();">
                             <option value="">Select...</option>
                             ${CONFIG.HOOK_SIZES.map(s => `<option value="${s}" ${item.hookSize === s ? 'selected' : ''}>${s}mm</option>`).join('')}
                         </select>
@@ -2884,6 +3478,13 @@ Best regards`;
                     <td>
                         <select class="cell-select" 
                                 onchange="QuoteData.updateItem(${item.id}, 'twineType', this.value); 
+                                          
+                                          // Dismiss any alert (especially Wire Length warning)
+                                          const alertBox = document.getElementById('alertBox');
+                                          if (alertBox && alertBox.classList.contains('show')) {
+                                              alertBox.classList.remove('show');
+                                          }
+                                          
                                           if (this.value === 'Bio250' || this.value === 'Bio390') {
                                               const item = QuoteData.getItem(${item.id});
                                               if (item.colors.length > 1) {
@@ -2892,28 +3493,68 @@ Best regards`;
                                                   QuoteUI.showAlert('Color sequence not available for Bio twines. Please select single color.', 'warning');
                                               }
                                           }
-                                          QuoteUI.render(); QuoteUI.updateSummary(); setTimeout(() => QuoteUI.checkRoundUpIssue(${item.id}), 10);">
+                                          QuoteUI.render(); QuoteUI.updateSummary();">
                             <option value="">Select...</option>
                             ${CONFIG.TWINE_TYPES.map(t => `<option value="${t}" ${item.twineType === t ? 'selected' : ''}>${t}</option>`).join('')}
                         </select>
                     </td>
                     
                     <td>
-                        <select class="cell-select color-select-field" 
-                                onchange="QuoteUI.handleColorSelection(${item.id}, this.value)">
-                            <option value="">Select color...</option>
-                            ${CONFIG.COLORS.filter(c => c !== 'Mixed' && c !== 'Red').map(color => 
-                                `<option value="${color}" ${item.colors.length === 1 && item.colors[0].color === color ? 'selected' : ''}>${color}</option>`
-                            ).join('')}
-                        </select>
-                        <div style="font-size: 0.85rem; text-align: center; margin-top: 8px; color: #444; line-height: 1.4;">
-                            For special request for color sequence in a box 
-                            <a href="#" onclick="event.preventDefault(); ${item.twineType === 'Bio250' || item.twineType === 'Bio390' ? 'QuoteUI.showAlert(\'Color sequence is not available for Bio twines. Please use single color only.\', \'warning\');' : 'QuoteUI.openColorsModal(' + item.id + ', \'sequence\');'}" 
-                               style="color: #00AFE6; text-decoration: none; font-weight: 600;">click here</a>
-                        </div>
-                        <div style="font-size: 0.8rem; text-align: center; margin-top: 6px; color: #666; font-weight: 600;">
-                            ${colorsText}
-                        </div>
+                        ${(() => {
+                            const isBio = item.twineType === 'Bio250' || item.twineType === 'Bio390';
+                            const uiMode = item.colorUIMode || 'single';
+                            
+                            // Get available colors
+                            let availableColors = CONFIG.COLORS.filter(c => c !== 'Mixed');
+                            if (!isBio) {
+                                availableColors = availableColors.filter(c => c !== 'Red');
+                            }
+                            
+                            // Generate options HTML
+                            const colorOptions = availableColors.map(color => {
+                                const selected = item.colors.length === 1 && item.colors[0].color === color ? 'selected' : '';
+                                return '<option value="' + color + '" ' + selected + '>' + color + '</option>';
+                            }).join('');
+                            
+                            // BIO: always single color only
+                            if (isBio) {
+                                return '<select class="cell-select color-select-field" onchange="QuoteUI.handleColorSelection(' + item.id + ', this.value)">' +
+                                       '<option value="">Select color...</option>' +
+                                       colorOptions +
+                                       '</select>' +
+                                       '<div style="font-size: 0.8rem; text-align: center; margin-top: 8px; padding: 6px; background: #fef3c7; color: #92400e; border-radius: 4px;">' +
+                                       'ℹ️ Bio twines support single color only' +
+                                       '</div>' +
+                                       '<div style="font-size: 0.8rem; text-align: center; margin-top: 6px; color: #666; font-weight: 600;">' +
+                                       colorsText +
+                                       '</div>';
+                            }
+                            
+                            // Non-BIO: toggle between single and sequence
+                            if (uiMode === 'single') {
+                                return '<select class="cell-select color-select-field" onchange="QuoteUI.handleColorSelection(' + item.id + ', this.value)">' +
+                                       '<option value="">Select color...</option>' +
+                                       colorOptions +
+                                       '</select>' +
+                                       '<div style="font-size: 0.85rem; text-align: center; margin-top: 8px; color: #444; line-height: 1.4;">' +
+                                       'For special request for color sequence in a box ' +
+                                       '<a href="#" onclick="event.preventDefault(); QuoteUI.toggleColorUI(' + item.id + ', \'sequence\');" style="color: #00AFE6; text-decoration: none; font-weight: 600;">click here</a>' +
+                                       '</div>' +
+                                       '<div style="font-size: 0.8rem; text-align: center; margin-top: 6px; color: #666; font-weight: 600;">' +
+                                       colorsText +
+                                       '</div>';
+                            } else {
+                                return '<button type="button" onclick="QuoteUI.openColorsModal(' + item.id + ', \'sequence\')" style="width: 100%; padding: 8px 12px; background: linear-gradient(135deg, #00AFE6 0%, #0099CC 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.transform=\'translateY(-1px)\'; this.style.boxShadow=\'0 4px 8px rgba(0,0,0,0.15)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 2px 4px rgba(0,0,0,0.1)\';">' +
+                                       '🎨 Color Sequence' +
+                                       '</button>' +
+                                       '<div style="font-size: 0.85rem; text-align: center; margin-top: 8px; color: #444; line-height: 1.4;">' +
+                                       'or <a href="#" onclick="event.preventDefault(); QuoteUI.toggleColorUI(' + item.id + ', \'single\');" style="color: #00AFE6; text-decoration: none; font-weight: 600;">single color</a>' +
+                                       '</div>' +
+                                       '<div style="font-size: 0.8rem; text-align: center; margin-top: 6px; color: #666; font-weight: 600;">' +
+                                       colorsText +
+                                       '</div>';
+                            }
+                        })()}
                     </td>
                     
                     <td>
@@ -2928,7 +3569,22 @@ Best regards`;
                                })()}" 
                                value="${item.wireLength}" 
                                data-item-id="${item.id}"
-                               oninput="QuoteData.updateItem(${item.id}, 'wireLength', this.value);"
+                               oninput="
+                                   const item = QuoteData.getItem(${item.id});
+                                   if (!item.twineType && this.value) {
+                                       this.value = '';
+                                       QuoteUI.showAlert('⚠️ Please select Twine Type first before entering Twine on Hook', 'warning');
+                                       return;
+                                   }
+                                   this.value = this.value.replace(/[^0-9.]/g, ''); 
+                                   QuoteData.updateItem(${item.id}, 'wireLength', this.value);
+                               "
+                               onclick="
+                                   const item = QuoteData.getItem(${item.id});
+                                   if (!item.twineType) {
+                                       QuoteUI.showAlert('⚠️ Please select Twine Type first', 'warning');
+                                   }
+                               "
                                onblur="QuoteUI.updateTotalTwine(${item.id}); QuoteUI.render(); QuoteUI.updateSummary();"
                                placeholder="${(() => {
                                    const ranges = {
@@ -2950,25 +3606,44 @@ Best regards`;
                                    if (isNaN(val)) return '';
                                    return (val >= 0 && val <= 10) ? '' : 'input-invalid';
                                })()}" 
-                               value="${item.freeFallLength}" 
+                               value="${item.hookType === 'No Free Fall' ? '0' : item.freeFallLength}" 
                                data-item-id="${item.id}"
-                               oninput="QuoteData.updateItem(${item.id}, 'freeFallLength', this.value);"
+                               ${item.hookType === 'No Free Fall' ? 'disabled readonly style="background-color: #f5f5f5; cursor: not-allowed;"' : ''}
+                               oninput="this.value = this.value.replace(/[^0-9.]/g, ''); QuoteData.updateItem(${item.id}, 'freeFallLength', this.value);"
                                onblur="QuoteUI.updateTotalTwine(${item.id}); QuoteUI.render(); QuoteUI.updateSummary();"
                                placeholder="0-10">
                     </td>
                     
-                    <td class="cell-calculated total-twine-cell ${(() => {
-                                   if (!item.twineType || !item.totalLength) return '';
-                                   const ranges = {'1000':{min:3,max:25},'1200':{min:2.5,max:38},'1300':{min:6,max:38},'1500':{min:5,max:38},'Bio250':{min:6,max:38},'Bio390':{min:2.5,max:37.5}};
-                                   const range = ranges[item.twineType];
-                                   if (!range) return '';
-                                   const wire = parseFloat(item.wireLength) || 0;
-                                   const ff = parseFloat(item.freeFallLength) || 0;
-                                   const wireValid = wire >= range.min && wire <= range.max;
-                                   const ffValid = ff >= 0 && ff <= 10;
-                                   return (wireValid && ffValid) ? '' : 'input-invalid';
-                               })()}" data-item-id="${item.id}" style="font-weight: 600;">
-                        ${item.totalLength ? item.totalLength.toFixed(1) + 'm' : '0.0m'}
+                    <td>
+                        <input type="text" 
+                               class="cell-input" 
+                               value="${item.totalLength ? item.totalLength.toFixed(1) + 'm' : '0.0m'}" 
+                               readonly
+                               disabled
+                               style="background: #f0fdf4; font-weight: 600; text-align: center; cursor: not-allowed;">
+                        ${(() => {
+                            if (!item.twineType) return '';
+                            const ranges = {'1000':{min:3,max:25},'1200':{min:2.5,max:38},'1300':{min:6,max:38},'1500':{min:5,max:38},'Bio250':{min:6,max:38},'Bio390':{min:2.5,max:37.5}};
+                            const range = ranges[item.twineType];
+                            if (!range) return '';
+                            
+                            const wire = parseFloat(item.wireLength) || 0;
+                            const ff = parseFloat(item.freeFallLength) || 0;
+                            const total = wire + ff;
+                            const isValid = wire >= range.min && wire <= range.max && ff >= 0 && ff <= 10;
+                            
+                            // Red warning - if out of range
+                            if (!isValid && (wire > 0 || ff > 0)) {
+                                return `<div style="font-size: 0.75rem; padding: 4px 6px; background: #fee2e2; color: #991b1b; border-radius: 4px; margin-top: 3px; text-align: center; font-weight: 600;">
+                                    ⚠️ Must be ${range.min}-${range.max}m
+                                </div>`;
+                            }
+                            
+                            // Yellow info box - only if valid or no input yet
+                            return `<div style="font-size: 0.75rem; padding: 4px 6px; background: #fef3c7; color: #92400e; border-radius: 4px; margin-top: 3px; text-align: center;">
+                                ℹ️ Range: ${range.min}-${range.max}m
+                            </div>`;
+                        })()}
                     </td>
                     
                     <td>
@@ -2979,9 +3654,30 @@ Best regards`;
                                placeholder="e.g. 60,000">
                     </td>
                     
-                    <td class="cell-calculated">${item.unitsPerBox || '-'}</td>
-                    <td class="cell-calculated">${item.actualBoxes || 0}</td>
-                    <td class="cell-calculated" style="font-size: 0.75rem;"><code>${item.pn || ''}</code></td>
+                    <td>
+                        <input type="text" 
+                               class="cell-input" 
+                               value="${item.unitsPerBox || '-'}" 
+                               readonly
+                               disabled
+                               style="background: #f0fdf4; font-weight: 600; text-align: center; cursor: not-allowed;">
+                    </td>
+                    <td>
+                        <input type="text" 
+                               class="cell-input" 
+                               value="${item.actualBoxes || 0}" 
+                               readonly
+                               disabled
+                               style="background: #f0fdf4; font-weight: 600; text-align: center; cursor: not-allowed;">
+                    </td>
+                    <td>
+                        <input type="text" 
+                               class="cell-input" 
+                               value="${item.pn || ''}" 
+                               readonly
+                               disabled
+                               style="background: #f0fdf4; font-size: 0.75rem; text-align: center; cursor: not-allowed; font-family: monospace;">
+                    </td>
                     
                     <td>
                         <div class="row-actions">
@@ -3049,16 +3745,34 @@ Best regards`;
         }, 10);
     },
     
-    showAlert(message, type) {
+    showAlert(message, type, persist = null) {
         const alert = document.getElementById('alertBox');
         alert.className = `alert alert-${type} show`;
-        alert.textContent = message;
         
-        setTimeout(() => {
-            alert.classList.remove('show');
-        }, 3000);
+        // Determine if alert should persist
+        // If persist is explicitly false, auto-hide even for errors/warnings
+        // If persist is true, always persist
+        // If persist is null (default), warnings/errors persist, success auto-hides
+        const shouldPersist = persist === true || (persist === null && (type === 'error' || type === 'warning'));
+        
+        if (shouldPersist) {
+            // Add close button for persistent alerts
+            alert.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.classList.remove('show')" 
+                        style="margin-left: 15px; padding: 5px 12px; background: rgba(255,255,255,0.3); border: none; border-radius: 4px; cursor: pointer; color: inherit; font-weight: 600;">✕</button>
+            `;
+        } else {
+            // Auto-hide after 6 seconds
+            alert.textContent = message;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 6000);
+        }
     }
 };
+
+window.QuoteUI = QuoteUI;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => QuoteUI.init());
@@ -3069,12 +3783,15 @@ document.addEventListener('DOMContentLoaded', () => QuoteUI.init());
 const QuoteStorage = {
     STORAGE_KEY: 'paskal_quotes',
     
-    generateQuoteId() {
+    generateQuoteId(prefix = 'Q') {
         const quotes = this.getAllQuotes();
-        const maxId = quotes.length > 0 
-            ? Math.max(...quotes.map(q => parseInt(q.id.replace('Q-', '')))) 
+        
+        // Filter by prefix to get correct numbering
+        const prefixQuotes = quotes.filter(q => String(q.id || '').startsWith(prefix + '-'));
+        const maxId = prefixQuotes.length > 0 
+            ? Math.max(...prefixQuotes.map(q => parseInt(String(q.id || '').replace(prefix + '-', '')))) 
             : 0;
-        return `Q-${String(maxId + 1).padStart(4, '0')}`;
+        return `${prefix}-${String(maxId + 1).padStart(4, '0')}`;
     },
     
     getAllQuotes() {
@@ -3219,27 +3936,6 @@ const ExcelGenerator = {
     
     async generateExcel(quoteData) {
         try {
-            // Recalculate all items to ensure actualBoxes is up-to-date
-            quoteData.items.forEach(item => {
-                if (item.hookSize && item.twineType && item.hookType && item.totalLength && item.quantity) {
-                    // Recalculate
-                    const hookCode = item.hookSize === '180' ? '518' : '522';
-                    const totalWire = QuoteData.smartRoundTotalLength(item.totalLength);
-                    const dbTwineType = QuoteData.mapTwineTypeToDBKey(item.twineType);
-                    const key = `${hookCode}-${dbTwineType}-${totalWire}-${item.hookType}`;
-                    const cartonData = CARTON_DB[key];
-                    
-                    if (cartonData) {
-                        const requestedQty = parseInt(String(item.quantity).replace(/,/g, '')) || 0;
-                        if (requestedQty > 0) {
-                            const cartonsNeeded = Math.ceil(requestedQty / cartonData.unitsPerCarton);
-                            item.actualBoxes = cartonsNeeded;
-                            item.actualUnits = cartonsNeeded * cartonData.unitsPerCarton;
-                        }
-                    }
-                }
-            });
-            
             // Decode base64 template
             const binaryString = atob(this.templateBase64);
             const bytes = new Uint8Array(binaryString.length);
@@ -3273,7 +3969,7 @@ const ExcelGenerator = {
                 const displaySize = item.hookSize === '180' ? '18' : item.hookSize === '220' ? '22' : item.hookSize || '';
                 worksheet.getCell(`F${rowNum}`).value = displaySize;
                 worksheet.getCell(`G${rowNum}`).value = item.crop || '';
-                worksheet.getCell(`H${rowNum}`).value = item.twineType || '';
+                worksheet.getCell(`H${rowNum}`).value = CONFIG.TWINE_DISPLAY_NAMES[item.twineType] || item.twineType || '';
                 
                 // Color handling
                 if (item.colorMode === 'sequence' && item.colors && item.colors.length > 0) {
@@ -3292,21 +3988,14 @@ const ExcelGenerator = {
                 worksheet.getCell(`K${rowNum}`).value = item.wireLength || '';
                 worksheet.getCell(`L${rowNum}`).value = item.freeFallLength || '';
                 worksheet.getCell(`M${rowNum}`).value = item.totalLength || '';
-                
-                // Convert quantity to number (remove commas)
-                const quantityNum = item.quantity ? parseInt(String(item.quantity).replace(/,/g, '')) : '';
-                worksheet.getCell(`N${rowNum}`).value = quantityNum;  // Units
-                
+                worksheet.getCell(`N${rowNum}`).value = item.units || '';
                 worksheet.getCell(`O${rowNum}`).value = new Date().toISOString().split('T')[0];
                 worksheet.getCell(`P${rowNum}`).value = item.reqDate || '';
                 worksheet.getCell(`X${rowNum}`).value = pn; // Generated PN
                 worksheet.getCell(`Z${rowNum}`).value = item.unitsPerBox || '';
-                
-                // Convert actualBoxes to number
-                const boxesNum = item.actualBoxes ? parseInt(String(item.actualBoxes)) : '';
-                worksheet.getCell(`AA${rowNum}`).value = boxesNum;  // Boxes
-                worksheet.getCell(`AB${rowNum}`).value = boxesNum;  // actual boxes (same as AA)
-                worksheet.getCell(`AC${rowNum}`).value = quantityNum;  // actual units (same as N)
+                worksheet.getCell(`AA${rowNum}`).value = item.boxes || '';
+                worksheet.getCell(`AB${rowNum}`).value = item.boxes || ''; // Same as AA
+                worksheet.getCell(`AC${rowNum}`).value = item.units || ''; // Same as N
             }
             
             // Generate Excel file
@@ -3327,6 +4016,51 @@ const ExcelGenerator = {
 // ============================================
 const TabManager = {
     switchTab(tabName) {
+        // Check if currently in edit mode
+        if (QuoteUI.editingQuoteId && tabName !== 'create') {
+            if (!confirm(`You are currently editing ${QuoteUI.editingQuoteId}. Discard changes and switch tabs?`)) {
+                return; // Don't switch tab - user wants to stay in edit mode
+            }
+            // User confirmed - clear edit mode WITHOUT another confirmation
+            QuoteUI.clearEditMode();
+        }
+        
+        // Check for unsaved data (not in edit mode)
+        if (!QuoteUI.editingQuoteId && tabName !== 'create' && QuoteUI.hasUnsavedData()) {
+            // Custom modal for save draft
+            const modal = document.getElementById('validationModal');
+            const body = document.getElementById('validationModalBody');
+            
+            body.innerHTML = `
+                <h3 style="color: var(--paskal-navy); margin-bottom: 15px;">💾 Save as Draft?</h3>
+                <p style="color: #666; margin-bottom: 20px;">You have unsaved work. Would you like to save it as a draft before leaving?</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-primary" onclick="
+                        document.getElementById('validationModal').classList.remove('show');
+                        QuoteUI.saveDraft();
+                        setTimeout(() => TabManager.switchTab('${tabName}'), 500);
+                    " style="flex: 1;">
+                        💾 Save Draft
+                    </button>
+                    <button class="btn btn-secondary" onclick="
+                        document.getElementById('validationModal').classList.remove('show');
+                        QuoteData.items = [];
+                        QuoteData.nextId = 1;
+                        const sr = document.getElementById('specialRequests');
+                        if (sr) sr.value = '';
+                        const cc = document.getElementById('charCount');
+                        if (cc) cc.textContent = '0';
+                        TabManager.switchTab('${tabName}');
+                    " style="flex: 1;">
+                        🗑️ Discard
+                    </button>
+                </div>
+            `;
+            
+            modal.classList.add('show');
+            return; // Stop here, let user decide
+        }
+        
         // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
@@ -3346,7 +4080,8 @@ const TabManager = {
             // Only render to show current state
             if (QuoteData.items.length === 0) {
                 // Only add empty item if array is completely empty
-                QuoteData.items = [QuoteData.createEmptyItem(1)];
+                QuoteData.nextId = 1;
+                QuoteData.addItem();
             }
             QuoteUI.render();
             QuoteUI.updateSummary(); // Update summary to match current items
@@ -3360,17 +4095,48 @@ const TabManager = {
     viewMyOrders() {
         // Close modal
         document.getElementById('successModal').classList.remove('show');
+        
+        // Clear any alerts
+        const alertBox = document.getElementById('alertBox');
+        if (alertBox) {
+            alertBox.classList.remove('show');
+        }
+        
         // Switch to orders tab
         this.switchTab('orders');
         // Clear form
-        QuoteData.items = [QuoteData.createEmptyItem(1)];
+        QuoteData.items = [];
+        QuoteData.nextId = 1;
+        QuoteData.addItem();
         QuoteUI.editingQuoteId = null;
+        
+        // Reset buttons
+        const generateBtn = document.getElementById('generateQuoteBtn');
+        if (generateBtn) {
+            generateBtn.innerHTML = '📋 Generate Quote';
+        }
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
+        }
+        
         QuoteUI.render();
         QuoteUI.updateSummary(); // Update summary to show 0s
     }
 };
 
+window.TabManager = TabManager;
+
 const OrdersManager = {
+    getQuoteAge(quote) {
+        // Calculate age in days
+        const created = new Date(quote.dateCreated);
+        const now = new Date();
+        const diffMs = now - created;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        return diffDays;
+    },
+    
     loadOrders() {
         const quotes = QuoteStorage.getAllQuotes();
         const container = document.getElementById('ordersTableContainer');
@@ -3408,34 +4174,46 @@ const OrdersManager = {
         `;
         
         quotes.forEach(quote => {
-            const statusClass = `status-${quote.status.toLowerCase()}`;
-            const canEdit = quote.status === 'Pending' || quote.status === 'Rejected';
-            const canDuplicate = quote.status === 'Pending' || quote.status === 'Approved';
-            const canDelete = quote.status === 'Pending' || quote.status === 'Rejected';
+            const statusClass = `status-${(quote.status || 'pending').toLowerCase()}`;
+            const quoteAge = this.getQuoteAge(quote);
+            
+            // Edit restrictions: only within 14 days
+            const withinEditWindow = quoteAge <= 14;
+            const canEdit = withinEditWindow && (quote.status === 'Pending' || quote.status === 'Rejected' || quote.status === 'Draft');
+            
+            // Duplicate: always available for Pending/Approved, OR if quote is older than 14 days
+            const canDuplicate = quote.status === 'Pending' || quote.status === 'Approved' || !withinEditWindow;
+            
+            const canDelete = quote.status === 'Pending' || quote.status === 'Rejected' || quote.status === 'Draft';
+            
+            // Age indicator for tooltips
+            const ageText = quoteAge === 0 ? 'Today' : quoteAge === 1 ? '1 day old' : `${quoteAge} days old`;
+            const editTooltip = withinEditWindow ? 'Edit' : `Edit disabled (${ageText}, >14 days)`;
+            const duplicateTooltip = !withinEditWindow ? `Duplicate (Edit locked after 14 days)` : 'Duplicate';
             
             html += `
                 <tr>
                     <td><strong>${quote.id}</strong></td>
                     <td>${new Date(quote.dateCreated).toLocaleDateString()}</td>
-                    <td>${quote.summary.totalItems}</td>
-                    <td>${quote.summary.totalUnits.toLocaleString()}</td>
-                    <td>${quote.summary.totalBoxes}</td>
-                    <td><span class="status-badge ${statusClass}">${quote.status}</span></td>
-                    <td>
-                        <button class="action-btn" onclick="OrdersManager.viewDetails('${quote.id}')" title="View Details" style="display: inline-flex; align-items: center; gap: 5px;">
-                            👁 <span style="font-size: 0.85rem;">View</span>
+                    <td>${quote.summary?.totalItems || 0}</td>
+                    <td>${quote.summary?.totalUnits?.toLocaleString() || 0}</td>
+                    <td>${quote.summary?.totalBoxes || 0}</td>
+                    <td><span class="status-badge ${statusClass}">${quote.status || 'Pending'}</span></td>
+                    <td style="white-space: nowrap; min-width: 400px;">
+                        <button class="action-btn" onclick="OrdersManager.viewDetails('${quote.id}')" title="View Details">
+                            👁
                         </button>
-                        <button class="action-btn" onclick="(async () => await OrdersManager.downloadQuote('${quote.id}'))()" title="Download Excel" style="display: inline-flex; align-items: center; gap: 5px;">
-                            📥 <span style="font-size: 0.85rem;">Download</span>
+                        <button class="action-btn" onclick="(async () => await OrdersManager.downloadQuote('${quote.id}'))()" title="Download Excel">
+                            📥
                         </button>
-                        <button class="action-btn" ${canDuplicate ? '' : 'disabled'} onclick="OrdersManager.duplicateQuote('${quote.id}')" title="Duplicate" style="display: inline-flex; align-items: center; gap: 5px;">
-                            📋 <span style="font-size: 0.85rem;">Duplicate</span>
+                        <button class="action-btn" ${canEdit ? '' : 'disabled'} onclick="OrdersManager.editQuote('${quote.id}')" title="${editTooltip}">
+                            ✏️
                         </button>
-                        <button class="action-btn" ${canDelete ? '' : 'disabled'} onclick="OrdersManager.deleteQuote('${quote.id}')" title="Delete" style="display: inline-flex; align-items: center; gap: 5px;">
-                            🗑 <span style="font-size: 0.85rem;">Delete</span>
+                        <button class="action-btn" ${canDuplicate ? '' : 'disabled'} onclick="OrdersManager.duplicateQuote('${quote.id}')" title="${duplicateTooltip}">
+                            📋
                         </button>
-                        <button class="action-btn" ${canEdit ? '' : 'disabled'} onclick="OrdersManager.editQuote('${quote.id}')" title="Edit" style="display: inline-flex; align-items: center; gap: 5px;">
-                            ✏️ <span style="font-size: 0.85rem;">Edit</span>
+                        <button class="action-btn" ${canDelete ? '' : 'disabled'} onclick="OrdersManager.deleteQuote('${quote.id}')" title="Delete">
+                            🗑
                         </button>
                     </td>
                 </tr>
@@ -3487,7 +4265,7 @@ const OrdersManager = {
                     <td>${item.shipTo || '-'}</td>
                     <td>${item.hookType || '-'}</td>
                     <td>${item.hookSize === '180' ? '18' : item.hookSize === '220' ? '22' : item.hookSize || '-'}</td>
-                    <td>${item.twineType || '-'}</td>
+                    <td>${CONFIG.TWINE_DISPLAY_NAMES[item.twineType] || item.twineType || '-'}</td>
                     <td>${item.totalLength ? item.totalLength.toFixed(1) : '-'}</td>
                     <td><code>${item.pn || '-'}</code></td>
                 </tr>
@@ -3500,7 +4278,7 @@ const OrdersManager = {
             <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <p><strong>Quote ID:</strong> ${quote.id}</p>
                 <p><strong>Date Created:</strong> ${new Date(quote.dateCreated).toLocaleDateString()}</p>
-                <p><strong>Status:</strong> <span class="status-badge status-${quote.status.toLowerCase()}">${quote.status}</span></p>
+                <p><strong>Status:</strong> <span class="status-badge status-${(quote.status || 'pending').toLowerCase()}">${quote.status || 'Pending'}</span></p>
             </div>
             
             ${itemsHtml}
@@ -3511,6 +4289,13 @@ const OrdersManager = {
                 <p><strong>Total Units:</strong> ${quote.summary.totalUnits.toLocaleString()}</p>
                 <p><strong>Total Boxes:</strong> ${quote.summary.totalBoxes}</p>
             </div>
+            
+            ${quote.specialRequests ? `
+                <div style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid var(--paskal-teal);">
+                    <h3 style="margin-bottom: 15px; color: var(--paskal-navy);">💬 Customer Special Requests</h3>
+                    <p style="white-space: pre-wrap; line-height: 1.6; color: #333;">${quote.specialRequests}</p>
+                </div>
+            ` : ''}
             
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <div style="display: flex; gap: 10px;">
@@ -3582,9 +4367,34 @@ const OrdersManager = {
         // Close View Details Modal
         document.getElementById('viewDetailsModal').classList.remove('show');
         
+        // Store original state for change tracking
+        QuoteUI.originalQuoteState = JSON.parse(JSON.stringify(quote));
+        
         // Load quote data into form
         QuoteData.items = quote.items.map(item => ({...item}));
         QuoteUI.editingQuoteId = quoteId;
+        
+        // Load special requests
+        const specialRequestsField = document.getElementById('specialRequests');
+        const charCount = document.getElementById('charCount');
+        if (specialRequestsField) {
+            specialRequestsField.value = quote.specialRequests || '';
+            if (charCount) {
+                charCount.textContent = (quote.specialRequests || '').length;
+            }
+        }
+        
+        // Update Generate button to Update Quote
+        const generateBtn = document.getElementById('generateQuoteBtn');
+        if (generateBtn) {
+            generateBtn.innerHTML = '📝 Update Quote';
+        }
+        
+        // Show Cancel button
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'inline-block';
+        }
         
         // Switch to Create tab
         TabManager.switchTab('create');
@@ -3598,7 +4408,7 @@ const OrdersManager = {
         // Scroll to top
         window.scrollTo(0, 0);
         
-        QuoteUI.showAlert(`Editing ${quoteId} - Click "Generate Quote" to save changes`, 'info');
+        QuoteUI.showAlert(`Editing ${quoteId} - Make changes and click "Update Quote" or "Cancel Edit"`, 'warning', false);
     }
 };
 
@@ -3616,7 +4426,14 @@ const OrdersManager = {
          VIEW DETAILS MODAL
          ======================================== -->
     <div class="modal" id="viewDetailsModal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 900px; position: relative;">
+            <button onclick="document.getElementById('viewDetailsModal').classList.remove('show')" 
+                    style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.8rem; color: #666; cursor: pointer; padding: 5px 10px; line-height: 1; transition: color 0.2s, transform 0.2s;"
+                    onmouseover="this.style.color='#000'; this.style.transform='scale(1.1)';"
+                    onmouseout="this.style.color='#666'; this.style.transform='scale(1)';"
+                    title="Close">
+                ✕
+            </button>
             <h2 style="color: var(--paskal-navy); margin-bottom: 20px;">📋 Quote Details</h2>
             <div id="viewDetailsBody"></div>
         </div>
@@ -3631,272 +4448,6 @@ const OrdersManager = {
             <div id="successModalBody"></div>
         </div>
     </div>
-
-
-<script>
-// ========================================
-// SUPABASE AUTHENTICATION & INTEGRATION
-// רץ אחרון - אחרי שכל הקוד המקורי כבר נטען
-// ========================================
-
-const supabaseClient = window.supabase;
-let currentUser = null;
-let currentUserProfile = null;
-
-// Check authentication
-async function checkSession() {
-    if (sessionStorage.getItem('checking_session') === 'true') {
-        return false;
-    }
-    
-    sessionStorage.setItem('checking_session', 'true');
-    
-    try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        
-        if (!session) {
-            console.log('No active session found');
-            sessionStorage.removeItem('checking_session');
-            if (sessionStorage.getItem('logging_out') !== 'true') {
-                window.location.href = 'index.html';
-            }
-            return false;
-        }
-        
-        currentUser = session.user;
-        console.log('Session found:', currentUser.email);
-        
-        const { data: profile, error } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-        
-        if (error) {
-            console.error('Error loading profile:', error);
-            sessionStorage.removeItem('checking_session');
-            return false;
-        }
-        
-        if (profile.role !== 'customer') {
-            alert('Access denied. This page is for customers only.');
-            await supabaseClient.auth.signOut();
-            window.location.href = 'index.html';
-            return false;
-        }
-        
-        currentUserProfile = profile;
-        console.log('Profile loaded:', profile);
-        
-        // Update user display
-        const nameDisplay = document.getElementById('userNameDisplay');
-        if (nameDisplay) {
-            nameDisplay.textContent = profile.company_name || currentUser.email || 'Customer';
-        }
-        
-        sessionStorage.removeItem('checking_session');
-        return true;
-        
-    } catch (err) {
-        console.error('Session check error:', err);
-        sessionStorage.removeItem('checking_session');
-        return false;
-    }
-}
-
-// Logout function
-async function handleLogout() {
-    if (sessionStorage.getItem('logging_out') === 'true') {
-        console.log('Logout already in progress');
-        return;
-    }
-    
-    console.log('Starting logout...');
-    sessionStorage.setItem('logging_out', 'true');
-    
-    try {
-        await logout(); // from supabase-config.js
-        sessionStorage.removeItem('logging_out');
-    } catch (err) {
-        console.error('Logout exception:', err);
-        sessionStorage.removeItem('logging_out');
-        window.location.href = 'login.html';
-    }
-}
-
-// Override QuoteStorage for Supabase
-function initializeSupabaseStorage() {
-    console.log('Initializing Supabase storage...');
-    
-    // Check if QuoteStorage exists
-    if (typeof QuoteStorage === 'undefined') {
-        console.error('QuoteStorage not found!');
-        return;
-    }
-    
-    // Save original methods
-    const _original_saveQuote = QuoteStorage.saveQuote;
-    const _original_getAllQuotes = QuoteStorage.getAllQuotes;
-    
-    // Override saveQuote - שומר ל-Supabase וגם מעדכן cache
-    QuoteStorage.saveQuote = async function(quote) {
-        console.log('Saving quote to Supabase:', quote.id);
-        
-        if (!currentUser) {
-            console.error('User not authenticated');
-            return;
-        }
-        
-        try {
-            // התאמה למבנה הטבלה: id, customer_id, items, total_items, etc.
-            const quoteData = {
-                id: quote.id,  // Q-0001 ישר ב-id!
-                customer_id: currentUser.id,
-                sales_manager_id: currentUserProfile?.assigned_sales_manager || null,
-                customer_name: currentUserProfile?.name || currentUser.email,
-                company_name: currentUserProfile?.company_name || null,
-                country: currentUserProfile?.country || null,
-                items: quote.items || [],
-                total_items: quote.summary?.totalItems || 0,
-                total_units: quote.summary?.totalUnits || 0,
-                total_boxes: quote.summary?.totalBoxes || 0,
-                total_pallets: quote.summary?.totalPallets || 0,
-                total_weight: quote.summary?.totalWeight || 0,
-                status: 'Pending'
-            };
-            
-            const { data, error } = await supabaseClient
-                .from('quotes')
-                .insert(quoteData)
-                .select()
-                .single();
-            
-            if (error) throw error;
-            
-            console.log('✓ Quote saved to Supabase');
-            
-            // עדכן את ה-cache עם הנתונים שחזרו מ-Supabase
-            if (data) {
-                const cacheQuote = {
-                    id: data.id,  // Q-0001 ישר מה-id
-                    dateCreated: data.created_at,
-                    status: data.status,
-                    items: data.items || [],
-                    summary: {
-                        totalItems: data.total_items,
-                        totalUnits: data.total_units,
-                        totalBoxes: data.total_boxes,
-                        totalPallets: data.total_pallets,
-                        totalWeight: data.total_weight
-                    }
-                };
-                
-                // בדוק אם כבר קיים (לפי Q-0001)
-                const existingIndex = quotesCache.findIndex(q => q.id === cacheQuote.id);
-                
-                if (existingIndex !== -1) {
-                    quotesCache[existingIndex] = cacheQuote;
-                } else {
-                    quotesCache.unshift(cacheQuote);
-                }
-                
-                console.log('✓ Cache updated with quote:', cacheQuote.id);
-            }
-            
-        } catch (error) {
-            console.error('Error saving quote:', error);
-            alert('Error saving quote: ' + error.message);
-        }
-    };
-    
-    // Cache for quotes (מטמון לשמירת quotes מ-Supabase)
-    let quotesCache = [];
-    
-    // Function to load quotes from Supabase (async, runs in background)
-    async function loadQuotesFromSupabase() {
-        console.log('Loading quotes from Supabase...');
-        
-        if (!currentUser) {
-            console.error('User not authenticated');
-            return [];
-        }
-        
-        try {
-            const { data, error } = await supabaseClient
-                .from('quotes')
-                .select('*')
-                .eq('customer_id', currentUser.id)
-                .order('created_at', { ascending: false });
-            
-            if (error) throw error;
-            
-            quotesCache = (data || []).map(dbQuote => ({
-                id: dbQuote.id,  // Q-0001 ישר מה-id
-                dateCreated: dbQuote.created_at,
-                status: dbQuote.status,
-                items: dbQuote.items || [],
-                summary: {
-                    totalItems: dbQuote.total_items || 0,
-                    totalUnits: dbQuote.total_units || 0,
-                    totalBoxes: dbQuote.total_boxes || 0,
-                    totalPallets: dbQuote.total_pallets || 0,
-                    totalWeight: dbQuote.total_weight || 0
-                }
-            }));
-            
-            console.log(`✓ Loaded ${quotesCache.length} quotes from Supabase`);
-            return quotesCache;
-            
-        } catch (error) {
-            console.error('Error fetching quotes:', error);
-            console.error('Error details:', error.message, error.details);
-            return [];
-        }
-    }
-    
-    // Override getAllQuotes - מחזיר מה-cache (sync!)
-    QuoteStorage.getAllQuotes = function() {
-        console.log(`Getting quotes from cache (${quotesCache.length} quotes)`);
-        return quotesCache;
-    };
-    
-    console.log('✓ Supabase storage initialized');
-    
-    // טען quotes מ-Supabase ברקע
-    loadQuotesFromSupabase().then(() => {
-        console.log('✓ Initial quotes loaded from Supabase');
-    }).catch(err => {
-        console.error('Error loading initial quotes:', err);
-    });
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log('=== Customer Quote Form - Supabase Version ===');
-        const isAuthenticated = await checkSession();
-        
-        if (isAuthenticated) {
-            // המתן קצת כדי לוודא שהקוד המקורי נטען
-            setTimeout(() => {
-                initializeSupabaseStorage();
-            }, 500);
-        }
-    });
-} else {
-    // אם ה-DOM כבר נטען
-    (async () => {
-        console.log('=== Customer Quote Form - Supabase Version ===');
-        const isAuthenticated = await checkSession();
-        
-        if (isAuthenticated) {
-            setTimeout(() => {
-                initializeSupabaseStorage();
-            }, 500);
-        }
-    })();
-}
-</script>
 
 </body>
 </html>
