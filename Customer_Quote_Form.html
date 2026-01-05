@@ -908,7 +908,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <button class="btn btn-primary" onclick="QuoteUI.generateQuote()" id="generateQuoteBtn" style="padding: 15px 50px; font-size: 1.2rem;">
+                <button class="btn btn-primary" onclick="(async () => await QuoteUI.generateQuote())()" id="generateQuoteBtn" style="padding: 15px 50px; font-size: 1.2rem;">
                     📋 Generate Quote
                 </button>
                 <button class="btn btn-secondary" onclick="QuoteUI.cancelEdit()" id="cancelEditBtn" style="padding: 15px 50px; font-size: 1.2rem; display: none; margin-left: 15px;">
@@ -2453,7 +2453,7 @@ const QuoteUI = {
         }
     },
     
-    generateQuote() {
+    async generateQuote() {
         // Validate all items
         const errors = [];
         
@@ -2475,6 +2475,23 @@ const QuoteUI = {
             if (missing.length > 0) {
                 errors.push(`Row ${index + 1} - Missing: ${missing.join(', ')}`);
             }
+            
+            // Validate wire length ranges
+            if (item.twineType && item.wireLength) {
+                const wireVal = parseFloat(item.wireLength);
+                const range = CONFIG.WIRE_RANGES[item.twineType];
+                if (range && (wireVal < range.min || wireVal > range.max)) {
+                    errors.push(`Row ${index + 1} - Twine on Hook must be between ${range.min}-${range.max}m for ${item.twineType}`);
+                }
+            }
+            
+            // Validate free fall range
+            if (item.freeFallLength !== undefined && item.freeFallLength !== null && item.freeFallLength !== '') {
+                const ffVal = parseFloat(item.freeFallLength);
+                if (ffVal < 0 || ffVal > 10) {
+                    errors.push(`Row ${index + 1} - Free Fall must be between 0-10m`);
+                }
+            }
         });
         
         if (errors.length > 0) {
@@ -2482,11 +2499,11 @@ const QuoteUI = {
             const body = document.getElementById('validationModalBody');
             
             body.innerHTML = `
-                <h3 style="color: #dc2626; margin-bottom: 15px;">⚠️ Required Fields Missing</h3>
-                <ul style="list-style: none; padding: 0;">
+                <h3 style="color: #dc2626; margin-bottom: 15px;">⚠️ Validation Errors</h3>
+                <ul style="list-style: none; padding: 0; max-height: 400px; overflow-y: auto;">
                     ${errors.map(err => `<li style="padding: 8px; background: #fee; margin: 5px 0; border-radius: 4px;">${err}</li>`).join('')}
                 </ul>
-                <button class="btn btn-primary" onclick="document.getElementById('validationModal').classList.remove('show')" style="width: 60%; margin: 0 auto; display: block;">
+                <button class="btn btn-primary" onclick="document.getElementById('validationModal').classList.remove('show')" style="width: 60%; margin: 15px auto 0; display: block;">
                     Got it, I'll fix them
                 </button>
             `;
@@ -2496,56 +2513,138 @@ const QuoteUI = {
         }
         
         // Generate quote and show success modal
-        this.createQuoteAndShowModal();
+        await this.createQuoteAndShowModal();
     },
     
-    createQuoteAndShowModal() {
-        // Check if editing existing quote
-        const quoteId = this.editingQuoteId || QuoteStorage.generateQuoteId();
-        const today = new Date();
-        
-        // Collect all quote data
-        const specialRequestsField = document.getElementById('specialRequests');
-        const specialRequests = specialRequestsField ? specialRequestsField.value.trim() : '';
-        
-        const quoteData = {
-            id: quoteId,
-            dateCreated: today.toISOString(),
-            items: QuoteData.items.map(item => ({...item})),
-            specialRequests: specialRequests,
-            summary: {
-                totalItems: QuoteData.items.length,
-                totalUnits: QuoteData.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0),
-                totalBoxes: QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0)
-            },
-            status: 'Pending'
-        };
-        
-        // Save to localStorage
-        if (this.editingQuoteId) {
-            QuoteStorage.updateQuote(quoteId, quoteData);
-            this.editingQuoteId = null; // Clear edit mode
+    async createQuoteAndShowModal() {
+        try {
+            // Check if editing existing quote
+            const quoteId = this.editingQuoteId || QuoteStorage.generateQuoteId();
+            const today = new Date();
             
-            // Reset Generate button
-            const btn = document.getElementById('generateQuoteBtn');
-            if (btn) {
-                btn.innerHTML = '📋 Generate Quote';
+            // Collect all quote data
+            const specialRequestsField = document.getElementById('specialRequests');
+            const specialRequests = specialRequestsField ? specialRequestsField.value.trim() : '';
+            
+            // Calculate totals
+            const totalItems = QuoteData.items.length;
+            const totalUnits = QuoteData.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+            const totalBoxes = QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0);
+            
+            // Calculate total pallets and weight
+            let totalPallets = 0;
+            let totalWeight = 0;
+            
+            QuoteData.items.forEach(item => {
+                // Get transportation type
+                const transportType = item.selectedTransportation === 1 ? item.transportationType1 : item.transportationType2;
+                
+                // Calculate pallets for this item
+                const boxesPerPallet = {
+                    'Container 20HC': 64,
+                    'Container 40HC': 72,
+                    'Container 40HC Sanitized': 64,
+                    'Truck Turkey': 72,
+                    'Truck Mexico': 64,
+                    'LCL': 72
+                }[transportType] || 72;
+                
+                if (item.actualBoxes) {
+                    totalPallets += item.actualBoxes / boxesPerPallet;
+                }
+                
+                // Calculate weight (using actual weight per carton if available)
+                if (item.weightPerCarton && item.actualBoxes) {
+                    totalWeight += item.weightPerCarton * item.actualBoxes * 1.03; // 3% adjustment
+                }
+            });
+            
+            const quoteData = {
+                id: quoteId,
+                dateCreated: today.toISOString(),
+                items: QuoteData.items.map(item => ({...item})),
+                specialRequests: specialRequests,
+                summary: {
+                    totalItems: totalItems,
+                    totalUnits: totalUnits,
+                    totalBoxes: totalBoxes
+                },
+                status: 'Pending'
+            };
+            
+            // Save to Supabase
+            if (!window.currentUser) {
+                this.showAlert('Not logged in. Please refresh the page.', 'error');
+                return;
             }
             
-            // Hide Cancel button
-            const cancelBtn = document.getElementById('cancelEditBtn');
-            if (cancelBtn) {
-                cancelBtn.style.display = 'none';
+            // Get first item info for customer details
+            const firstItem = QuoteData.items[0];
+            const customerName = window.currentProfile?.name || window.currentProfile?.email || 'Unknown';
+            const companyName = window.currentProfile?.company_name || '';
+            const country = firstItem?.shipTo || '';
+            
+            // Prepare Supabase data
+            const supabaseData = {
+                id: quoteId,
+                customer_id: window.currentUser.id,
+                customer_name: customerName,
+                company_name: companyName,
+                country: country,
+                status: 'Pending',
+                items: QuoteData.items,
+                general_remarks: specialRequests, // ← Mapped from Special Requests!
+                total_items: totalItems,
+                total_units: totalUnits,
+                total_boxes: totalBoxes,
+                total_pallets: totalPallets,
+                total_weight: totalWeight,
+                req_delivery_date: firstItem?.reqDate || null
+            };
+            
+            // Insert to Supabase
+            const { data, error } = await window.supabase
+                .from('quotes')
+                .insert([supabaseData]);
+            
+            if (error) {
+                console.error('Error saving to Supabase:', error);
+                this.showAlert('Error saving quote to database: ' + error.message, 'error');
+                return;
             }
-        } else {
-            QuoteStorage.saveQuote(quoteData);
+            
+            console.log('✅ Quote saved to Supabase:', quoteId);
+            
+            // Also save to localStorage for backward compatibility
+            if (this.editingQuoteId) {
+                QuoteStorage.updateQuote(quoteId, quoteData);
+                this.editingQuoteId = null;
+                
+                // Reset Generate button
+                const btn = document.getElementById('generateQuoteBtn');
+                if (btn) {
+                    btn.innerHTML = '📋 Generate Quote';
+                }
+                
+                // Hide Cancel button
+                const cancelBtn = document.getElementById('cancelEditBtn');
+                if (cancelBtn) {
+                    cancelBtn.style.display = 'none';
+                }
+            } else {
+                QuoteStorage.saveQuote(quoteData);
+            }
+            
+            // Store current quote for email/download
+            this.currentQuote = quoteData;
+            
+            // Show success modal
+            this.showSuccessModal(quoteData);
+            
+        } catch (error) {
+            console.error('Error in createQuoteAndShowModal:', error);
+            this.showAlert('Error creating quote: ' + error.message, 'error');
         }
-        
-        // Store current quote for email/download
-        this.currentQuote = quoteData;
-        
-        // Show success modal
-        this.showSuccessModal(quoteData);
     },
     
     showSuccessModal(quoteData) {
@@ -3286,6 +3385,23 @@ Best regards`;
         }
     },
     
+    // NEW: Check round up when any field that affects units per carton changes
+    checkRoundUpForItem(id) {
+        const item = QuoteData.getItem(id);
+        
+        // Only check if units exist and all required fields are filled
+        if (!item.quantity || item.quantity === 0) {
+            return; // No units yet, nothing to check
+        }
+        
+        if (!item.hookSize || !item.twineType || !item.hookType || !item.totalLength) {
+            return; // Not all fields filled yet, can't check
+        }
+        
+        // Re-run quantity validation with current units
+        this.handleQuantityChange(id, String(item.quantity));
+    },
+    
     // ============================================
     // CRITICAL: ROUNDING MODAL FUNCTIONS
     // DO NOT DELETE - Essential for system!
@@ -3463,7 +3579,7 @@ Best regards`;
                                           if (this.value === 'No Free Fall') {
                                               QuoteData.updateItem(${item.id}, 'freeFallLength', '0');
                                           }
-                                          QuoteUI.render(); QuoteUI.updateSummary();">
+                                          QuoteUI.render(); QuoteUI.updateSummary(); QuoteUI.checkRoundUpForItem(${item.id});">
                             <option value="">Select...</option>
                             ${CONFIG.HOOK_TYPES.map(t => `<option value="${t}" ${item.hookType === t ? 'selected' : ''}>${t}</option>`).join('')}
                         </select>
@@ -3471,7 +3587,7 @@ Best regards`;
                     
                     <td>
                         <select class="cell-select" 
-                                onchange="QuoteData.updateItem(${item.id}, 'hookSize', this.value); QuoteUI.render(); QuoteUI.updateSummary();">
+                                onchange="QuoteData.updateItem(${item.id}, 'hookSize', this.value); QuoteUI.render(); QuoteUI.updateSummary(); QuoteUI.checkRoundUpForItem(${item.id});">
                             <option value="">Select...</option>
                             ${CONFIG.HOOK_SIZES.map(s => `<option value="${s}" ${item.hookSize === s ? 'selected' : ''}>${s}mm</option>`).join('')}
                         </select>
@@ -3503,7 +3619,7 @@ Best regards`;
                                                   QuoteUI.showAlert('Color sequence not available for Bio twines. Please select single color.', 'warning');
                                               }
                                           }
-                                          QuoteUI.render(); QuoteUI.updateSummary();">
+                                          QuoteUI.render(); QuoteUI.updateSummary(); QuoteUI.checkRoundUpForItem(${item.id});">
                             <option value="">Select...</option>
                             ${CONFIG.TWINE_TYPES.map(t => `<option value="${t}" ${item.twineType === t ? 'selected' : ''}>${t}</option>`).join('')}
                         </select>
@@ -3595,7 +3711,7 @@ Best regards`;
                                        QuoteUI.showAlert('⚠️ Please select Twine Type first', 'warning');
                                    }
                                "
-                               onblur="QuoteUI.updateTotalTwine(${item.id}); QuoteUI.render(); QuoteUI.updateSummary();"
+                               onblur="QuoteUI.updateTotalTwine(${item.id}); QuoteUI.render(); QuoteUI.updateSummary(); QuoteUI.checkRoundUpForItem(${item.id});"
                                placeholder="${(() => {
                                    const ranges = {
                                        '1000': '3-25',
@@ -3620,7 +3736,7 @@ Best regards`;
                                data-item-id="${item.id}"
                                ${item.hookType === 'No Free Fall' ? 'disabled readonly style="background-color: #f5f5f5; cursor: not-allowed;"' : ''}
                                oninput="this.value = this.value.replace(/[^0-9.]/g, ''); QuoteData.updateItem(${item.id}, 'freeFallLength', this.value);"
-                               onblur="QuoteUI.updateTotalTwine(${item.id}); QuoteUI.render(); QuoteUI.updateSummary();"
+                               onblur="QuoteUI.updateTotalTwine(${item.id}); QuoteUI.render(); QuoteUI.updateSummary(); QuoteUI.checkRoundUpForItem(${item.id});"
                                placeholder="0-10">
                     </td>
                     
