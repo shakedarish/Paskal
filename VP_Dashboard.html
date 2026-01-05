@@ -886,7 +886,7 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="action-buttons">
+                <div class="action-buttons" id="actionButtons">
                     <button class="btn btn-approve" onclick="QuoteDetails.approveQuote()">✓ Approve Quote</button>
                     <button class="btn btn-reject" onclick="QuoteDetails.rejectQuote()">✗ Reject Quote</button>
                 </div>
@@ -1059,24 +1059,34 @@
                     });
                 }
                 
+                console.log('Profiles map:', profilesMap);
+                
                 // Map to quote format
-                return quotes.map(dbQuote => ({
-                    id: dbQuote.id,
-                    customerName: profilesMap[dbQuote.customer_id]?.name || dbQuote.customer_name || 'Unknown',
-                    company: dbQuote.company_name || profilesMap[dbQuote.customer_id]?.company_name || 'N/A',
-                    dateCreated: dbQuote.created_at?.split('T')[0] || '',
-                    reqDeliveryDate: dbQuote.req_delivery_date || 'N/A',
-                    totalItems: dbQuote.total_items || 0,
-                    totalUnits: dbQuote.total_units || 0,
-                    totalBoxes: dbQuote.total_boxes || 0,
-                    totalWeight: dbQuote.total_weight || 0,
-                    status: dbQuote.status || 'Pending',
-                    items: dbQuote.items || [],
-                    productionSite: dbQuote.production_site || '',
-                    generalRemarks: dbQuote.general_remarks || '',
-                    rejectionReason: dbQuote.rejection_reason || '',
-                    _dbData: dbQuote
-                }));
+                return quotes.map(dbQuote => {
+                    const customerProfile = profilesMap[dbQuote.customer_id];
+                    const customerName = customerProfile?.name || customerProfile?.email || dbQuote.customer_name || 'Unknown';
+                    
+                    console.log(`Quote ${dbQuote.id}: customer_id=${dbQuote.customer_id}, profile name=${customerProfile?.name}, final name=${customerName}`);
+                    
+                    return {
+                        id: dbQuote.id,
+                        customerName: customerName,
+                        company: dbQuote.company_name || customerProfile?.company_name || 'N/A',
+                        dateCreated: dbQuote.created_at?.split('T')[0] || '',
+                        reqDeliveryDate: dbQuote.req_delivery_date || 'N/A',
+                        totalItems: dbQuote.total_items || 0,
+                        totalUnits: dbQuote.total_units || 0,
+                        totalBoxes: dbQuote.total_boxes || 0,
+                        totalWeight: dbQuote.total_weight || 0,
+                        totalPallets: dbQuote.total_pallets || 0,
+                        status: dbQuote.status || 'Pending',
+                        items: dbQuote.items || [],
+                        productionSite: dbQuote.production_site || '',
+                        generalRemarks: dbQuote.general_remarks || '',
+                        rejectionReason: dbQuote.rejection_reason || '',
+                        _dbData: dbQuote
+                    };
+                });
                 
             } catch (err) {
                 console.error('Error loading quotes:', err);
@@ -1160,6 +1170,38 @@
             
             async saveQuoteToSupabase(quote) {
                 try {
+                    // Calculate total pallets from items
+                    let totalPallets = 0;
+                    if (quote.items) {
+                        quote.items.forEach(item => {
+                            const selectedTransport = item.selectedTransportation;
+                            let boxesPerPallet = 0;
+                            
+                            if (selectedTransport === 1 && item.transportationType1) {
+                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || 0;
+                            } else if (selectedTransport === 2 && item.transportationType2) {
+                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || 0;
+                            }
+                            
+                            if (boxesPerPallet) {
+                                const itemBoxes = parseInt(item.boxes || item.actualBoxes || 0);
+                                totalPallets += itemBoxes / boxesPerPallet;
+                            }
+                        });
+                    }
+                    
+                    // Get req_delivery_date from first item (all items should have same date)
+                    const reqDeliveryDate = quote.items && quote.items.length > 0 && quote.items[0].reqDate
+                        ? quote.items[0].reqDate
+                        : (quote.items[0]?.reqDeliveryDate || null);
+                    
+                    console.log('Saving to Supabase:', {
+                        id: quote.id,
+                        status: quote.status,
+                        total_pallets: totalPallets,
+                        req_delivery_date: reqDeliveryDate
+                    });
+                    
                     const { data, error } = await window.supabase
                         .from('quotes')
                         .update({
@@ -1167,6 +1209,8 @@
                             production_site: quote.productionSite,
                             general_remarks: quote.generalRemarks,
                             rejection_reason: quote.rejectionReason,
+                            req_delivery_date: reqDeliveryDate,
+                            total_pallets: totalPallets,
                             items: quote.items,
                             updated_at: new Date().toISOString()
                         })
@@ -1348,6 +1392,7 @@
                 this.renderQuoteInfo();
                 this.renderSummaryCards();
                 this.renderItemsTable();
+                this.updateActionButtons();
             },
             
             loadQuote(quoteId) {
@@ -1433,6 +1478,18 @@
                 document.getElementById('summaryUnits').textContent = totalUnits.toLocaleString();
                 document.getElementById('summaryBoxes').textContent = totalBoxes;
                 document.getElementById('summaryPallets').textContent = totalPallets.toFixed(2);
+            },
+            
+            updateActionButtons() {
+                const actionButtons = document.getElementById('actionButtons');
+                if (!actionButtons) return;
+                
+                // Hide buttons if quote is already approved or rejected
+                if (this.quote.status === 'Approved' || this.quote.status === 'Rejected') {
+                    actionButtons.style.display = 'none';
+                } else {
+                    actionButtons.style.display = 'flex';
+                }
             },
             
             renderItemsTable() {
