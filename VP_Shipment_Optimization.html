@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paskal - Shipment Optimization Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --paskal-green: #32AF46;
+            --paskal-navy: #002C5B;
+            --paskal-dark-green: #007350;
+            --paskal-light-blue: #00AFE6;
+            --error-red: #dc2626;
+            --warning-yellow: #fbbf24;
+            --success-green: #10b981;
+            --info-blue: #3b82f6;
+            --gray-light: #f5f5f5;
+            --gray-medium: #e0e0e0;
+            --gray-dark: #6b7280;
+            --excellent-green: #10b981;
+            --good-yellow: #fbbf24;
+            --poor-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 98%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: var(--paskal-navy);
+            color: white;
+            padding: 25px 40px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .logo-container img {
+            height: 45px;
+            width: auto;
+        }
+
+        .header-text h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header-text p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-back {
+            background: var(--paskal-green);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-back:hover {
+            background: var(--paskal-dark-green);
+            transform: translateY(-2px);
+        }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        /* Metrics Dashboard */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--paskal-green);
+            transition: transform 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .metric-card.orders { border-left-color: #3b82f6; }
+        .metric-card.shipments { border-left-color: var(--paskal-green); }
+        .metric-card.utilization { border-left-color: #8b5cf6; }
+        .metric-card.unassigned { border-left-color: #f59e0b; }
+        .metric-card.target { border-left-color: #10b981; }
+        .metric-card.savings { border-left-color: #ec4899; }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--gray-dark);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--paskal-navy);
+        }
+
+        /* Main Layout - 3 Columns */
+        .optimization-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* Left Panel - Unassigned Orders */
+        .unassigned-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-height: calc(100vh - 300px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: var(--paskal-navy);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .panel-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Order Card - Draggable */
+        .order-card {
+            background: var(--gray-light);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: move;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .order-card:hover {
+            border-color: var(--paskal-green);
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(50, 175, 70, 0.2);
+        }
+
+        .order-card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .order-id {
+            font-weight: 700;
+            color: var(--paskal-navy);
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .order-info {
+            font-size: 0.8rem;
+            color: var(--gray-dark);
+            margin-bottom: 3px;
+        }
+
+        .order-metrics {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--gray-medium);
+        }
+
+        .order-metric {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .order-metric.pallets {
+            color: #3b82f6;
+        }
+
+        .order-metric.weight {
+            color: #8b5cf6;
+        }
+
+        /* Center Panel - Optimized Shipments */
+        .shipments-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 300px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .shipments-header {
+            background: var(--paskal-green);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shipments-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Shipment Container */
+        .shipment-container {
+            background: var(--gray-light);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .shipment-container.excellent {
+            border-color: var(--excellent-green);
+        }
+
+        .shipment-container.good {
+            border-color: var(--good-yellow);
+        }
+
+        .shipment-container.poor {
+            border-color: var(--poor-red);
+        }
+
+        .shipment-container.over-capacity {
+            border-color: var(--error-red);
+            background: #fee2e2;
+        }
+
+        .shipment-header {
+            background: var(--paskal-navy);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .shipment-header:hover {
+            background: #003d7a;
+        }
+
+        .shipment-info {
+            flex: 1;
+        }
+
+        .shipment-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .shipment-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .shipment-utilization {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .utilization-badge {
+            background: white;
+            color: var(--paskal-navy);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .utilization-badge.excellent {
+            background: var(--excellent-green);
+            color: white;
+        }
+
+        .utilization-badge.good {
+            background: var(--good-yellow);
+            color: white;
+        }
+
+        .utilization-badge.poor {
+            background: var(--poor-red);
+            color: white;
+        }
+
+        .utilization-details {
+            font-size: 0.75rem;
+            text-align: right;
+        }
+
+        .shipment-expand-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .shipment-container.expanded .shipment-expand-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Shipment Body */
+        .shipment-body {
+            padding: 15px;
+            display: none;
+        }
+
+        .shipment-container.expanded .shipment-body {
+            display: block;
+        }
+
+        .shipment-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .shipment-metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .shipment-metric-label {
+            font-size: 0.75rem;
+            color: var(--gray-dark);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .shipment-metric-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--paskal-navy);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s, background-color 0.3s;
+            border-radius: 4px;
+        }
+
+        .progress-fill.excellent {
+            background: var(--excellent-green);
+        }
+
+        .progress-fill.good {
+            background: var(--good-yellow);
+        }
+
+        .progress-fill.poor {
+            background: var(--poor-red);
+        }
+
+        .progress-fill.over {
+            background: repeating-linear-gradient(
+                45deg,
+                #ef4444,
+                #ef4444 10px,
+                #dc2626 10px,
+                #dc2626 20px
+            );
+        }
+
+        .shipment-orders {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .shipment-orders-title {
+            font-weight: 600;
+            color: var(--paskal-navy);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .shipment-order-item {
+            background: var(--gray-light);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .shipment-order-item:hover {
+            border-color: var(--paskal-green);
+        }
+
+        .shipment-order-info {
+            flex: 1;
+        }
+
+        .shipment-order-id {
+            font-weight: 700;
+            color: var(--paskal-navy);
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+        }
+
+        .shipment-order-details {
+            font-size: 0.75rem;
+            color: var(--gray-dark);
+        }
+
+        .shipment-order-metrics {
+            display: flex;
+            gap: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .btn-remove-order {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-order:hover {
+            background: #dc2626;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--gray-medium);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: var(--gray-dark);
+            font-size: 0.85rem;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--paskal-green);
+            background: rgba(50, 175, 70, 0.1);
+            color: var(--paskal-green);
+        }
+
+        .shipment-actions {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+
+        .btn-save {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-delete {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #b91c1c;
+        }
+
+        /* Right Panel - Recommendations */
+        .recommendations-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 300px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .recommendations-header {
+            background: var(--info-blue);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .recommendations-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .recommendation-card {
+            background: var(--gray-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--info-blue);
+        }
+
+        .recommendation-card.high-priority {
+            border-left-color: var(--error-red);
+            background: #fee2e2;
+        }
+
+        .recommendation-card.medium-priority {
+            border-left-color: var(--warning-yellow);
+            background: #fef3c7;
+        }
+
+        .recommendation-card.low-priority {
+            border-left-color: var(--success-green);
+            background: #d1fae5;
+        }
+
+        .recommendation-title {
+            font-weight: 700;
+            color: var(--paskal-navy);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .recommendation-description {
+            font-size: 0.8rem;
+            color: var(--gray-dark);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .recommendation-action {
+            background: var(--paskal-green);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .recommendation-action:hover {
+            background: var(--paskal-dark-green);
+            transform: translateY(-2px);
+        }
+
+        /* Action Buttons */
+        .action-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            background: var(--paskal-green);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--paskal-dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(50, 175, 70, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--gray-medium);
+            color: var(--paskal-navy);
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-dark);
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--gray-dark);
+        }
+
+        .spinner {
+            border: 4px solid var(--gray-light);
+            border-top: 4px solid var(--paskal-green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-dark);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-medium);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-dark);
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .optimization-layout {
+                grid-template-columns: 250px 1fr 280px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .optimization-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 5px solid var(--success-green);
+        }
+
+        .toast.error {
+            border-left: 5px solid var(--error-red);
+        }
+
+        .toast.warning {
+            border-left: 5px solid var(--warning-yellow);
+        }
+
+        .toast.info {
+            border-left: 5px solid var(--info-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <img src="https://i.imgur.com/YOUR_LOGO.png" alt="Paskal" onerror="this.style.display='none'">
+                </div>
+                <div class="header-text">
+                    <h1>📊 Shipment Optimization Dashboard</h1>
+                    <p>Intelligent grouping for 95%+ utilization</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="VP_Dashboard.html" class="btn-back">← Back to Dashboard</a>
+                <button class="btn-logout" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div class="metrics-grid">
+            <div class="metric-card orders">
+                <div class="metric-label">Total Orders</div>
+                <div class="metric-value" id="metric-total-orders">0</div>
+            </div>
+            <div class="metric-card shipments">
+                <div class="metric-label">Optimized Shipments</div>
+                <div class="metric-value" id="metric-total-shipments">0</div>
+            </div>
+            <div class="metric-card utilization">
+                <div class="metric-label">Avg Utilization</div>
+                <div class="metric-value" id="metric-avg-utilization">0%</div>
+            </div>
+            <div class="metric-card unassigned">
+                <div class="metric-label">Unassigned Orders</div>
+                <div class="metric-value" id="metric-unassigned">0</div>
+            </div>
+            <div class="metric-card target">
+                <div class="metric-label">At Target (95%+)</div>
+                <div class="metric-value" id="metric-at-target">0</div>
+            </div>
+            <div class="metric-card savings">
+                <div class="metric-label">Est. Savings</div>
+                <div class="metric-value" id="metric-savings">$0</div>
+            </div>
+        </div>
+
+        <!-- Main 3-Column Layout -->
+        <div class="optimization-layout">
+            <!-- Left Panel: Unassigned Orders -->
+            <div class="unassigned-panel">
+                <div class="panel-header">
+                    📦 Unassigned Orders (<span id="unassigned-count">0</span>)
+                </div>
+                <div class="panel-content" id="unassigned-orders">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading orders...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Optimized Shipments -->
+            <div class="shipments-panel">
+                <div class="shipments-header">
+                    <span>🚚 Optimized Shipments (<span id="shipments-count">0</span>)</span>
+                    <button class="btn" style="background: white; color: var(--paskal-green); padding: 8px 15px;" onclick="runOptimization()">
+                        ⚡ Auto-Optimize
+                    </button>
+                </div>
+                <div class="shipments-content" id="shipments-container">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚚</div>
+                        <div class="empty-state-text">No shipments yet. Drag orders here or click Auto-Optimize</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Smart Recommendations -->
+            <div class="recommendations-panel">
+                <div class="recommendations-header">
+                    💡 Smart Recommendations
+                </div>
+                <div class="recommendations-content" id="recommendations">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💡</div>
+                        <div class="empty-state-text">Recommendations will appear here</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="btn-secondary" onclick="resetOptimization()">Reset All</button>
+            <button class="btn-secondary" onclick="exportToExcel()">📊 Export</button>
+            <button class="btn-primary" onclick="saveOptimizations()">💾 Save Optimizations</button>
+        </div>
+    </div>
+
+    <script>
+        // ===========================================
+        // GLOBAL STATE
+        // ===========================================
+        let currentUser = null;
+        let allOrders = [];
+        let shipments = [];
+        let draggedOrder = null;
+        let draggedFromShipment = null;
+
+        // ===========================================
+        // TRANSPORT CAPACITIES
+        // ===========================================
+        const TRANSPORT_CAPACITIES = {
+            'Container 40HC': { pallets: 21, weight: 19.5, boxesPerPallet: 72 },
+            'Container 40HC (Fumigation)': { pallets: 18, weight: 19.5, boxesPerPallet: 64 },
+            'Container 20HC': { pallets: 10, weight: 16.5, boxesPerPallet: 64 },
+            'Truck Turkey': { pallets: 23, weight: 19.5, boxesPerPallet: 72 },
+            'Truck Mexico': { pallets: 26, weight: 19.5, boxesPerPallet: 64 },
+            'Truck': { pallets: 23, weight: 19.5, boxesPerPallet: 72 }, // Default truck
+            'LCL': { pallets: 999, weight: 999, boxesPerPallet: 72 } // Flexible
+        };
+
+        // ===========================================
+        // INITIALIZATION
+        // ===========================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkVPAccess();
+            await loadOptimizationData();
+        });
+
+        // ===========================================
+        // ACCESS CONTROL
+        // ===========================================
+        async function checkVPAccess() {
+            try {
+                const { data: { user } } = await window.supabase.auth.getUser();
+                
+                if (!user) {
+                    window.location.href = 'index.html';
+                    return false;
+                }
+
+                const { data: profile } = await window.supabase
+                    .from('profiles')
+                    .select('role, full_name')
+                    .eq('id', user.id)
+                    .single();
+
+                if (!profile || profile.role !== 'vp_sales') {
+                    showToast('Access Denied: VP Sales role required', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'VP_Dashboard.html';
+                    }, 2000);
+                    return false;
+                }
+
+                currentUser = { ...user, ...profile };
+                return true;
+            } catch (error) {
+                console.error('Access check error:', error);
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        // ===========================================
+        // DATA LOADING
+        // ===========================================
+        async function loadOptimizationData() {
+            try {
+                // Load all Approved orders
+                const { data: quotes, error } = await window.supabase
+                    .from('quotes')
+                    .select('*')
+                    .eq('status', 'Approved')
+                    .order('req_date', { ascending: true });
+
+                if (error) throw error;
+
+                // Parse orders into optimization format
+                allOrders = quotes.map(quote => parseQuoteToOrder(quote));
+
+                // Load existing shipments (if any)
+                await loadExistingShipments();
+
+                // Render UI
+                renderUnassignedOrders();
+                renderShipments();
+                generateRecommendations();
+                updateMetrics();
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Error loading orders: ' + error.message, 'error');
+            }
+        }
+
+        function parseQuoteToOrder(quote) {
+            const items = quote.items || [];
+            
+            // Calculate totals
+            let totalPallets = 0;
+            let totalWeight = 0;
+            
+            items.forEach(item => {
+                // Pallets calculation
+                const boxesPerPallet = item.boxes_per_pallet || 72;
+                const pallets = item.boxes / boxesPerPallet;
+                totalPallets += pallets;
+                
+                // Weight calculation (simplified - you may need to adjust based on actual formula)
+                const hookWeight = item.hook_type === '180' ? 0.0226 : 0.0245; // kg per hook
+                const totalHookWeight = item.units * hookWeight;
+                
+                // Estimate twine weight (placeholder - adjust based on actual calculation)
+                const twineWeight = item.total_twine_length ? (item.total_twine_length / 1000) : 0;
+                
+                // Carton weight (placeholder)
+                const cartonWeight = item.boxes * 0.5; // Estimate 0.5 kg per carton
+                
+                // Pallet weight
+                const palletWeight = Math.ceil(pallets) * 17.5;
+                
+                totalWeight += totalHookWeight + twineWeight + cartonWeight + palletWeight;
+            });
+
+            return {
+                quoteId: quote.id,
+                grower: items[0]?.grower || 'Unknown',
+                country: items[0]?.ship_to || 'Unknown',
+                deliveryDate: items[0]?.req_date || '',
+                transportType: items[0]?.transport_type || 'Truck',
+                pallets: totalPallets,
+                weight: totalWeight / 1000, // Convert to tons
+                customer_po: quote.customer_PO || '',
+                items: items,
+                assignedToShipment: null // Track which shipment this order is assigned to
+            };
+        }
+
+        async function loadExistingShipments() {
+            try {
+                const { data: savedShipments, error } = await window.supabase
+                    .from('optimized_shipments')
+                    .select('*')
+                    .eq('status', 'Draft')
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                if (savedShipments && savedShipments.length > 0) {
+                    // Convert saved shipments to working format
+                    shipments = savedShipments.map(s => ({
+                        id: s.id,
+                        grower: s.grower,
+                        country: s.country,
+                        deliveryDate: s.shipment_date,
+                        transportType: s.transport_type,
+                        orders: allOrders.filter(o => s.quote_ids.includes(o.quoteId)),
+                        utilization: {
+                            pallets: {
+                                used: s.total_pallets,
+                                max: TRANSPORT_CAPACITIES[s.transport_type]?.pallets || 23,
+                                percent: s.utilization_pallets
+                            },
+                            weight: {
+                                used: s.total_weight,
+                                max: TRANSPORT_CAPACITIES[s.transport_type]?.weight || 19.5,
+                                percent: s.utilization_weight
+                            },
+                            effective: s.utilization_effective
+                        }
+                    }));
+
+                    // Mark orders as assigned
+                    shipments.forEach(shipment => {
+                        shipment.orders.forEach(order => {
+                            order.assignedToShipment = shipment.id;
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading existing shipments:', error);
+            }
+        }
+
+        // ===========================================
+        // RENDERING FUNCTIONS
+        // ===========================================
+        function renderUnassignedOrders() {
+            const container = document.getElementById('unassigned-orders');
+            const unassignedOrders = allOrders.filter(o => !o.assignedToShipment);
+            
+            document.getElementById('unassigned-count').textContent = unassignedOrders.length;
+
+            if (unassignedOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div class="empty-state-text">All orders assigned!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = unassignedOrders.map(order => `
+                <div class="order-card" draggable="true" data-order-id="${order.quoteId}">
+                    <div class="order-id">${order.quoteId}</div>
+                    <div class="order-info">🌍 ${order.country}</div>
+                    <div class="order-info">👤 ${order.grower}</div>
+                    <div class="order-info">📅 ${order.deliveryDate}</div>
+                    <div class="order-info">🚚 ${order.transportType}</div>
+                    ${order.customer_po ? `<div class="order-info">📋 PO: ${order.customer_po}</div>` : ''}
+                    <div class="order-metrics">
+                        <div class="order-metric pallets">📦 ${order.pallets.toFixed(1)} pal</div>
+                        <div class="order-metric weight">⚖️ ${order.weight.toFixed(1)}t</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add drag event listeners
+            container.querySelectorAll('.order-card').forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        function renderShipments() {
+            const container = document.getElementById('shipments-container');
+            
+            document.getElementById('shipments-count').textContent = shipments.length;
+
+            if (shipments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚚</div>
+                        <div class="empty-state-text">No shipments yet. Drag orders here or click Auto-Optimize</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = shipments.map(shipment => renderShipmentCard(shipment)).join('');
+
+            // Add event listeners
+            shipments.forEach((shipment, index) => {
+                const shipmentElement = container.children[index];
+                
+                // Expand/collapse
+                shipmentElement.querySelector('.shipment-header').addEventListener('click', () => {
+                    shipmentElement.classList.toggle('expanded');
+                });
+
+                // Drop zone
+                const dropZone = shipmentElement.querySelector('.drop-zone');
+                if (dropZone) {
+                    dropZone.addEventListener('dragover', handleDragOver);
+                    dropZone.addEventListener('drop', (e) => handleDrop(e, shipment.id));
+                    dropZone.addEventListener('dragleave', handleDragLeave);
+                }
+
+                // Remove order buttons
+                shipmentElement.querySelectorAll('.btn-remove-order').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const orderId = btn.dataset.orderId;
+                        removeOrderFromShipment(shipment.id, orderId);
+                    });
+                });
+
+                // Shipment actions
+                const saveBtn = shipmentElement.querySelector('.btn-save');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        saveShipment(shipment);
+                    });
+                }
+
+                const deleteBtn = shipmentElement.querySelector('.btn-delete');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteShipment(shipment.id);
+                    });
+                }
+            });
+        }
+
+        function renderShipmentCard(shipment) {
+            const utilization = calculateUtilization(shipment.orders, shipment.transportType);
+            const status = getUtilizationStatus(utilization.effective, utilization.isOverCapacity);
+            const statusClass = status === 'EXCELLENT' ? 'excellent' : 
+                               status === 'GOOD' ? 'good' : 
+                               status === 'OVER_CAPACITY' ? 'over-capacity' : 'poor';
+
+            return `
+                <div class="shipment-container ${statusClass}" id="shipment-${shipment.id}">
+                    <div class="shipment-header">
+                        <div class="shipment-info">
+                            <div class="shipment-title">
+                                ${shipment.grower} → ${shipment.country}
+                            </div>
+                            <div class="shipment-subtitle">
+                                ${shipment.transportType} • ${shipment.deliveryDate} • ${shipment.orders.length} orders
+                            </div>
+                        </div>
+                        <div class="shipment-utilization">
+                            <div class="utilization-details">
+                                <div>📦 ${utilization.pallets.used.toFixed(1)}/${utilization.pallets.max} (${utilization.pallets.percent.toFixed(1)}%)</div>
+                                <div>⚖️ ${utilization.weight.used.toFixed(1)}/${utilization.weight.max}t (${utilization.weight.percent.toFixed(1)}%)</div>
+                            </div>
+                            <div class="utilization-badge ${statusClass}">
+                                ${utilization.effective.toFixed(1)}%
+                            </div>
+                            <div class="shipment-expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="shipment-body">
+                        <div class="shipment-metrics">
+                            <div class="shipment-metric">
+                                <div class="shipment-metric-label">Pallets Used</div>
+                                <div class="shipment-metric-value">${utilization.pallets.used.toFixed(1)} / ${utilization.pallets.max}</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${utilization.pallets.percent > 100 ? 'over' : statusClass}" 
+                                         style="width: ${Math.min(utilization.pallets.percent, 100)}%"></div>
+                                </div>
+                            </div>
+                            <div class="shipment-metric">
+                                <div class="shipment-metric-label">Weight Used</div>
+                                <div class="shipment-metric-value">${utilization.weight.used.toFixed(1)} / ${utilization.weight.max} tons</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${utilization.weight.percent > 100 ? 'over' : statusClass}" 
+                                         style="width: ${Math.min(utilization.weight.percent, 100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="shipment-orders">
+                            <div class="shipment-orders-title">Orders in this shipment:</div>
+                            ${shipment.orders.map(order => `
+                                <div class="shipment-order-item">
+                                    <div class="shipment-order-info">
+                                        <div class="shipment-order-id">${order.quoteId}</div>
+                                        <div class="shipment-order-details">
+                                            ${order.grower} • ${order.country} • ${order.deliveryDate}
+                                            ${order.customer_po ? ` • PO: ${order.customer_po}` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="shipment-order-metrics">
+                                        <span style="color: #3b82f6;">📦 ${order.pallets.toFixed(1)} pal</span>
+                                        <span style="color: #8b5cf6;">⚖️ ${order.weight.toFixed(1)}t</span>
+                                    </div>
+                                    <button class="btn-remove-order" data-order-id="${order.quoteId}">Remove</button>
+                                </div>
+                            `).join('')}
+                            <div class="drop-zone" data-shipment-id="${shipment.id}">
+                                Drop orders here to add them to this shipment
+                            </div>
+                        </div>
+                        <div class="shipment-actions">
+                            <button class="btn btn-save">💾 Save</button>
+                            <button class="btn btn-delete">🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===========================================
+        // CALCULATION FUNCTIONS
+        // ===========================================
+        function calculateUtilization(orders, transportType) {
+            const capacity = TRANSPORT_CAPACITIES[transportType] || TRANSPORT_CAPACITIES['Truck'];
+            
+            let totalPallets = 0;
+            let totalWeight = 0;
+            
+            orders.forEach(order => {
+                totalPallets += order.pallets;
+                totalWeight += order.weight;
+            });
+            
+            const palletUtilization = (totalPallets / capacity.pallets) * 100;
+            const weightUtilization = (totalWeight / capacity.weight) * 100;
+            
+            // CRITICAL: Effective utilization is the MINIMUM
+            const effectiveUtilization = Math.min(palletUtilization, weightUtilization);
+            
+            const isOverCapacity = palletUtilization > 100 || weightUtilization > 100;
+            
+            return {
+                pallets: {
+                    used: totalPallets,
+                    max: capacity.pallets,
+                    percent: palletUtilization
+                },
+                weight: {
+                    used: totalWeight,
+                    max: capacity.weight,
+                    percent: weightUtilization
+                },
+                effective: effectiveUtilization,
+                isOverCapacity: isOverCapacity
+            };
+        }
+
+        function getUtilizationStatus(utilization, isOverCapacity) {
+            if (isOverCapacity) return 'OVER_CAPACITY';
+            if (utilization >= 95) return 'EXCELLENT';
+            if (utilization >= 90) return 'GOOD';
+            return 'POOR';
+        }
+
+        // ===========================================
+        // DRAG AND DROP
+        // ===========================================
+        function handleDragStart(e) {
+            const orderId = e.target.dataset.orderId;
+            draggedOrder = allOrders.find(o => o.quoteId === orderId);
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedOrder = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, shipmentId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            if (!draggedOrder) return;
+            
+            // Add order to shipment
+            addOrderToShipment(shipmentId, draggedOrder);
+        }
+
+        function addOrderToShipment(shipmentId, order) {
+            // Find the shipment
+            const shipment = shipments.find(s => s.id === shipmentId);
+            if (!shipment) {
+                showToast('Shipment not found', 'error');
+                return;
+            }
+
+            // Check if order is already in this shipment
+            if (shipment.orders.find(o => o.quoteId === order.quoteId)) {
+                showToast('Order already in this shipment', 'warning');
+                return;
+            }
+
+            // Remove from previous shipment if assigned
+            if (order.assignedToShipment) {
+                const prevShipment = shipments.find(s => s.id === order.assignedToShipment);
+                if (prevShipment) {
+                    prevShipment.orders = prevShipment.orders.filter(o => o.quoteId !== order.quoteId);
+                }
+            }
+
+            // Add to new shipment
+            shipment.orders.push(order);
+            order.assignedToShipment = shipment.id;
+
+            // Recalculate utilization
+            shipment.utilization = calculateUtilization(shipment.orders, shipment.transportType);
+
+            // Check if over capacity
+            if (shipment.utilization.isOverCapacity) {
+                showToast('⚠️ Warning: Shipment is over capacity!', 'warning');
+            } else if (shipment.utilization.effective >= 95) {
+                showToast('✅ Excellent! Utilization at target: ' + shipment.utilization.effective.toFixed(1) + '%', 'success');
+            }
+
+            // Re-render
+            renderUnassignedOrders();
+            renderShipments();
+            generateRecommendations();
+            updateMetrics();
+        }
+
+        function removeOrderFromShipment(shipmentId, orderId) {
+            const shipment = shipments.find(s => s.id === shipmentId);
+            if (!shipment) return;
+
+            // Remove order
+            shipment.orders = shipment.orders.filter(o => o.quoteId !== orderId);
+            
+            // Update order status
+            const order = allOrders.find(o => o.quoteId === orderId);
+            if (order) {
+                order.assignedToShipment = null;
+            }
+
+            // If shipment is empty, consider deleting it
+            if (shipment.orders.length === 0) {
+                if (confirm('Shipment is now empty. Delete it?')) {
+                    deleteShipment(shipmentId);
+                    return;
+                }
+            } else {
+                // Recalculate utilization
+                shipment.utilization = calculateUtilization(shipment.orders, shipment.transportType);
+            }
+
+            // Re-render
+            renderUnassignedOrders();
+            renderShipments();
+            generateRecommendations();
+            updateMetrics();
+        }
+
+        function deleteShipment(shipmentId) {
+            const shipment = shipments.find(s => s.id === shipmentId);
+            if (!shipment) return;
+
+            // Unassign all orders
+            shipment.orders.forEach(order => {
+                order.assignedToShipment = null;
+            });
+
+            // Remove shipment
+            shipments = shipments.filter(s => s.id !== shipmentId);
+
+            // Re-render
+            renderUnassignedOrders();
+            renderShipments();
+            generateRecommendations();
+            updateMetrics();
+            
+            showToast('Shipment deleted', 'info');
+        }
+
+        // ===========================================
+        // AUTO-OPTIMIZATION
+        // ===========================================
+        async function runOptimization() {
+            try {
+                showToast('🔄 Running optimization algorithm...', 'info');
+                
+                // Get all unassigned orders
+                const unassignedOrders = allOrders.filter(o => !o.assignedToShipment);
+                
+                if (unassignedOrders.length === 0) {
+                    showToast('No unassigned orders to optimize', 'warning');
+                    return;
+                }
+
+                // Group by grower first (highest priority)
+                const growerGroups = {};
+                unassignedOrders.forEach(order => {
+                    const grower = order.grower;
+                    if (!growerGroups[grower]) {
+                        growerGroups[grower] = [];
+                    }
+                    growerGroups[grower].push(order);
+                });
+
+                // For each grower, try to create optimal shipments
+                Object.keys(growerGroups).forEach(grower => {
+                    const growerOrders = growerGroups[grower];
+                    
+                    // Group by date and transport type
+                    const dateTransportGroups = {};
+                    growerOrders.forEach(order => {
+                        const key = `${order.deliveryDate}_${order.transportType}`;
+                        if (!dateTransportGroups[key]) {
+                            dateTransportGroups[key] = [];
+                        }
+                        dateTransportGroups[key].push(order);
+                    });
+
+                    // Try to create shipments for each group
+                    Object.keys(dateTransportGroups).forEach(key => {
+                        const ordersGroup = dateTransportGroups[key];
+                        const firstOrder = ordersGroup[0];
+                        
+                        // Calculate combined metrics
+                        const combined = calculateUtilization(ordersGroup, firstOrder.transportType);
+                        
+                        // If under 100% capacity, create shipment
+                        if (!combined.isOverCapacity) {
+                            const newShipment = {
+                                id: 'SHIP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                                grower: grower,
+                                country: firstOrder.country,
+                                deliveryDate: firstOrder.deliveryDate,
+                                transportType: firstOrder.transportType,
+                                orders: [...ordersGroup],
+                                utilization: combined
+                            };
+
+                            // Assign orders
+                            ordersGroup.forEach(order => {
+                                order.assignedToShipment = newShipment.id;
+                            });
+
+                            shipments.push(newShipment);
+                        } else {
+                            // Split into multiple shipments if over capacity
+                            splitIntoMultipleShipments(ordersGroup, firstOrder.transportType, grower);
+                        }
+                    });
+                });
+
+                // Re-render
+                renderUnassignedOrders();
+                renderShipments();
+                generateRecommendations();
+                updateMetrics();
+                
+                showToast('✅ Optimization complete!', 'success');
+                
+            } catch (error) {
+                console.error('Optimization error:', error);
+                showToast('Error during optimization: ' + error.message, 'error');
+            }
+        }
+
+        function splitIntoMultipleShipments(orders, transportType, grower) {
+            // Sort orders by size (smallest first for better packing)
+            orders.sort((a, b) => a.pallets - b.pallets);
+            
+            let currentShipmentOrders = [];
+            let currentPallets = 0;
+            let currentWeight = 0;
+            
+            const capacity = TRANSPORT_CAPACITIES[transportType] || TRANSPORT_CAPACITIES['Truck'];
+            
+            orders.forEach(order => {
+                // Check if adding this order would exceed capacity
+                if (currentPallets + order.pallets <= capacity.pallets && 
+                    currentWeight + order.weight <= capacity.weight) {
+                    // Can add to current shipment
+                    currentShipmentOrders.push(order);
+                    currentPallets += order.pallets;
+                    currentWeight += order.weight;
+                } else {
+                    // Create shipment with current orders if any
+                    if (currentShipmentOrders.length > 0) {
+                        createShipmentFromOrders(currentShipmentOrders, transportType, grower);
+                    }
+                    
+                    // Start new shipment with this order
+                    currentShipmentOrders = [order];
+                    currentPallets = order.pallets;
+                    currentWeight = order.weight;
+                }
+            });
+            
+            // Create final shipment
+            if (currentShipmentOrders.length > 0) {
+                createShipmentFromOrders(currentShipmentOrders, transportType, grower);
+            }
+        }
+
+        function createShipmentFromOrders(orders, transportType, grower) {
+            const firstOrder = orders[0];
+            const utilization = calculateUtilization(orders, transportType);
+            
+            const newShipment = {
+                id: 'SHIP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                grower: grower,
+                country: firstOrder.country,
+                deliveryDate: firstOrder.deliveryDate,
+                transportType: transportType,
+                orders: [...orders],
+                utilization: utilization
+            };
+
+            // Assign orders
+            orders.forEach(order => {
+                order.assignedToShipment = newShipment.id;
+            });
+
+            shipments.push(newShipment);
+        }
+
+        // ===========================================
+        // RECOMMENDATIONS ENGINE
+        // ===========================================
+        function generateRecommendations() {
+            const container = document.getElementById('recommendations');
+            const recommendations = [];
+
+            // Check each shipment for optimization opportunities
+            shipments.forEach(shipment => {
+                const util = shipment.utilization;
+                
+                // LOW UTILIZATION - Suggest adding more
+                if (util.effective < 90 && !util.isOverCapacity) {
+                    const availableSpace = {
+                        pallets: util.pallets.max - util.pallets.used,
+                        weight: util.weight.max - util.weight.used
+                    };
+                    
+                    // Find compatible orders
+                    const compatibleOrders = allOrders.filter(o => 
+                        !o.assignedToShipment &&
+                        o.country === shipment.country &&
+                        o.transportType === shipment.transportType &&
+                        o.pallets <= availableSpace.pallets &&
+                        o.weight <= availableSpace.weight
+                    );
+
+                    if (compatibleOrders.length > 0) {
+                        recommendations.push({
+                            priority: 'high',
+                            title: `Low Utilization: ${util.effective.toFixed(1)}%`,
+                            description: `Shipment "${shipment.grower}" has room for ${availableSpace.pallets.toFixed(1)} more pallets and ${availableSpace.weight.toFixed(1)} tons. Found ${compatibleOrders.length} compatible order(s).`,
+                            action: () => {
+                                // Add the best fitting order
+                                const bestOrder = compatibleOrders[0];
+                                addOrderToShipment(shipment.id, bestOrder);
+                            },
+                            actionText: 'Add Best Match'
+                        });
+                    }
+                }
+
+                // OVER CAPACITY - Must fix
+                if (util.isOverCapacity) {
+                    recommendations.push({
+                        priority: 'high',
+                        title: '🚨 Over Capacity!',
+                        description: `Shipment "${shipment.grower}" exceeds limits: Pallets ${util.pallets.percent.toFixed(1)}%, Weight ${util.weight.percent.toFixed(1)}%. Remove orders or change transport type.`,
+                        action: () => {
+                            // Automatically remove smallest order
+                            const smallestOrder = [...shipment.orders].sort((a, b) => a.pallets - b.pallets)[0];
+                            removeOrderFromShipment(shipment.id, smallestOrder.quoteId);
+                        },
+                        actionText: 'Remove Smallest Order'
+                    });
+                }
+
+                // GOOD BUT CAN BE BETTER
+                if (util.effective >= 90 && util.effective < 95 && !util.isOverCapacity) {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: `Almost There: ${util.effective.toFixed(1)}%`,
+                        description: `Shipment "${shipment.grower}" is close to target. Just ${(95 - util.effective).toFixed(1)}% more needed.`,
+                        action: () => {
+                            // Try to find very small order to top off
+                            const neededPallets = (util.pallets.max * 0.95) - util.pallets.used;
+                            const neededWeight = (util.weight.max * 0.95) - util.weight.used;
+                            
+                            const smallOrders = allOrders.filter(o =>
+                                !o.assignedToShipment &&
+                                o.country === shipment.country &&
+                                o.pallets <= neededPallets &&
+                                o.weight <= neededWeight
+                            );
+
+                            if (smallOrders.length > 0) {
+                                addOrderToShipment(shipment.id, smallOrders[0]);
+                            } else {
+                                showToast('No suitable small orders found', 'warning');
+                            }
+                        },
+                        actionText: 'Find Filler'
+                    });
+                }
+            });
+
+            // CROSS-BORDER OPPORTUNITIES
+            const countryCounts = {};
+            allOrders.filter(o => !o.assignedToShipment).forEach(o => {
+                countryCounts[o.country] = (countryCounts[o.country] || 0) + 1;
+            });
+
+            Object.keys(countryCounts).forEach(country => {
+                if (countryCounts[country] > 1) {
+                    recommendations.push({
+                        priority: 'low',
+                        title: `Multiple Orders to ${country}`,
+                        description: `Found ${countryCounts[country]} unassigned orders going to ${country}. Consider grouping them.`,
+                        action: () => {
+                            // Auto-group by country
+                            const countryOrders = allOrders.filter(o => 
+                                !o.assignedToShipment && 
+                                o.country === country
+                            );
+                            
+                            if (countryOrders.length > 0) {
+                                const firstOrder = countryOrders[0];
+                                createShipmentFromOrders(countryOrders, firstOrder.transportType, firstOrder.grower);
+                                renderUnassignedOrders();
+                                renderShipments();
+                                generateRecommendations();
+                                updateMetrics();
+                            }
+                        },
+                        actionText: 'Group Orders'
+                    });
+                }
+            });
+
+            // Render recommendations
+            if (recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div class="empty-state-text">All shipments are optimized!</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = recommendations.map(rec => `
+                    <div class="recommendation-card ${rec.priority}-priority">
+                        <div class="recommendation-title">${rec.title}</div>
+                        <div class="recommendation-description">${rec.description}</div>
+                        <button class="recommendation-action" onclick='${rec.action.toString().replace(/'/g, "\\'")}()'>
+                            ${rec.actionText}
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ===========================================
+        // METRICS UPDATE
+        // ===========================================
+        function updateMetrics() {
+            const totalOrders = allOrders.length;
+            const totalShipments = shipments.length;
+            const unassignedOrders = allOrders.filter(o => !o.assignedToShipment).length;
+            
+            // Calculate average utilization
+            let totalPallets = 0;
+            let weightedUtilization = 0;
+            
+            shipments.forEach(shipment => {
+                totalPallets += shipment.utilization.pallets.used;
+                weightedUtilization += shipment.utilization.effective * shipment.utilization.pallets.used;
+            });
+            
+            const avgUtilization = totalPallets > 0 ? weightedUtilization / totalPallets : 0;
+            
+            // Shipments at target (95%+)
+            const shipmentsAtTarget = shipments.filter(s => s.utilization.effective >= 95).length;
+            
+            // Estimate savings (placeholder calculation)
+            const potentialShipments = Math.ceil(totalOrders / 3); // Rough estimate
+            const actualShipments = totalShipments;
+            const savings = Math.max(0, (potentialShipments - actualShipments) * 5000); // $5000 per shipment saved
+
+            // Update UI
+            document.getElementById('metric-total-orders').textContent = totalOrders;
+            document.getElementById('metric-total-shipments').textContent = totalShipments;
+            document.getElementById('metric-avg-utilization').textContent = avgUtilization.toFixed(1) + '%';
+            document.getElementById('metric-unassigned').textContent = unassignedOrders;
+            document.getElementById('metric-at-target').textContent = shipmentsAtTarget;
+            document.getElementById('metric-savings').textContent = '$' + savings.toLocaleString();
+        }
+
+        // ===========================================
+        // SAVE & EXPORT
+        // ===========================================
+        async function saveShipment(shipment) {
+            try {
+                const { data, error } = await window.supabase
+                    .from('optimized_shipments')
+                    .upsert({
+                        id: shipment.id,
+                        shipment_date: shipment.deliveryDate,
+                        transport_type: shipment.transportType,
+                        country: shipment.country,
+                        grower: shipment.grower,
+                        quote_ids: shipment.orders.map(o => o.quoteId),
+                        total_pallets: shipment.utilization.pallets.used,
+                        total_weight: shipment.utilization.weight.used,
+                        utilization_pallets: shipment.utilization.pallets.percent,
+                        utilization_weight: shipment.utilization.weight.percent,
+                        utilization_effective: shipment.utilization.effective,
+                        status: 'Draft',
+                        created_by: currentUser.id
+                    });
+
+                if (error) throw error;
+
+                showToast('✅ Shipment saved successfully', 'success');
+            } catch (error) {
+                console.error('Error saving shipment:', error);
+                showToast('Error saving shipment: ' + error.message, 'error');
+            }
+        }
+
+        async function saveOptimizations() {
+            try {
+                showToast('💾 Saving all optimizations...', 'info');
+
+                // Save all shipments
+                const promises = shipments.map(shipment => {
+                    return window.supabase
+                        .from('optimized_shipments')
+                        .upsert({
+                            id: shipment.id,
+                            shipment_date: shipment.deliveryDate,
+                            transport_type: shipment.transportType,
+                            country: shipment.country,
+                            grower: shipment.grower,
+                            quote_ids: shipment.orders.map(o => o.quoteId),
+                            total_pallets: shipment.utilization.pallets.used,
+                            total_weight: shipment.utilization.weight.used,
+                            utilization_pallets: shipment.utilization.pallets.percent,
+                            utilization_weight: shipment.utilization.weight.percent,
+                            utilization_effective: shipment.utilization.effective,
+                            status: 'Draft',
+                            created_by: currentUser.id
+                        });
+                });
+
+                await Promise.all(promises);
+
+                showToast('✅ All shipments saved successfully!', 'success');
+            } catch (error) {
+                console.error('Error saving optimizations:', error);
+                showToast('Error saving: ' + error.message, 'error');
+            }
+        }
+
+        function resetOptimization() {
+            if (!confirm('Reset all optimizations? This will unassign all orders.')) return;
+
+            // Unassign all orders
+            allOrders.forEach(order => {
+                order.assignedToShipment = null;
+            });
+
+            // Clear shipments
+            shipments = [];
+
+            // Re-render
+            renderUnassignedOrders();
+            renderShipments();
+            generateRecommendations();
+            updateMetrics();
+
+            showToast('All optimizations reset', 'info');
+        }
+
+        function exportToExcel() {
+            // Simple CSV export
+            let csv = 'Shipment ID,Grower,Country,Delivery Date,Transport Type,Orders,Pallets,Weight (tons),Utilization (%)\n';
+            
+            shipments.forEach(shipment => {
+                csv += `${shipment.id},${shipment.grower},${shipment.country},${shipment.deliveryDate},${shipment.transportType},`;
+                csv += `${shipment.orders.length},${shipment.utilization.pallets.used.toFixed(2)},`;
+                csv += `${shipment.utilization.weight.used.toFixed(2)},${shipment.utilization.effective.toFixed(2)}\n`;
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Optimized_Shipments_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showToast('📊 Export complete', 'success');
+        }
+
+        // ===========================================
+        // UTILITIES
+        // ===========================================
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        async function handleLogout() {
+            try {
+                await window.supabase.auth.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Error logging out', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
