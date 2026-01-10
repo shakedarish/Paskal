@@ -974,18 +974,32 @@
         // ===========================================
         async function checkVPAccess() {
             try {
-                const { data: { user } } = await window.supabase.auth.getUser();
+                // Check if Supabase is configured
+                if (!window.supabase) {
+                    console.error('Supabase not configured. Please create supabase-config.js');
+                    showToast('System configuration error. Please contact administrator.', 'error');
+                    return false;
+                }
+
+                const { data: { user }, error: userError } = await window.supabase.auth.getUser();
                 
-                if (!user) {
+                if (userError || !user) {
+                    console.error('User authentication error:', userError);
                     window.location.href = 'index.html';
                     return false;
                 }
 
-                const { data: profile } = await window.supabase
+                const { data: profile, error: profileError } = await window.supabase
                     .from('profiles')
                     .select('role, full_name')
                     .eq('id', user.id)
                     .single();
+
+                if (profileError) {
+                    console.error('Profile fetch error:', profileError);
+                    showToast('Error loading user profile: ' + profileError.message, 'error');
+                    return false;
+                }
 
                 if (!profile || profile.role !== 'vp_sales') {
                     showToast('Access Denied: VP Sales role required', 'error');
@@ -999,7 +1013,7 @@
                 return true;
             } catch (error) {
                 console.error('Access check error:', error);
-                window.location.href = 'index.html';
+                showToast('System error: ' + error.message, 'error');
                 return false;
             }
         }
@@ -1009,17 +1023,40 @@
         // ===========================================
         async function loadOptimizationData() {
             try {
+                // Check Supabase connection
+                if (!window.supabase) {
+                    throw new Error('Supabase not configured. Please create supabase-config.js with your Supabase credentials.');
+                }
+
+                showToast('Loading orders...', 'info');
+
                 // Load all Approved orders
                 const { data: quotes, error } = await window.supabase
                     .from('quotes')
                     .select('*')
                     .eq('status', 'Approved')
-                    .order('req_date', { ascending: true });
+                    .order('req_delivery_date', { ascending: true });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase query error:', error);
+                    throw new Error(`Database error: ${error.message}. Please check your database configuration.`);
+                }
+
+                if (!quotes || quotes.length === 0) {
+                    console.log('No approved quotes found');
+                    allOrders = [];
+                    renderUnassignedOrders();
+                    renderShipments();
+                    generateRecommendations();
+                    updateMetrics();
+                    showToast('No approved orders found. Quotes must be approved first.', 'warning');
+                    return;
+                }
 
                 // Parse orders into optimization format
                 allOrders = quotes.map(quote => parseQuoteToOrder(quote));
+
+                console.log(`Loaded ${allOrders.length} orders successfully`);
 
                 // Load existing shipments (if any)
                 await loadExistingShipments();
@@ -1030,50 +1067,115 @@
                 generateRecommendations();
                 updateMetrics();
 
+                showToast(`Loaded ${allOrders.length} orders successfully!`, 'success');
+
             } catch (error) {
                 console.error('Error loading data:', error);
+                
+                // Show user-friendly error
+                const errorContainer = document.getElementById('unassigned-orders');
+                if (errorContainer) {
+                    errorContainer.innerHTML = `
+                        <div style="padding: 40px 20px; text-align: center; color: #dc2626;">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
+                            <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 10px;">
+                                Error Loading Data
+                            </div>
+                            <div style="font-size: 0.9rem; color: #6b7280; margin-bottom: 15px;">
+                                ${error.message}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6b7280;">
+                                Please contact your administrator or check the browser console for details.
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 showToast('Error loading orders: ' + error.message, 'error');
             }
         }
 
         function parseQuoteToOrder(quote) {
-            const items = quote.items || [];
+            // Parse items - handle both string JSON and array
+            let items = [];
+            try {
+                if (typeof quote.items === 'string') {
+                    items = JSON.parse(quote.items);
+                } else if (Array.isArray(quote.items)) {
+                    items = quote.items;
+                }
+            } catch (e) {
+                console.error('Error parsing items for quote', quote.id, e);
+                items = [];
+            }
             
-            // Calculate totals
-            let totalPallets = 0;
-            let totalWeight = 0;
+            // Calculate totals from quote aggregate fields if available
+            // Otherwise calculate from items
+            let totalPallets = parseFloat(quote.total_pallets) || 0;
+            let totalWeight = parseFloat(quote.total_weight) || 0;
             
-            items.forEach(item => {
-                // Pallets calculation
-                const boxesPerPallet = item.boxes_per_pallet || 72;
-                const pallets = item.boxes / boxesPerPallet;
-                totalPallets += pallets;
-                
-                // Weight calculation (simplified - you may need to adjust based on actual formula)
-                const hookWeight = item.hook_type === '180' ? 0.0226 : 0.0245; // kg per hook
-                const totalHookWeight = item.units * hookWeight;
-                
-                // Estimate twine weight (placeholder - adjust based on actual calculation)
-                const twineWeight = item.total_twine_length ? (item.total_twine_length / 1000) : 0;
-                
-                // Carton weight (placeholder)
-                const cartonWeight = item.boxes * 0.5; // Estimate 0.5 kg per carton
-                
-                // Pallet weight
-                const palletWeight = Math.ceil(pallets) * 17.5;
-                
-                totalWeight += totalHookWeight + twineWeight + cartonWeight + palletWeight;
-            });
+            // If aggregates not available, calculate from items
+            if (totalPallets === 0 && items.length > 0) {
+                items.forEach(item => {
+                    // Pallets calculation
+                    const boxesPerPallet = item.boxes_per_pallet || 72;
+                    const boxes = item.boxes || 0;
+                    if (boxes > 0 && boxesPerPallet > 0) {
+                        const pallets = boxes / boxesPerPallet;
+                        totalPallets += pallets;
+                    }
+                    
+                    // Weight calculation (simplified)
+                    const hookWeight = item.hook_type === '180' ? 0.0226 : 0.0245; // kg per hook
+                    const units = item.units || 0;
+                    const totalHookWeight = units * hookWeight;
+                    
+                    // Estimate twine weight
+                    const twineWeight = item.total_twine_length ? (item.total_twine_length / 1000) : 0;
+                    
+                    // Carton weight
+                    const cartonWeight = boxes * 0.5; // Estimate 0.5 kg per carton
+                    
+                    // Pallet weight
+                    const palletCount = Math.ceil(boxes / boxesPerPallet);
+                    const palletWeight = palletCount * 17.5;
+                    
+                    totalWeight += totalHookWeight + twineWeight + cartonWeight + palletWeight;
+                });
+            }
+
+            // Get first item for common fields
+            const firstItem = items[0] || {};
+
+            // Determine grower/customer
+            const grower = firstItem.grower || 
+                          firstItem.final_customer || 
+                          quote.customer_name || 
+                          quote.company_name || 
+                          'Unknown Customer';
+
+            // Determine country
+            const country = firstItem.ship_to || 
+                           quote.country || 
+                           'Unknown';
+
+            // Determine delivery date
+            const deliveryDate = firstItem.req_date || 
+                                quote.req_delivery_date || 
+                                '';
+
+            // Determine transport type
+            const transportType = firstItem.transport_type || 'Truck';
 
             return {
                 quoteId: quote.id,
-                grower: items[0]?.grower || 'Unknown',
-                country: items[0]?.ship_to || 'Unknown',
-                deliveryDate: items[0]?.req_date || '',
-                transportType: items[0]?.transport_type || 'Truck',
+                grower: grower,
+                country: country,
+                deliveryDate: deliveryDate,
+                transportType: transportType,
                 pallets: totalPallets,
                 weight: totalWeight / 1000, // Convert to tons
-                customer_po: quote.customer_PO || '',
+                customer_po: '', // This field doesn't exist in quotes table
                 items: items,
                 assignedToShipment: null // Track which shipment this order is assigned to
             };
@@ -1135,12 +1237,25 @@
             document.getElementById('unassigned-count').textContent = unassignedOrders.length;
 
             if (unassignedOrders.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">✅</div>
-                        <div class="empty-state-text">All orders assigned!</div>
-                    </div>
-                `;
+                // Check if there are ANY orders at all
+                if (allOrders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <div class="empty-state-text">No approved orders yet</div>
+                            <div style="font-size: 0.8rem; color: #6b7280; margin-top: 10px;">
+                                Orders must be approved by VP Sales first
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <div class="empty-state-text">All orders assigned!</div>
+                        </div>
+                    `;
+                }
                 return;
             }
 
@@ -1149,7 +1264,7 @@
                     <div class="order-id">${order.quoteId}</div>
                     <div class="order-info">🌍 ${order.country}</div>
                     <div class="order-info">👤 ${order.grower}</div>
-                    <div class="order-info">📅 ${order.deliveryDate}</div>
+                    <div class="order-info">📅 ${order.deliveryDate || 'No date'}</div>
                     <div class="order-info">🚚 ${order.transportType}</div>
                     ${order.customer_po ? `<div class="order-info">📋 PO: ${order.customer_po}</div>` : ''}
                     <div class="order-metrics">
