@@ -1159,10 +1159,8 @@
                            quote.country || 
                            'Unknown';
 
-            // Determine delivery date
-            const deliveryDate = firstItem.req_date || 
-                                quote.req_delivery_date || 
-                                '';
+            // Determine delivery date (only from quote level, not from items)
+            const deliveryDate = quote.req_delivery_date || '';
 
             // Determine transport type
             const transportType = firstItem.transport_type || 'Truck';
