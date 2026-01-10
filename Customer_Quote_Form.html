@@ -809,6 +809,24 @@
             font-size: 1.5rem;
             margin-bottom: 10px;
         }
+        
+        /* Customer PO Input */
+        .po-input {
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .po-input:focus {
+            outline: none;
+            border-color: var(--paskal-green) !important;
+            box-shadow: 0 0 0 3px rgba(50, 175, 230, 0.1);
+        }
+        
+        .po-input:disabled {
+            background: #f5f5f5 !important;
+            cursor: not-allowed !important;
+            color: #999;
+        }
 
 </style>
     <!-- SheetJS for Excel generation -->
@@ -4377,6 +4395,7 @@ const OrdersManager = {
                 id: dbQuote.id,
                 dateCreated: dbQuote.created_at || dbQuote.updated_at,
                 status: dbQuote.status || 'Pending',
+                customer_PO: dbQuote.customer_PO || '',
                 summary: {
                     totalItems: dbQuote.total_items || 0,
                     totalUnits: dbQuote.total_units || 0,
@@ -4412,7 +4431,8 @@ const OrdersManager = {
                             <th>Units</th>
                             <th>Boxes</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th style="min-width: 150px;">Customer PO</th>
+                            <th style="min-width: 200px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4444,7 +4464,17 @@ const OrdersManager = {
                         <td>${quote.summary?.totalUnits?.toLocaleString() || 0}</td>
                         <td>${quote.summary?.totalBoxes || 0}</td>
                         <td><span class="status-badge ${statusClass}">${quote.status || 'Pending'}</span></td>
-                        <td style="white-space: nowrap; min-width: 400px;">
+                        <td>
+                            <input type="text" 
+                                   id="po-${quote.id}"
+                                   class="po-input"
+                                   value="${quote.customer_PO || ''}"
+                                   placeholder="Enter PO number"
+                                   ${quote.status === 'Approved' ? '' : 'disabled'}
+                                   onblur="OrdersManager.savePO('${quote.id}', this.value)"
+                                   style="width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; ${quote.status === 'Approved' ? '' : 'background: #f5f5f5; cursor: not-allowed;'}">
+                        </td>
+                        <td style="white-space: nowrap;">
                             <button class="action-btn" onclick="OrdersManager.viewDetails('${quote.id}')" title="View Details">
                                 👁
                             </button>
@@ -4665,16 +4695,47 @@ const OrdersManager = {
         window.scrollTo(0, 0);
         
         QuoteUI.showAlert(`Editing ${quoteId} - Make changes and click "Update Quote" or "Cancel Edit"`, 'warning', false);
+    },
+    
+    async savePO(quoteId, poValue) {
+        try {
+            // Trim whitespace
+            const trimmedPO = (poValue || '').trim();
+            
+            // Validation: Required field
+            if (!trimmedPO) {
+                QuoteUI.showAlert('⚠️ PO number is required', 'warning');
+                // Restore previous value
+                this.loadOrders();
+                return;
+            }
+            
+            console.log(`💾 Saving PO for ${quoteId}: "${trimmedPO}"`);
+            
+            // Update in Supabase
+            const { data, error } = await window.supabase
+                .from('quotes')
+                .update({ customer_PO: trimmedPO })
+                .eq('id', quoteId);
+            
+            if (error) {
+                console.error('Error saving PO:', error);
+                QuoteUI.showAlert('Error saving PO: ' + error.message, 'error');
+                return;
+            }
+            
+            console.log('✅ PO saved successfully');
+            QuoteUI.showAlert(`✅ PO "${trimmedPO}" saved for ${quoteId}`, 'success');
+            
+            // Reload to show updated data
+            this.loadOrders();
+            
+        } catch (error) {
+            console.error('Error in savePO:', error);
+            QuoteUI.showAlert('Error saving PO: ' + error.message, 'error');
+        }
     }
 };
-
-
-
-
-
-
-    
-    
 
 </script>
 
