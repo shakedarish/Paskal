@@ -3570,15 +3570,6 @@ Best regards`;
             <table class="quote-table">
                 <thead>
                     <tr>
-                        ${this.selectionMode ? `
-                        <th style="min-width: 50px; text-align: center;">
-                            <input type="checkbox" 
-                                   id="selectAllCheckbox"
-                                   onchange="QuoteUI.toggleSelectAll(this.checked)"
-                                   style="width: 18px; height: 18px; cursor: pointer;"
-                                   title="Select All">
-                        </th>
-                        ` : ''}
                         <th style="min-width: 50px; text-align: center;">
                             <input type="checkbox" 
                                    id="selectAllCheckbox"
@@ -3624,17 +3615,10 @@ Best regards`;
             
             html += `
                 <tr data-item-id="${item.id}" ${this.selectedRows.has(item.id) ? 'class="duplicate-preview"' : ''}>
-                    ${this.selectionMode ? `
-                    <td style="text-align: center; background: ${this.selectedRows.has(item.id) ? 'transparent' : 'white'};">
-                        <input type="checkbox" 
-                               ${this.selectedRows.has(item.id) ? 'checked' : ''}
-                               onchange="QuoteUI.toggleRowSelection(${item.id}, this.checked)"
-                               style="width: 18px; height: 18px; cursor: pointer;">
-                    </td>
-                    ` : ''}
                     <td style="text-align: center;">
                         <input type="checkbox" 
                                id="checkbox_${item.id}"
+                               ${this.selectedRows.has(item.id) ? 'checked' : ''}
                                onchange="QuoteUI.toggleRowSelection(${item.id}, this.checked)"
                                style="width: 18px; height: 18px; cursor: pointer;">
                     </td>
@@ -3962,10 +3946,13 @@ Best regards`;
                 if (this.editingQuoteId) {
                     btn.innerHTML = '✏️ Update Quote';
                 } else {
-                    btn.innerHTML = '🎯 Generate Quote';
+                    btn.innerHTML = '✓ Submit';
                 }
             }
         }, 10);
+        
+        // Update selection buttons visibility
+        this.updateSelectionButtons();
     },
     
     showAlert(message, type, persist = null) {
@@ -4579,7 +4566,7 @@ const OrdersManager = {
                             <th>Boxes</th>
                             <th>Status</th>
                             <th style="min-width: 150px;">Customer PO</th>
-                            
+                            <th style="min-width: 200px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
