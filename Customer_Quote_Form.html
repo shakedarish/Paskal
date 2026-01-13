@@ -885,8 +885,13 @@
                 <button class="btn btn-success" onclick="QuoteUI.addRow()" style="padding: 12px 35px; font-size: 1rem;">
                     ➕ Add Item
                 </button>
-                <button class="btn btn-secondary" onclick="QuoteUI.toggleSelectionMode()" id="duplicateBtn" style="padding: 12px 35px; font-size: 1rem;">
-                    📋 Duplicate Item
+                
+                <button class="btn btn-secondary" onclick="QuoteUI.duplicateSelected()" id="duplicateSelectedBtn" style="padding: 12px 35px; font-size: 1rem; display: none;">
+                    📋 Duplicate Selected
+                </button>
+                
+                <button class="btn" onclick="QuoteUI.deleteSelected()" id="deleteSelectedBtn" style="padding: 12px 35px; font-size: 1rem; background: #dc2626; color: white; display: none;">
+                    🗑️ Delete Selected
                 </button>
             </div>
             
@@ -2691,7 +2696,7 @@ const QuoteUI = {
                 // Reset Generate button
                 const btn = document.getElementById('generateQuoteBtn');
                 if (btn) {
-                    btn.innerHTML = '📋 Generate Quote';
+                    btn.innerHTML = '✓ Submit';
                 }
                 
                 // Hide Cancel button
@@ -2775,7 +2780,7 @@ const QuoteUI = {
         // Reset button text
         const btn = document.getElementById('generateQuoteBtn');
         if (btn) {
-            btn.innerHTML = '📋 Generate Quote';
+            btn.innerHTML = '✓ Submit';
         }
         
         // Hide Cancel button
@@ -3433,12 +3438,27 @@ Best regards`;
         const key = `${hookCode}-${dbTwineType}-${totalWire}-${item.hookType}`;
         const cartonData = CARTON_DB[key];
         
-        if (!cartonData) {
-            this.showAlert('Configuration not found in database. Please check your selections.', 'error');
-            return;
-        }
+        let unitsPerCarton;
         
-        const unitsPerCarton = cartonData.unitsPerCarton;
+        if (!cartonData) {
+            // Configuration not found - estimate units per carton based on twine type
+            // This allows round-up modal to work even when exact config is not in DB
+            const estimatedUnits = {
+                '1000': { '180': 450, '220': 400 },
+                '1200': { '180': 420, '220': 350 },
+                '1300': { '180': 380, '220': 320 },
+                '1500': { '180': 340, '220': 290 },
+                'Bio250': { '180': 340, '220': 290 },
+                'Bio390': { '180': 420, '220': 350 }
+            };
+            
+            const hookSize = item.hookSize === '180' ? '180' : '220';
+            unitsPerCarton = estimatedUnits[dbTwineType]?.[hookSize] || 300;
+            
+            console.warn(`Configuration ${key} not found in CARTON_DB. Using estimated units per carton: ${unitsPerCarton}`);
+        } else {
+            unitsPerCarton = cartonData.unitsPerCarton;
+        }
         const remainder = quantity % unitsPerCarton;
         
         if (remainder !== 0) {
@@ -3559,6 +3579,13 @@ Best regards`;
                                    title="Select All">
                         </th>
                         ` : ''}
+                        <th style="min-width: 50px; text-align: center;">
+                            <input type="checkbox" 
+                                   id="selectAllCheckbox"
+                                   onchange="QuoteUI.toggleSelectAll(this.checked)"
+                                   style="width: 18px; height: 18px; cursor: pointer;"
+                                   title="Select All">
+                        </th>
                         <th style="min-width: 40px;">#</th>
                         <th style="min-width: 100px;">Grower<br><span style="font-weight: normal; font-size: 0.75rem;">(Optional)</span></th>
                         <th style="min-width: 120px;">Ship To *</th>
@@ -3582,7 +3609,7 @@ Best regards`;
                         <th style="min-width: 80px;">Units/Box</th>
                         <th style="min-width: 70px;">Boxes</th>
                         <th style="min-width: 160px;">PN (product number)</th>
-                        <th style="min-width: 100px;">Actions</th>
+                        
                     </tr>
                 </thead>
                 <tbody>
@@ -3605,6 +3632,12 @@ Best regards`;
                                style="width: 18px; height: 18px; cursor: pointer;">
                     </td>
                     ` : ''}
+                    <td style="text-align: center;">
+                        <input type="checkbox" 
+                               id="checkbox_${item.id}"
+                               onchange="QuoteUI.toggleRowSelection(${item.id}, this.checked)"
+                               style="width: 18px; height: 18px; cursor: pointer;">
+                    </td>
                     <td class="row-number">${index + 1}</td>
                     
                     <td>
@@ -3873,11 +3906,7 @@ Best regards`;
                                style="background: #f0fdf4; font-size: 0.75rem; text-align: center; cursor: not-allowed; font-family: monospace;">
                     </td>
                     
-                    <td>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="QuoteUI.deleteRow(${item.id})" title="Delete">🗑️</button>
-                        </div>
-                    </td>
+                    
                 </tr>
             `;
         });
@@ -4342,7 +4371,125 @@ const TabManager = {
         
         QuoteUI.render();
         QuoteUI.updateSummary(); // Update summary to show 0s
-    }
+    },
+    
+    // ============================================
+    // SELECTION MANAGEMENT - NEW FEATURE
+    // ============================================
+    selectedRows: new Set(),
+    
+    toggleRowSelection(itemId, checked) {
+        if (checked) {
+            this.selectedRows.add(itemId);
+        } else {
+            this.selectedRows.delete(itemId);
+        }
+        this.updateSelectionButtons();
+    },
+    
+    toggleSelectAll(checked) {
+        const checkboxes = document.querySelectorAll('input[id^="checkbox_"]');
+        checkboxes.forEach(cb => {
+            const itemId = parseInt(cb.id.replace('checkbox_', ''));
+            cb.checked = checked;
+            if (checked) {
+                this.selectedRows.add(itemId);
+            } else {
+                this.selectedRows.delete(itemId);
+            }
+        });
+        this.updateSelectionButtons();
+    },
+    
+    updateSelectionButtons() {
+        const duplicateBtn = document.getElementById('duplicateSelectedBtn');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const hasSelection = this.selectedRows.size > 0;
+        
+        if (duplicateBtn) {
+            duplicateBtn.style.display = hasSelection ? 'inline-block' : 'none';
+        }
+        if (deleteBtn) {
+            deleteBtn.style.display = hasSelection ? 'inline-block' : 'none';
+        }
+    },
+    
+    duplicateSelected() {
+        if (this.selectedRows.size === 0) {
+            this.showAlert('Please select rows to duplicate', 'warning');
+            return;
+        }
+        
+        const itemsToDuplicate = Array.from(this.selectedRows);
+        
+        itemsToDuplicate.forEach(itemId => {
+            const originalItem = QuoteData.getItem(itemId);
+            if (originalItem) {
+                const newItem = JSON.parse(JSON.stringify(originalItem));
+                newItem.id = Date.now() + Math.random();
+                // IMPORTANT: Include quantity in duplication!
+                newItem.quantity = originalItem.quantity;
+                newItem.actualUnits = originalItem.actualUnits;
+                QuoteData.items.push(newItem);
+            }
+        });
+        
+        QuoteData.save();
+        
+        // Clear selection
+        this.selectedRows.clear();
+        document.getElementById('selectAllCheckbox').checked = false;
+        
+        this.showAlert(`✓ Duplicated ${itemsToDuplicate.length} row(s)`, 'success');
+        this.render();
+        this.updateSummary();
+        this.updateSelectionButtons();
+    },
+    
+    deleteSelected() {
+        if (this.selectedRows.size === 0) {
+            this.showAlert('Please select rows to delete', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Delete ${this.selectedRows.size} selected row(s)?`)) {
+            return;
+        }
+        
+        const itemsToDelete = Array.from(this.selectedRows);
+        
+        itemsToDelete.forEach(itemId => {
+            const index = QuoteData.items.findIndex(item => item.id === itemId);
+            if (index !== -1) {
+                QuoteData.items.splice(index, 1);
+            }
+        });
+        
+        QuoteData.save();
+        
+        // Clear selection
+        this.selectedRows.clear();
+        document.getElementById('selectAllCheckbox').checked = false;
+        
+        this.showAlert(`✓ Deleted ${itemsToDelete.length} row(s)`, 'success');
+        this.render();
+        this.updateSummary();
+        this.updateSelectionButtons();
+    },
+    
+    closeSuccessModal() {
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+        
+        // Reset form after closing modal
+        QuoteData.items = [];
+        QuoteData.save();
+        this.render();
+        this.updateSummary();
+    },
+
 };
 
 window.TabManager = TabManager;
@@ -4432,7 +4579,7 @@ const OrdersManager = {
                             <th>Boxes</th>
                             <th>Status</th>
                             <th style="min-width: 150px;">Customer PO</th>
-                            <th style="min-width: 200px;">Actions</th>
+                            
                         </tr>
                     </thead>
                     <tbody>
@@ -4763,6 +4910,16 @@ const OrdersManager = {
         <div class="modal-content" style="max-width: 600px;">
             <h2 style="color: var(--success-green); margin-bottom: 20px;">✅ Quote Created Successfully!</h2>
             <div id="successModalBody"></div>
+        </div>
+    </div>
+
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div id="successModalBody">
+                <!-- Content will be dynamically inserted by showSuccessModal() -->
+            </div>
         </div>
     </div>
 
