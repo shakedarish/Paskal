@@ -2501,6 +2501,7 @@ const QuoteUI = {
         this.showAlert(`✓ Duplicated ${itemsToDuplicate.length} row(s)`, 'success', false);
         this.render();
         this.updateSummary();
+        this.updateSelectionButtons(); // Hide buttons after action
     },
     
     // NEW: Delete selected rows
@@ -2533,6 +2534,7 @@ const QuoteUI = {
         this.showAlert(`✓ Deleted ${itemsToDelete.length} row(s)`, 'success', false);
         this.render();
         this.updateSummary();
+        this.updateSelectionButtons(); // Hide buttons after action
     },
 
     
