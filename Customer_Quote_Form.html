@@ -885,8 +885,19 @@
                 <button class="btn btn-success" onclick="QuoteUI.addRow()" style="padding: 12px 35px; font-size: 1rem;">
                     ➕ Add Item
                 </button>
-                <button class="btn btn-secondary" onclick="QuoteUI.toggleSelectionMode()" id="duplicateBtn" style="padding: 12px 35px; font-size: 1rem;">
-                    📋 Duplicate Item
+                
+                <button class="btn btn-secondary" 
+                        id="duplicateSelectedBtn" 
+                        onclick="QuoteUI.duplicateSelected()" 
+                        style="padding: 12px 35px; font-size: 1rem; display: none;">
+                    📋 Duplicate
+                </button>
+                
+                <button class="btn" 
+                        id="deleteSelectedBtn" 
+                        onclick="QuoteUI.deleteSelected()" 
+                        style="padding: 12px 35px; font-size: 1rem; background: #dc2626; color: white; display: none;">
+                    🗑️ Delete
                 </button>
             </div>
             
@@ -927,7 +938,7 @@
             
             <div style="text-align: center; margin-top: 30px;">
                 <button class="btn btn-primary" onclick="(async () => await QuoteUI.generateQuote())()" id="generateQuoteBtn" style="padding: 15px 50px; font-size: 1.2rem;">
-                    📋 Generate Quote
+                    ✓ Submit
                 </button>
                 <button class="btn btn-secondary" onclick="QuoteUI.cancelEdit()" id="cancelEditBtn" style="padding: 15px 50px; font-size: 1.2rem; display: none; margin-left: 15px;">
                     ↩️ Cancel Edit
@@ -2272,13 +2283,13 @@ const QuoteUI = {
             document.getElementById('instructionsModal').classList.add('show');
         } else {
             // Exiting selection mode
-            btn.textContent = '📋 Duplicate Item';
+            // Old button removed
             btn.className = 'btn btn-secondary';
             this.selectedRows.clear();
             this.render();
         }
         
-        this.updateDuplicateButton();
+        this.updateSelectionButtons();
     },
     
     dismissBanner() {
@@ -2298,7 +2309,7 @@ const QuoteUI = {
         }
         
         this.render();
-        this.updateDuplicateButton();
+        this.updateSelectionButtons();
         this.updateSelectAllCheckbox();
     },
     
@@ -2314,7 +2325,7 @@ const QuoteUI = {
         }
         
         this.render();
-        this.updateDuplicateButton();
+        this.updateSelectionButtons();
     },
     
     updateSelectAllCheckbox() {
@@ -2406,12 +2417,12 @@ const QuoteUI = {
         this.selectedRows.clear();
         this.bannerDismissed = false; // Reset banner for next time
         const btn = document.getElementById('duplicateBtn');
-        btn.textContent = '📋 Duplicate Item';
+        // Old button removed
         
         // Render
         this.render();
         this.updateSummary();
-        this.updateDuplicateButton();
+        this.updateSelectionButtons();
         
         // Highlight all rows (originals + new)
         setTimeout(() => {
@@ -2447,6 +2458,83 @@ const QuoteUI = {
         // Show alert
         this.showAlert(`✓ ${originalIds.length} row${originalIds.length > 1 ? 's' : ''} duplicated successfully`, 'success', false);
     },
+    // NEW: Update selection buttons visibility
+    updateSelectionButtons() {
+        const duplicateBtn = document.getElementById('duplicateSelectedBtn');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const hasSelection = this.selectedRows.size > 0;
+        
+        if (duplicateBtn) {
+            duplicateBtn.style.display = hasSelection ? 'inline-block' : 'none';
+        }
+        if (deleteBtn) {
+            deleteBtn.style.display = hasSelection ? 'inline-block' : 'none';
+        }
+    },
+    
+    // NEW: Duplicate selected rows
+    duplicateSelected() {
+        if (this.selectedRows.size === 0) {
+            this.showAlert('Please select rows to duplicate', 'warning');
+            return;
+        }
+        
+        const itemsToDuplicate = Array.from(this.selectedRows);
+        
+        itemsToDuplicate.forEach(itemId => {
+            const originalItem = QuoteData.getItem(itemId);
+            if (originalItem) {
+                const newItem = JSON.parse(JSON.stringify(originalItem));
+                newItem.id = QuoteData.nextId++;
+                // Keep quantity when duplicating
+                QuoteData.items.push(newItem);
+            }
+        });
+        
+        QuoteData.save();
+        
+        // Clear selection
+        this.selectedRows.clear();
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
+        
+        this.showAlert(`✓ Duplicated ${itemsToDuplicate.length} row(s)`, 'success', false);
+        this.render();
+        this.updateSummary();
+    },
+    
+    // NEW: Delete selected rows
+    deleteSelected() {
+        if (this.selectedRows.size === 0) {
+            this.showAlert('Please select rows to delete', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Delete ${this.selectedRows.size} selected row(s)?`)) {
+            return;
+        }
+        
+        const itemsToDelete = Array.from(this.selectedRows);
+        
+        itemsToDelete.forEach(itemId => {
+            const index = QuoteData.items.findIndex(item => item.id === itemId);
+            if (index !== -1) {
+                QuoteData.items.splice(index, 1);
+            }
+        });
+        
+        QuoteData.save();
+        
+        // Clear selection
+        this.selectedRows.clear();
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
+        
+        this.showAlert(`✓ Deleted ${itemsToDelete.length} row(s)`, 'success', false);
+        this.render();
+        this.updateSummary();
+    },
+
     
     deleteRow(id) {
         if (QuoteData.items.length === 1) {
@@ -2676,7 +2764,7 @@ const QuoteUI = {
                 // Reset Generate button
                 const btn = document.getElementById('generateQuoteBtn');
                 if (btn) {
-                    btn.innerHTML = '📋 Generate Quote';
+                    btn.innerHTML = '✓ Submit';
                 }
                 
                 // Hide Cancel button
@@ -2760,7 +2848,7 @@ const QuoteUI = {
         // Reset button text
         const btn = document.getElementById('generateQuoteBtn');
         if (btn) {
-            btn.innerHTML = '📋 Generate Quote';
+            btn.innerHTML = '✓ Submit';
         }
         
         // Hide Cancel button
@@ -2806,7 +2894,7 @@ const QuoteUI = {
         // Reset Generate button
         const generateBtn = document.getElementById('generateQuoteBtn');
         if (generateBtn) {
-            generateBtn.innerHTML = '📋 Generate Quote';
+            generateBtn.innerHTML = '✓ Submit';
         }
         
         // Hide Cancel button
@@ -3535,7 +3623,6 @@ Best regards`;
             <table class="quote-table">
                 <thead>
                     <tr>
-                        ${this.selectionMode ? `
                         <th style="min-width: 50px; text-align: center;">
                             <input type="checkbox" 
                                    id="selectAllCheckbox"
@@ -3543,7 +3630,6 @@ Best regards`;
                                    style="width: 18px; height: 18px; cursor: pointer;"
                                    title="Select All">
                         </th>
-                        ` : ''}
                         <th style="min-width: 40px;">#</th>
                         <th style="min-width: 100px;">Grower<br><span style="font-weight: normal; font-size: 0.75rem;">(Optional)</span></th>
                         <th style="min-width: 120px;">Ship To *</th>
@@ -3567,7 +3653,6 @@ Best regards`;
                         <th style="min-width: 80px;">Units/Box</th>
                         <th style="min-width: 70px;">Boxes</th>
                         <th style="min-width: 160px;">PN (product number)</th>
-                        <th style="min-width: 100px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -3582,14 +3667,12 @@ Best regards`;
             
             html += `
                 <tr data-item-id="${item.id}" ${this.selectedRows.has(item.id) ? 'class="duplicate-preview"' : ''}>
-                    ${this.selectionMode ? `
                     <td style="text-align: center; background: ${this.selectedRows.has(item.id) ? 'transparent' : 'white'};">
                         <input type="checkbox" 
                                ${this.selectedRows.has(item.id) ? 'checked' : ''}
                                onchange="QuoteUI.toggleRowSelection(${item.id}, this.checked)"
                                style="width: 18px; height: 18px; cursor: pointer;">
                     </td>
-                    ` : ''}
                     <td class="row-number">${index + 1}</td>
                     
                     <td>
@@ -3857,12 +3940,7 @@ Best regards`;
                                disabled
                                style="background: #f0fdf4; font-size: 0.75rem; text-align: center; cursor: not-allowed; font-family: monospace;">
                     </td>
-                    
-                    <td>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="QuoteUI.deleteRow(${item.id})" title="Delete">🗑️</button>
-                        </div>
-                    </td>
+
                 </tr>
             `;
         });
@@ -3918,7 +3996,7 @@ Best regards`;
                 if (this.editingQuoteId) {
                     btn.innerHTML = '✏️ Update Quote';
                 } else {
-                    btn.innerHTML = '🎯 Generate Quote';
+                    btn.innerHTML = '✓ Submit';
                 }
             }
         }, 10);
@@ -4307,18 +4385,19 @@ const TabManager = {
             alertBox.classList.remove('show');
         }
         
-        // Switch to orders tab
-        this.switchTab('orders');
-        // Clear form
+        // Clear form BEFORE switching (to prevent "Save as Draft" modal)
         QuoteData.items = [];
         QuoteData.nextId = 1;
         QuoteData.addItem();
         QuoteUI.editingQuoteId = null;
         
+        // Switch to orders tab
+        this.switchTab('orders');
+        
         // Reset buttons
         const generateBtn = document.getElementById('generateQuoteBtn');
         if (generateBtn) {
-            generateBtn.innerHTML = '📋 Generate Quote';
+            generateBtn.innerHTML = '✓ Submit';
         }
         const cancelBtn = document.getElementById('cancelEditBtn');
         if (cancelBtn) {
