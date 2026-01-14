@@ -954,85 +954,6 @@
                 </ul>
             </div>
 
-            <!-- Duplicate Confirmation Modal -->
-            <div id="duplicateConfirmModal" class="modal">
-                <div class="modal-content" style="max-width: 450px;">
-                    <h2 style="margin-bottom: 20px; color: var(--paskal-navy);">📋 Duplicate Rows</h2>
-                    
-                    <p style="margin-bottom: 20px; color: #666; font-size: 1.1rem;">
-                        Duplicate <strong id="confirmRowCount">0</strong> selected row(s)?
-                    </p>
-                    
-                    <p style="margin-bottom: 20px; color: #888; font-size: 0.9rem;">
-                        This will create <strong id="confirmNewCount">0</strong> new row(s) at the end of your table.
-                    </p>
-                    
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button class="btn btn-secondary" onclick="QuoteUI.closeConfirmModal()">
-                            Cancel
-                        </button>
-                        <button class="btn btn-primary" onclick="QuoteUI.executeDuplicate()">
-                            ✓ Yes, Duplicate
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Instructions Modal for Selection Mode -->
-            <div id="instructionsModal" class="modal">
-                <div class="modal-content" style="max-width: 500px;">
-                    <h2 style="margin-bottom: 25px; color: var(--paskal-navy); display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 2rem;">ℹ️</span>
-                        How to Duplicate Multiple Rows
-                    </h2>
-                    
-                    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
-                        <p style="margin: 0 0 15px 0; color: #0c4a6e; font-size: 1rem;">
-                            Follow these simple steps:
-                        </p>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 15px;">
-                            <div style="display: flex; gap: 12px; align-items: start;">
-                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</span>
-                                <div>
-                                    <strong style="color: #0c4a6e;">Check boxes next to rows</strong>
-                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Select the rows you want to duplicate using the checkboxes</p>
-                                </div>
-                            </div>
-                            
-                            <div style="display: flex; gap: 12px; align-items: start;">
-                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</span>
-                                <div>
-                                    <strong style="color: #0c4a6e;">Click "Duplicate X Rows" button</strong>
-                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">The button appears after you select at least one row</p>
-                                </div>
-                            </div>
-                            
-                            <div style="display: flex; gap: 12px; align-items: start;">
-                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</span>
-                                <div>
-                                    <strong style="color: #0c4a6e;">Confirm duplication</strong>
-                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Review and confirm to create new rows</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;">
-                            <strong>💡 Tip:</strong> Use the "Select All" checkbox in the table header to quickly select all rows!
-                        </p>
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <button class="btn btn-primary" onclick="QuoteUI.closeInstructionsModal()" style="padding: 12px 40px; font-size: 1rem;">
-                            Got it!
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-
             <div class="summary-section" id="summarySection" style="display: none;">
                 <h3 style="color: var(--paskal-navy); margin-bottom: 10px;">📊 Quote Summary</h3>
                 <div class="summary-grid">
@@ -2252,153 +2173,6 @@ const QuoteUI = {
     
     // Smart Duplicate Feature
     // Multi-Select Duplicate System
-    selectionMode: false,
-    selectedRows: new Set(),
-    bannerDismissed: false,
-    
-    toggleSelectionMode() {
-        if (QuoteData.items.length === 0) {
-            this.showAlert('No items to duplicate. Please add items first.', 'warning', false);
-            return;
-        }
-        
-        this.selectionMode = !this.selectionMode;
-        const btn = document.getElementById('duplicateBtn');
-        
-        if (this.selectionMode) {
-            // Entering selection mode
-            btn.textContent = '❌ Exit Selection';
-            btn.className = 'btn btn-secondary';
-            this.selectedRows.clear();
-            this.bannerDismissed = false; // Reset banner
-            this.render();
-            
-            // Show instructions modal
-            document.getElementById('instructionsModal').classList.add('show');
-        } else {
-            // Exiting selection mode
-            btn.textContent = '📋 Duplicate Item';
-            btn.className = 'btn btn-secondary';
-            this.selectedRows.clear();
-            this.render();
-        }
-        
-        this.updateDuplicateButton();
-    },
-    
-    dismissBanner() {
-        this.bannerDismissed = true;
-        this.render();
-    },
-    
-    closeInstructionsModal() {
-        document.getElementById('instructionsModal').classList.remove('show');
-    },
-    
-    toggleRowSelection(itemId, checked) {
-        if (checked) {
-            this.selectedRows.add(itemId);
-        } else {
-            this.selectedRows.delete(itemId);
-        }
-        
-        this.render();
-        this.updateDuplicateButton();
-        this.updateSelectAllCheckbox();
-    },
-    
-    toggleSelectAll(checked) {
-        if (checked) {
-            // Select all
-            QuoteData.items.forEach(item => {
-                this.selectedRows.add(item.id);
-            });
-        } else {
-            // Deselect all
-            this.selectedRows.clear();
-        }
-        
-        this.render();
-        this.updateDuplicateButton();
-    },
-    
-    updateSelectAllCheckbox() {
-        const checkbox = document.getElementById('selectAllCheckbox');
-        if (checkbox) {
-            const totalItems = QuoteData.items.length;
-            const selectedCount = this.selectedRows.size;
-            
-            if (selectedCount === 0) {
-                checkbox.checked = false;
-                checkbox.indeterminate = false;
-            } else if (selectedCount === totalItems) {
-                checkbox.checked = true;
-                checkbox.indeterminate = false;
-            } else {
-                checkbox.checked = false;
-                checkbox.indeterminate = true;
-            }
-        }
-    },
-    
-    updateDuplicateButton() {
-        // Add or update duplicate button
-        let duplicateActionBtn = document.getElementById('duplicateActionBtn');
-        const count = this.selectedRows.size;
-        
-        if (this.selectionMode && count > 0) {
-            if (!duplicateActionBtn) {
-                // Create button if doesn't exist
-                const btnContainer = document.querySelector('.btn.btn-secondary').parentElement;
-                duplicateActionBtn = document.createElement('button');
-                duplicateActionBtn.id = 'duplicateActionBtn';
-                duplicateActionBtn.className = 'btn btn-primary';
-                duplicateActionBtn.onclick = () => this.openConfirmModal();
-                duplicateActionBtn.style.padding = '12px 35px';
-                duplicateActionBtn.style.fontSize = '1rem';
-                btnContainer.appendChild(duplicateActionBtn);
-            }
-            
-            duplicateActionBtn.textContent = `✓ Duplicate ${count} Row${count > 1 ? 's' : ''}`;
-            duplicateActionBtn.style.display = 'inline-block';
-        } else if (duplicateActionBtn) {
-            duplicateActionBtn.style.display = 'none';
-        }
-    },
-    
-    openConfirmModal() {
-        const count = this.selectedRows.size;
-        if (count === 0) return;
-        
-        document.getElementById('confirmRowCount').textContent = count;
-        document.getElementById('confirmNewCount').textContent = count;
-        document.getElementById('duplicateConfirmModal').classList.add('show');
-    },
-    
-    closeConfirmModal() {
-        document.getElementById('duplicateConfirmModal').classList.remove('show');
-    },
-    
-    executeDuplicate() {
-        const selectedIds = Array.from(this.selectedRows);
-        if (selectedIds.length === 0) return;
-        
-        this.closeConfirmModal();
-        
-        // Get original items
-        const originalItems = selectedIds.map(id => 
-            QuoteData.items.find(item => item.id === id)
-        ).filter(Boolean);
-        
-        // Create duplicates
-        const newItems = originalItems.map(item => ({
-            ...item,
-            id: QuoteData.nextId++,
-            quantity: '' // Clear quantity
-        }));
-        
-        // Add to items
-        QuoteData.items.push(...newItems);
         QuoteData.save();
         
         // Get IDs for highlighting
@@ -2555,27 +2329,13 @@ const QuoteUI = {
             const totalBoxes = QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0);
             
             // Calculate total pallets and weight
-            let totalPallets = 0;
+            // NOTE: Customer does NOT select transportation type
+            // So we do NOT calculate total_pallets here - it will be null
+            const totalPallets = null; // Will be calculated by Sales Manager
             let totalWeight = 0;
             
+            // Calculate weight only (no pallets calculation)
             QuoteData.items.forEach(item => {
-                // Get transportation type
-                const transportType = item.selectedTransportation === 1 ? item.transportationType1 : item.transportationType2;
-                
-                // Calculate pallets for this item
-                const boxesPerPallet = {
-                    'Container 20HC': 64,
-                    'Container 40HC': 72,
-                    'Container 40HC Sanitized': 64,
-                    'Truck Turkey': 72,
-                    'Truck Mexico': 64,
-                    'LCL': 72
-                }[transportType] || 72;
-                
-                if (item.actualBoxes) {
-                    totalPallets += item.actualBoxes / boxesPerPallet;
-                }
-                
                 // Calculate weight (using actual weight per carton if available)
                 if (item.weightPerCarton && item.actualBoxes) {
                     totalWeight += item.weightPerCarton * item.actualBoxes * 1.03; // 3% adjustment
@@ -3979,7 +3739,108 @@ Best regards`;
                 alert.classList.remove('show');
             }, 6000);
         }
+    },    
+    // ============================================
+    // SELECTION MANAGEMENT
+    // ============================================
+    selectedRows: new Set(),
+    
+    toggleRowSelection(itemId, checked) {
+        if (checked) {
+            this.selectedRows.add(itemId);
+        } else {
+            this.selectedRows.delete(itemId);
+        }
+        this.updateSelectionButtons();
+    },
+    
+    toggleSelectAll(checked) {
+        const checkboxes = document.querySelectorAll('input[id^="checkbox_"]');
+        checkboxes.forEach(cb => {
+            const itemId = parseInt(cb.id.replace('checkbox_', ''));
+            cb.checked = checked;
+            if (checked) {
+                this.selectedRows.add(itemId);
+            } else {
+                this.selectedRows.delete(itemId);
+            }
+        });
+        this.updateSelectionButtons();
+    },
+    
+    updateSelectionButtons() {
+        const duplicateBtn = document.getElementById('duplicateSelectedBtn');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const hasSelection = this.selectedRows.size > 0;
+        
+        if (duplicateBtn) {
+            duplicateBtn.style.display = hasSelection ? 'inline-block' : 'none';
+        }
+        if (deleteBtn) {
+            deleteBtn.style.display = hasSelection ? 'inline-block' : 'none';
+        }
+    },
+    
+    duplicateSelected() {
+        if (this.selectedRows.size === 0) {
+            this.showAlert('Please select rows to duplicate', 'warning');
+            return;
+        }
+        
+        const itemsToDuplicate = Array.from(this.selectedRows);
+        
+        itemsToDuplicate.forEach(itemId => {
+            const originalItem = QuoteData.getItem(itemId);
+            if (originalItem) {
+                const newItem = JSON.parse(JSON.stringify(originalItem));
+                newItem.id = Date.now() + Math.random();
+                newItem.quantity = originalItem.quantity;
+                newItem.actualUnits = originalItem.actualUnits;
+                QuoteData.items.push(newItem);
+            }
+        });
+        
+        QuoteData.save();
+        this.selectedRows.clear();
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
+        
+        this.showAlert(`✓ Duplicated ${itemsToDuplicate.length} row(s)`, 'success');
+        this.render();
+        this.updateSummary();
+        this.updateSelectionButtons();
+    },
+    
+    deleteSelected() {
+        if (this.selectedRows.size === 0) {
+            this.showAlert('Please select rows to delete', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Delete ${this.selectedRows.size} selected row(s)?`)) {
+            return;
+        }
+        
+        const itemsToDelete = Array.from(this.selectedRows);
+        
+        itemsToDelete.forEach(itemId => {
+            const index = QuoteData.items.findIndex(item => item.id === itemId);
+            if (index !== -1) {
+                QuoteData.items.splice(index, 1);
+            }
+        });
+        
+        QuoteData.save();
+        this.selectedRows.clear();
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
+        
+        this.showAlert(`✓ Deleted ${itemsToDelete.length} row(s)`, 'success');
+        this.render();
+        this.updateSummary();
+        this.updateSelectionButtons();
     }
+
 };
 
 window.QuoteUI = QuoteUI;
@@ -4360,123 +4221,6 @@ const TabManager = {
         QuoteUI.updateSummary(); // Update summary to show 0s
     },
     
-    // ============================================
-    // SELECTION MANAGEMENT - NEW FEATURE
-    // ============================================
-    selectedRows: new Set(),
-    
-    toggleRowSelection(itemId, checked) {
-        if (checked) {
-            this.selectedRows.add(itemId);
-        } else {
-            this.selectedRows.delete(itemId);
-        }
-        this.updateSelectionButtons();
-    },
-    
-    toggleSelectAll(checked) {
-        const checkboxes = document.querySelectorAll('input[id^="checkbox_"]');
-        checkboxes.forEach(cb => {
-            const itemId = parseInt(cb.id.replace('checkbox_', ''));
-            cb.checked = checked;
-            if (checked) {
-                this.selectedRows.add(itemId);
-            } else {
-                this.selectedRows.delete(itemId);
-            }
-        });
-        this.updateSelectionButtons();
-    },
-    
-    updateSelectionButtons() {
-        const duplicateBtn = document.getElementById('duplicateSelectedBtn');
-        const deleteBtn = document.getElementById('deleteSelectedBtn');
-        const hasSelection = this.selectedRows.size > 0;
-        
-        if (duplicateBtn) {
-            duplicateBtn.style.display = hasSelection ? 'inline-block' : 'none';
-        }
-        if (deleteBtn) {
-            deleteBtn.style.display = hasSelection ? 'inline-block' : 'none';
-        }
-    },
-    
-    duplicateSelected() {
-        if (this.selectedRows.size === 0) {
-            this.showAlert('Please select rows to duplicate', 'warning');
-            return;
-        }
-        
-        const itemsToDuplicate = Array.from(this.selectedRows);
-        
-        itemsToDuplicate.forEach(itemId => {
-            const originalItem = QuoteData.getItem(itemId);
-            if (originalItem) {
-                const newItem = JSON.parse(JSON.stringify(originalItem));
-                newItem.id = Date.now() + Math.random();
-                // IMPORTANT: Include quantity in duplication!
-                newItem.quantity = originalItem.quantity;
-                newItem.actualUnits = originalItem.actualUnits;
-                QuoteData.items.push(newItem);
-            }
-        });
-        
-        QuoteData.save();
-        
-        // Clear selection
-        this.selectedRows.clear();
-        document.getElementById('selectAllCheckbox').checked = false;
-        
-        this.showAlert(`✓ Duplicated ${itemsToDuplicate.length} row(s)`, 'success');
-        this.render();
-        this.updateSummary();
-        this.updateSelectionButtons();
-    },
-    
-    deleteSelected() {
-        if (this.selectedRows.size === 0) {
-            this.showAlert('Please select rows to delete', 'warning');
-            return;
-        }
-        
-        if (!confirm(`Delete ${this.selectedRows.size} selected row(s)?`)) {
-            return;
-        }
-        
-        const itemsToDelete = Array.from(this.selectedRows);
-        
-        itemsToDelete.forEach(itemId => {
-            const index = QuoteData.items.findIndex(item => item.id === itemId);
-            if (index !== -1) {
-                QuoteData.items.splice(index, 1);
-            }
-        });
-        
-        QuoteData.save();
-        
-        // Clear selection
-        this.selectedRows.clear();
-        document.getElementById('selectAllCheckbox').checked = false;
-        
-        this.showAlert(`✓ Deleted ${itemsToDelete.length} row(s)`, 'success');
-        this.render();
-        this.updateSummary();
-        this.updateSelectionButtons();
-    },
-    
-    closeSuccessModal() {
-        const modal = document.getElementById('successModal');
-        if (modal) {
-            modal.classList.remove('show');
-        }
-        
-        // Reset form after closing modal
-        QuoteData.items = [];
-        QuoteData.save();
-        this.render();
-        this.updateSummary();
-    },
-
 };
 
 window.TabManager = TabManager;
