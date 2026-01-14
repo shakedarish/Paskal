@@ -2795,17 +2795,20 @@ const QuoteUI = {
         const body = document.getElementById('successModalBody');
         
         body.innerHTML = `
-            <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--success-green);">
-                <p style="margin-bottom: 10px;"><strong>Quote ID:</strong> ${quoteData.id}</p>
-                <p style="margin-bottom: 10px;"><strong>Date:</strong> ${new Date(quoteData.dateCreated).toLocaleDateString()}</p>
-                <p style="margin-bottom: 10px;"><strong>Total Items:</strong> ${quoteData.summary.totalItems}</p>
-                <p style="margin-bottom: 10px;"><strong>Total Units:</strong> ${quoteData.summary.totalUnits.toLocaleString()}</p>
-                <p style="margin-bottom: 10px;"><strong>Total Boxes:</strong> ${quoteData.summary.totalBoxes}</p>
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">✅</div>
+                <h2 style="color: var(--paskal-navy); font-size: 1.8rem; margin-bottom: 15px; font-weight: 700;">
+                    Thank You for Submitting Your Quote Request!
+                </h2>
+                <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 2px solid var(--success-green); margin-bottom: 20px;">
+                    <p style="color: #666; font-size: 1rem; margin-bottom: 10px;">Your Request Number:</p>
+                    <p style="color: var(--paskal-navy); font-size: 2.5rem; font-weight: 700; margin: 0;">${quoteData.id}</p>
+                </div>
             </div>
             
-            <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; border-left: 4px solid var(--paskal-navy);">
-                <p style="color: var(--paskal-navy); font-weight: 600; margin: 0;">
-                    📨 This quote has been sent to Sales Manager for approval
+            <div style="background: #e0f2fe; padding: 18px; border-radius: 8px; margin-bottom: 25px; text-align: center; border-left: 4px solid var(--paskal-navy);">
+                <p style="color: var(--paskal-navy); font-weight: 600; margin: 0; font-size: 1.05rem;">
+                    📨 Your request has been sent to our Sales Manager for review
                 </p>
             </div>
             
@@ -2866,6 +2869,9 @@ const QuoteUI = {
             specialRequests.value = '';
             if (charCount) charCount.textContent = '0';
         }
+        
+        // CRITICAL: Save cleared data to prevent "unsaved changes" detection
+        QuoteData.save();
         
         // Return to MY ORDERS to see the created/updated quote
         TabManager.switchTab('orders');
@@ -4392,6 +4398,9 @@ const TabManager = {
         QuoteData.nextId = 1;
         QuoteData.addItem();
         QuoteUI.editingQuoteId = null;
+        
+        // CRITICAL: Save cleared data to prevent "unsaved changes" detection
+        QuoteData.save();
         
         // Switch to orders tab
         this.switchTab('orders');
