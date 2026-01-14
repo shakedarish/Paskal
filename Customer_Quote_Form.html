@@ -885,13 +885,8 @@
                 <button class="btn btn-success" onclick="QuoteUI.addRow()" style="padding: 12px 35px; font-size: 1rem;">
                     ➕ Add Item
                 </button>
-                
-                <button class="btn btn-secondary" onclick="QuoteUI.duplicateSelected()" id="duplicateSelectedBtn" style="padding: 12px 35px; font-size: 1rem; display: none;">
-                    📋 Duplicate Selected
-                </button>
-                
-                <button class="btn" onclick="QuoteUI.deleteSelected()" id="deleteSelectedBtn" style="padding: 12px 35px; font-size: 1rem; background: #dc2626; color: white; display: none;">
-                    🗑️ Delete Selected
+                <button class="btn btn-secondary" onclick="QuoteUI.toggleSelectionMode()" id="duplicateBtn" style="padding: 12px 35px; font-size: 1rem;">
+                    📋 Duplicate Item
                 </button>
             </div>
             
@@ -953,6 +948,85 @@
                     </li>
                 </ul>
             </div>
+
+            <!-- Duplicate Confirmation Modal -->
+            <div id="duplicateConfirmModal" class="modal">
+                <div class="modal-content" style="max-width: 450px;">
+                    <h2 style="margin-bottom: 20px; color: var(--paskal-navy);">📋 Duplicate Rows</h2>
+                    
+                    <p style="margin-bottom: 20px; color: #666; font-size: 1.1rem;">
+                        Duplicate <strong id="confirmRowCount">0</strong> selected row(s)?
+                    </p>
+                    
+                    <p style="margin-bottom: 20px; color: #888; font-size: 0.9rem;">
+                        This will create <strong id="confirmNewCount">0</strong> new row(s) at the end of your table.
+                    </p>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn btn-secondary" onclick="QuoteUI.closeConfirmModal()">
+                            Cancel
+                        </button>
+                        <button class="btn btn-primary" onclick="QuoteUI.executeDuplicate()">
+                            ✓ Yes, Duplicate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions Modal for Selection Mode -->
+            <div id="instructionsModal" class="modal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <h2 style="margin-bottom: 25px; color: var(--paskal-navy); display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 2rem;">ℹ️</span>
+                        How to Duplicate Multiple Rows
+                    </h2>
+                    
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
+                        <p style="margin: 0 0 15px 0; color: #0c4a6e; font-size: 1rem;">
+                            Follow these simple steps:
+                        </p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</span>
+                                <div>
+                                    <strong style="color: #0c4a6e;">Check boxes next to rows</strong>
+                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Select the rows you want to duplicate using the checkboxes</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</span>
+                                <div>
+                                    <strong style="color: #0c4a6e;">Click "Duplicate X Rows" button</strong>
+                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">The button appears after you select at least one row</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <span style="background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</span>
+                                <div>
+                                    <strong style="color: #0c4a6e;">Confirm duplication</strong>
+                                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Review and confirm to create new rows</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;">
+                            <strong>💡 Tip:</strong> Use the "Select All" checkbox in the table header to quickly select all rows!
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-primary" onclick="QuoteUI.closeInstructionsModal()" style="padding: 12px 40px; font-size: 1rem;">
+                            Got it!
+                        </button>
+                    </div>
+                </div>
+            </div>
+
 
             <div class="summary-section" id="summarySection" style="display: none;">
                 <h3 style="color: var(--paskal-navy); margin-bottom: 10px;">📊 Quote Summary</h3>
@@ -2173,6 +2247,153 @@ const QuoteUI = {
     
     // Smart Duplicate Feature
     // Multi-Select Duplicate System
+    selectionMode: false,
+    selectedRows: new Set(),
+    bannerDismissed: false,
+    
+    toggleSelectionMode() {
+        if (QuoteData.items.length === 0) {
+            this.showAlert('No items to duplicate. Please add items first.', 'warning', false);
+            return;
+        }
+        
+        this.selectionMode = !this.selectionMode;
+        const btn = document.getElementById('duplicateBtn');
+        
+        if (this.selectionMode) {
+            // Entering selection mode
+            btn.textContent = '❌ Exit Selection';
+            btn.className = 'btn btn-secondary';
+            this.selectedRows.clear();
+            this.bannerDismissed = false; // Reset banner
+            this.render();
+            
+            // Show instructions modal
+            document.getElementById('instructionsModal').classList.add('show');
+        } else {
+            // Exiting selection mode
+            btn.textContent = '📋 Duplicate Item';
+            btn.className = 'btn btn-secondary';
+            this.selectedRows.clear();
+            this.render();
+        }
+        
+        this.updateDuplicateButton();
+    },
+    
+    dismissBanner() {
+        this.bannerDismissed = true;
+        this.render();
+    },
+    
+    closeInstructionsModal() {
+        document.getElementById('instructionsModal').classList.remove('show');
+    },
+    
+    toggleRowSelection(itemId, checked) {
+        if (checked) {
+            this.selectedRows.add(itemId);
+        } else {
+            this.selectedRows.delete(itemId);
+        }
+        
+        this.render();
+        this.updateDuplicateButton();
+        this.updateSelectAllCheckbox();
+    },
+    
+    toggleSelectAll(checked) {
+        if (checked) {
+            // Select all
+            QuoteData.items.forEach(item => {
+                this.selectedRows.add(item.id);
+            });
+        } else {
+            // Deselect all
+            this.selectedRows.clear();
+        }
+        
+        this.render();
+        this.updateDuplicateButton();
+    },
+    
+    updateSelectAllCheckbox() {
+        const checkbox = document.getElementById('selectAllCheckbox');
+        if (checkbox) {
+            const totalItems = QuoteData.items.length;
+            const selectedCount = this.selectedRows.size;
+            
+            if (selectedCount === 0) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+            } else if (selectedCount === totalItems) {
+                checkbox.checked = true;
+                checkbox.indeterminate = false;
+            } else {
+                checkbox.checked = false;
+                checkbox.indeterminate = true;
+            }
+        }
+    },
+    
+    updateDuplicateButton() {
+        // Add or update duplicate button
+        let duplicateActionBtn = document.getElementById('duplicateActionBtn');
+        const count = this.selectedRows.size;
+        
+        if (this.selectionMode && count > 0) {
+            if (!duplicateActionBtn) {
+                // Create button if doesn't exist
+                const btnContainer = document.querySelector('.btn.btn-secondary').parentElement;
+                duplicateActionBtn = document.createElement('button');
+                duplicateActionBtn.id = 'duplicateActionBtn';
+                duplicateActionBtn.className = 'btn btn-primary';
+                duplicateActionBtn.onclick = () => this.openConfirmModal();
+                duplicateActionBtn.style.padding = '12px 35px';
+                duplicateActionBtn.style.fontSize = '1rem';
+                btnContainer.appendChild(duplicateActionBtn);
+            }
+            
+            duplicateActionBtn.textContent = `✓ Duplicate ${count} Row${count > 1 ? 's' : ''}`;
+            duplicateActionBtn.style.display = 'inline-block';
+        } else if (duplicateActionBtn) {
+            duplicateActionBtn.style.display = 'none';
+        }
+    },
+    
+    openConfirmModal() {
+        const count = this.selectedRows.size;
+        if (count === 0) return;
+        
+        document.getElementById('confirmRowCount').textContent = count;
+        document.getElementById('confirmNewCount').textContent = count;
+        document.getElementById('duplicateConfirmModal').classList.add('show');
+    },
+    
+    closeConfirmModal() {
+        document.getElementById('duplicateConfirmModal').classList.remove('show');
+    },
+    
+    executeDuplicate() {
+        const selectedIds = Array.from(this.selectedRows);
+        if (selectedIds.length === 0) return;
+        
+        this.closeConfirmModal();
+        
+        // Get original items
+        const originalItems = selectedIds.map(id => 
+            QuoteData.items.find(item => item.id === id)
+        ).filter(Boolean);
+        
+        // Create duplicates
+        const newItems = originalItems.map(item => ({
+            ...item,
+            id: QuoteData.nextId++,
+            quantity: '' // Clear quantity
+        }));
+        
+        // Add to items
+        QuoteData.items.push(...newItems);
         QuoteData.save();
         
         // Get IDs for highlighting
@@ -2329,14 +2550,13 @@ const QuoteUI = {
             const totalBoxes = QuoteData.items.reduce((sum, item) => sum + (item.actualBoxes || 0), 0);
             
             // Calculate total pallets and weight
-            // NOTE: Customer does NOT select transportation type
-            // So we do NOT calculate total_pallets here - it will be null
-            const totalPallets = null; // Will be calculated by Sales Manager
+            // NOTE: Customer does NOT select transport type, so total_pallets stays null
+            // VP Sales will calculate this after selecting transport type
+            const totalPallets = null;
             let totalWeight = 0;
             
-            // Calculate weight only (no pallets calculation)
             QuoteData.items.forEach(item => {
-                // Calculate weight (using actual weight per carton if available)
+                // Calculate weight only (no pallets for customer)
                 if (item.weightPerCarton && item.actualBoxes) {
                     totalWeight += item.weightPerCarton * item.actualBoxes * 1.03; // 3% adjustment
                 }
@@ -2456,7 +2676,7 @@ const QuoteUI = {
                 // Reset Generate button
                 const btn = document.getElementById('generateQuoteBtn');
                 if (btn) {
-                    btn.innerHTML = '✓ Submit';
+                    btn.innerHTML = '📋 Generate Quote';
                 }
                 
                 // Hide Cancel button
@@ -2540,7 +2760,7 @@ const QuoteUI = {
         // Reset button text
         const btn = document.getElementById('generateQuoteBtn');
         if (btn) {
-            btn.innerHTML = '✓ Submit';
+            btn.innerHTML = '📋 Generate Quote';
         }
         
         // Hide Cancel button
@@ -3198,27 +3418,12 @@ Best regards`;
         const key = `${hookCode}-${dbTwineType}-${totalWire}-${item.hookType}`;
         const cartonData = CARTON_DB[key];
         
-        let unitsPerCarton;
-        
         if (!cartonData) {
-            // Configuration not found - estimate units per carton based on twine type
-            // This allows round-up modal to work even when exact config is not in DB
-            const estimatedUnits = {
-                '1000': { '180': 450, '220': 400 },
-                '1200': { '180': 420, '220': 350 },
-                '1300': { '180': 380, '220': 320 },
-                '1500': { '180': 340, '220': 290 },
-                'Bio250': { '180': 340, '220': 290 },
-                'Bio390': { '180': 420, '220': 350 }
-            };
-            
-            const hookSize = item.hookSize === '180' ? '180' : '220';
-            unitsPerCarton = estimatedUnits[dbTwineType]?.[hookSize] || 300;
-            
-            console.warn(`Configuration ${key} not found in CARTON_DB. Using estimated units per carton: ${unitsPerCarton}`);
-        } else {
-            unitsPerCarton = cartonData.unitsPerCarton;
+            this.showAlert('Configuration not found in database. Please check your selections.', 'error');
+            return;
         }
+        
+        const unitsPerCarton = cartonData.unitsPerCarton;
         const remainder = quantity % unitsPerCarton;
         
         if (remainder !== 0) {
@@ -3330,6 +3535,7 @@ Best regards`;
             <table class="quote-table">
                 <thead>
                     <tr>
+                        ${this.selectionMode ? `
                         <th style="min-width: 50px; text-align: center;">
                             <input type="checkbox" 
                                    id="selectAllCheckbox"
@@ -3337,6 +3543,7 @@ Best regards`;
                                    style="width: 18px; height: 18px; cursor: pointer;"
                                    title="Select All">
                         </th>
+                        ` : ''}
                         <th style="min-width: 40px;">#</th>
                         <th style="min-width: 100px;">Grower<br><span style="font-weight: normal; font-size: 0.75rem;">(Optional)</span></th>
                         <th style="min-width: 120px;">Ship To *</th>
@@ -3360,7 +3567,7 @@ Best regards`;
                         <th style="min-width: 80px;">Units/Box</th>
                         <th style="min-width: 70px;">Boxes</th>
                         <th style="min-width: 160px;">PN (product number)</th>
-                        
+                        <th style="min-width: 100px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -3375,13 +3582,14 @@ Best regards`;
             
             html += `
                 <tr data-item-id="${item.id}" ${this.selectedRows.has(item.id) ? 'class="duplicate-preview"' : ''}>
-                    <td style="text-align: center;">
+                    ${this.selectionMode ? `
+                    <td style="text-align: center; background: ${this.selectedRows.has(item.id) ? 'transparent' : 'white'};">
                         <input type="checkbox" 
-                               id="checkbox_${item.id}"
                                ${this.selectedRows.has(item.id) ? 'checked' : ''}
                                onchange="QuoteUI.toggleRowSelection(${item.id}, this.checked)"
                                style="width: 18px; height: 18px; cursor: pointer;">
                     </td>
+                    ` : ''}
                     <td class="row-number">${index + 1}</td>
                     
                     <td>
@@ -3650,7 +3858,11 @@ Best regards`;
                                style="background: #f0fdf4; font-size: 0.75rem; text-align: center; cursor: not-allowed; font-family: monospace;">
                     </td>
                     
-                    
+                    <td>
+                        <div class="row-actions">
+                            <button class="row-action-btn" onclick="QuoteUI.deleteRow(${item.id})" title="Delete">🗑️</button>
+                        </div>
+                    </td>
                 </tr>
             `;
         });
@@ -3706,13 +3918,10 @@ Best regards`;
                 if (this.editingQuoteId) {
                     btn.innerHTML = '✏️ Update Quote';
                 } else {
-                    btn.innerHTML = '✓ Submit';
+                    btn.innerHTML = '🎯 Generate Quote';
                 }
             }
         }, 10);
-        
-        // Update selection buttons visibility
-        this.updateSelectionButtons();
     },
     
     showAlert(message, type, persist = null) {
@@ -3739,108 +3948,7 @@ Best regards`;
                 alert.classList.remove('show');
             }, 6000);
         }
-    },    
-    // ============================================
-    // SELECTION MANAGEMENT
-    // ============================================
-    selectedRows: new Set(),
-    
-    toggleRowSelection(itemId, checked) {
-        if (checked) {
-            this.selectedRows.add(itemId);
-        } else {
-            this.selectedRows.delete(itemId);
-        }
-        this.updateSelectionButtons();
-    },
-    
-    toggleSelectAll(checked) {
-        const checkboxes = document.querySelectorAll('input[id^="checkbox_"]');
-        checkboxes.forEach(cb => {
-            const itemId = parseInt(cb.id.replace('checkbox_', ''));
-            cb.checked = checked;
-            if (checked) {
-                this.selectedRows.add(itemId);
-            } else {
-                this.selectedRows.delete(itemId);
-            }
-        });
-        this.updateSelectionButtons();
-    },
-    
-    updateSelectionButtons() {
-        const duplicateBtn = document.getElementById('duplicateSelectedBtn');
-        const deleteBtn = document.getElementById('deleteSelectedBtn');
-        const hasSelection = this.selectedRows.size > 0;
-        
-        if (duplicateBtn) {
-            duplicateBtn.style.display = hasSelection ? 'inline-block' : 'none';
-        }
-        if (deleteBtn) {
-            deleteBtn.style.display = hasSelection ? 'inline-block' : 'none';
-        }
-    },
-    
-    duplicateSelected() {
-        if (this.selectedRows.size === 0) {
-            this.showAlert('Please select rows to duplicate', 'warning');
-            return;
-        }
-        
-        const itemsToDuplicate = Array.from(this.selectedRows);
-        
-        itemsToDuplicate.forEach(itemId => {
-            const originalItem = QuoteData.getItem(itemId);
-            if (originalItem) {
-                const newItem = JSON.parse(JSON.stringify(originalItem));
-                newItem.id = Date.now() + Math.random();
-                newItem.quantity = originalItem.quantity;
-                newItem.actualUnits = originalItem.actualUnits;
-                QuoteData.items.push(newItem);
-            }
-        });
-        
-        QuoteData.save();
-        this.selectedRows.clear();
-        const selectAll = document.getElementById('selectAllCheckbox');
-        if (selectAll) selectAll.checked = false;
-        
-        this.showAlert(`✓ Duplicated ${itemsToDuplicate.length} row(s)`, 'success');
-        this.render();
-        this.updateSummary();
-        this.updateSelectionButtons();
-    },
-    
-    deleteSelected() {
-        if (this.selectedRows.size === 0) {
-            this.showAlert('Please select rows to delete', 'warning');
-            return;
-        }
-        
-        if (!confirm(`Delete ${this.selectedRows.size} selected row(s)?`)) {
-            return;
-        }
-        
-        const itemsToDelete = Array.from(this.selectedRows);
-        
-        itemsToDelete.forEach(itemId => {
-            const index = QuoteData.items.findIndex(item => item.id === itemId);
-            if (index !== -1) {
-                QuoteData.items.splice(index, 1);
-            }
-        });
-        
-        QuoteData.save();
-        this.selectedRows.clear();
-        const selectAll = document.getElementById('selectAllCheckbox');
-        if (selectAll) selectAll.checked = false;
-        
-        this.showAlert(`✓ Deleted ${itemsToDelete.length} row(s)`, 'success');
-        this.render();
-        this.updateSummary();
-        this.updateSelectionButtons();
     }
-
 };
 
 window.QuoteUI = QuoteUI;
@@ -4219,8 +4327,7 @@ const TabManager = {
         
         QuoteUI.render();
         QuoteUI.updateSummary(); // Update summary to show 0s
-    },
-    
+    }
 };
 
 window.TabManager = TabManager;
@@ -4641,16 +4748,6 @@ const OrdersManager = {
         <div class="modal-content" style="max-width: 600px;">
             <h2 style="color: var(--success-green); margin-bottom: 20px;">✅ Quote Created Successfully!</h2>
             <div id="successModalBody"></div>
-        </div>
-    </div>
-
-
-    <!-- Success Modal -->
-    <div class="modal" id="successModal">
-        <div class="modal-content" style="max-width: 600px;">
-            <div id="successModalBody">
-                <!-- Content will be dynamically inserted by showSuccessModal() -->
-            </div>
         </div>
     </div>
 
