@@ -7297,6 +7297,9 @@
         function renderItemsTable() {
             const header = document.getElementById('tableHeader');
             const body = document.getElementById('tableBody');
+            
+            // Check if quote is approved - if yes, disable all editable fields
+            const isApproved = currentQuote.status === 'Approved';
 
             // Define columns (25 total - removed Boxes per Pallet)
             const columns = [
@@ -7333,11 +7336,11 @@
 
             // Render rows
             body.innerHTML = currentQuote.items.map((item, index) => {
-                return `<tr>${renderTableRow(item, index, columns)}</tr>`;
+                return `<tr>${renderTableRow(item, index, columns, isApproved)}</tr>`;
             }).join('');
         }
 
-        function renderTableRow(item, index, columns) {
+        function renderTableRow(item, index, columns, isApproved) {
             return columns.map(col => {
                 const cellClass = `${col.type}-col`;
                 let cellContent = '';
@@ -7356,7 +7359,7 @@
                         cellContent = item[col.key] !== undefined ? item[col.key] : '-';
                     }
                 } else if (col.type === 'editable') {
-                    cellContent = renderEditableCell(item, col.key, index);
+                    cellContent = renderEditableCell(item, col.key, index, isApproved);
                 } else if (col.type === 'calculated') {
                     cellContent = renderCalculatedCell(item, col.key);
                 }
@@ -7365,8 +7368,9 @@
             }).join('');
         }
 
-        function renderEditableCell(item, key, itemIndex) {
+        function renderEditableCell(item, key, itemIndex, isApproved) {
             const value = item[key] !== undefined ? item[key] : '';
+            const disabledAttr = isApproved ? 'disabled' : '';
 
             switch(key) {
                 case 'actualUnits':
@@ -7376,13 +7380,15 @@
                     return `<input type="text" value="${formattedUnits}" 
                             onblur="handleUnitsBlur(${itemIndex}, '${key}', this.value)" 
                             onchange="handleUnitsChange(${itemIndex}, this.value)"
-                            placeholder="e.g. 60,000">`;
+                            placeholder="e.g. 60,000"
+                            ${disabledAttr}>`;
                 
                 case 'reqDate':
                 case 'reqDeliveryDate':
                 case 'estimatedDeliveryDate':
                     return `<input type="date" value="${value}" 
-                            onblur="updateField(${itemIndex}, '${key}', this.value)">`;
+                            onblur="updateField(${itemIndex}, '${key}', this.value)"
+                            ${disabledAttr}>`;
                 
                 case 'colors':
                     // Display colors with "click here" link to edit
@@ -7406,20 +7412,20 @@
                             <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
                                 ${colorsText}
                             </div>
-                            <div style="font-size: 0.85rem; color: #444;">
+                            ${!isApproved ? `<div style="font-size: 0.85rem; color: #444;">
                                 For change 
                                 <a href="#" 
-                                   onclick="event.preventDefault(); ${isBio && validColors.length > 1 ? `showAlert('error', 'Color sequence not available for Bio twines');` : `openColorsModal(${itemIndex});`}" 
+                                   onclick="event.preventDefault(); ${isBio && validColors.length > 1 ? \`showAlert('error', 'Color sequence not available for Bio twines');\` : \`openColorsModal(${itemIndex});\`}" 
                                    style="color: #00AFE6; text-decoration: underline; font-weight: 600; cursor: pointer;">
                                     click here
                                 </a>
-                            </div>
+                            </div>` : ''}
                         </div>`;
                 
                 case 'transportationType':
                 case 'transportationType1':
                 case 'transportationType2':
-                    return `<select onchange="updateField(${itemIndex}, '${key}', this.value)">
+                    return `<select onchange="updateField(${itemIndex}, '${key}', this.value)" ${disabledAttr}>
                                 <option value="">Select...</option>
                                 <option value="Container 40HC" ${value === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
                                 <option value="Container 20HC" ${value === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
@@ -7429,7 +7435,7 @@
                             </select>`;
                 
                 case 'incoterms':
-                    return `<select onblur="updateField(${itemIndex}, '${key}', this.value)" style="width: 100%; padding: 8px;">
+                    return `<select onblur="updateField(${itemIndex}, '${key}', this.value)" style="width: 100%; padding: 8px;" ${disabledAttr}>
                                 <option value="">Select...</option>
                                 <option value="CIF" ${value === 'CIF' ? 'selected' : ''}>CIF</option>
                                 <option value="DDP" ${value === 'DDP' ? 'selected' : ''}>DDP</option>
@@ -7438,7 +7444,7 @@
                             </select>`;
                 
                 case 'currency':
-                    return `<select onblur="updateField(${itemIndex}, '${key}', this.value)" style="width: 100%; padding: 8px;">
+                    return `<select onblur="updateField(${itemIndex}, '${key}', this.value)" style="width: 100%; padding: 8px;" ${disabledAttr}>
                                 <option value="">Select...</option>
                                 <option value="USD" ${value === 'USD' ? 'selected' : ''}>USD</option>
                                 <option value="EUR" ${value === 'EUR' ? 'selected' : ''}>EUR</option>
@@ -7448,7 +7454,8 @@
                 
                 default:
                     return `<input type="number" value="${value}" step="0.01"
-                            onblur="updateField(${itemIndex}, '${key}', this.value)">`;
+                            onblur="updateField(${itemIndex}, '${key}', this.value)"
+                            ${disabledAttr}>`;
             }
         }
 
