@@ -905,12 +905,6 @@
                     </div>
                 </div>
 
-                <!-- General Remarks (shown based on Production Site) -->
-                <div id="generalRemarksSection" style="display: none; background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #d1d5db;">
-                    <h4 style="color: #002C5B; margin-top: 0; margin-bottom: 10px;">General Remarks:</h4>
-                    <div id="generalRemarksText" style="color: #4b5563; line-height: 1.6; white-space: pre-line;"></div>
-                </div>
-
                 <!-- Items Table -->
                 <div class="items-table-container">
                     <table class="items-table" id="itemsTable">
@@ -1540,8 +1534,8 @@
                             <th style="min-width: 60px;">Item #</th>
                             <th style="min-width: 100px;">Grower</th>
                             <th style="min-width: 100px;">Ship To</th>
-                            <th style="min-width: 120px;">Req. Delivery Date</th>
-                            <th style="min-width: 140px;">Est. Delivery Date</th>
+                            <th style="min-width: 160px;">Req. Delivery Date</th>
+                            <th style="min-width: 160px;">Est. Delivery Date</th>
                             <th style="min-width: 90px;">Hook Type</th>
                             <th style="min-width: 90px;">Hook Size</th>
                             <th style="min-width: 90px;">Crop</th>
@@ -1667,6 +1661,7 @@
                             <td class="transport-cell cell-editable ${transport1Class}">
                                 <input type="text" value="${item.transportationCost1 || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'transportationCost1', this.value)"
+                                    onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
                                     placeholder="Cost"
                                     ${selectedTransport === 2 ? 'disabled' : ''}>
                             </td>
@@ -1693,6 +1688,7 @@
                             <td class="transport-cell cell-editable ${transport2Class}">
                                 <input type="text" value="${item.transportationCost2 || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'transportationCost2', this.value)"
+                                    onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
                                     placeholder="Cost"
                                     ${selectedTransport === 1 ? 'disabled' : ''}>
                             </td>
@@ -1717,11 +1713,13 @@
                             <td class="cell-editable">
                                 <input type="text" value="${item.pricePer1000 || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'pricePer1000', this.value)"
+                                    onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
                                     placeholder="Price">
                             </td>
                             <td class="cell-editable">
                                 <input type="text" value="${item.lastPrice || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'lastPrice', this.value)"
+                                    onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
                                     placeholder="Price">
                             </td>
                             <td class="cell-calculated">${boxesPerPallet}</td>
