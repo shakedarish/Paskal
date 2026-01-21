@@ -697,7 +697,9 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <div class="logo">Paskal</div>
+                    <div class="logo">
+                        <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal Logo" style="height: 45px; width: auto;">
+                    </div>
                     <div class="header-text">
                         <h1>Sales Manager Dashboard</h1>
                         <p>Metal Hooks Quote Management System</p>
@@ -791,7 +793,9 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <div class="logo">Paskal</div>
+                    <div class="logo">
+                        <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal Logo" style="height: 45px; width: auto;">
+                    </div>
                 </div>
                 <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
             </div>
@@ -938,10 +942,10 @@
                 
                 currentProfile = profile;
                 
-                // Update display
+                // Update display - show sales manager name instead of company name
                 const nameDisplay = document.getElementById('salesManagerName');
                 if (nameDisplay) {
-                    nameDisplay.textContent = profile.company_name || profile.email || 'Sales Manager';
+                    nameDisplay.textContent = profile.name || profile.email || 'Sales Manager';
                 }
                 
                 sessionStorage.removeItem('checking_auth');
