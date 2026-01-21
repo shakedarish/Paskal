@@ -442,23 +442,6 @@
             gap: 15px;
         }
 
-        .import-btn {
-            background: var(--paskal-green);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .import-btn:hover {
-            background: var(--paskal-dark-green);
-            transform: translateY(-2px);
-        }
-
         .table-wrapper {
             overflow-x: auto;
             border-radius: 12px;
@@ -731,23 +714,23 @@
             <div class="main-card">
                 <!-- Stats Cards -->
                 <div class="stats-container">
-                    <div class="stat-card">
+                    <div class="stat-card" onclick="Dashboard.filterByStatus('all')" style="cursor: pointer;">
                         <div class="stat-label">Total Quotes</div>
                         <div class="stat-value" id="totalQuotes">0</div>
                     </div>
-                    <div class="stat-card pending">
+                    <div class="stat-card pending" onclick="Dashboard.filterByStatus('Pending')" style="cursor: pointer;">
                         <div class="stat-label">Pending</div>
                         <div class="stat-value" id="pendingQuotes">0</div>
                     </div>
-                    <div class="stat-card approval-requested">
+                    <div class="stat-card approval-requested" onclick="Dashboard.filterByStatus('Waiting VP Approval')" style="cursor: pointer;">
                         <div class="stat-label">Waiting VP Approval</div>
                         <div class="stat-value" id="approvalQuotes">0</div>
                     </div>
-                    <div class="stat-card approved">
+                    <div class="stat-card approved" onclick="Dashboard.filterByStatus('Approved')" style="cursor: pointer;">
                         <div class="stat-label">Approved</div>
                         <div class="stat-value" id="approvedQuotes">0</div>
                     </div>
-                    <div class="stat-card rejected">
+                    <div class="stat-card rejected" onclick="Dashboard.filterByStatus('Rejected')" style="cursor: pointer;">
                         <div class="stat-label">Rejected</div>
                         <div class="stat-value" id="rejectedQuotes">0</div>
                     </div>
@@ -761,24 +744,11 @@
                             <input type="text" id="searchInput" placeholder="Search...">
                         </div>
                         <div class="filter-group">
-                            <label for="statusFilter">Filter by Status</label>
-                            <select id="statusFilter">
-                                <option value="">All Statuses</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Price Approval Requested">Price Approval Requested</option>
-                                <option value="Waiting VP Approval">Waiting VP Approval</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Rejected">Rejected</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
                             <label for="dateFilter">Filter by Date</label>
                             <input type="date" id="dateFilter">
                         </div>
                         <button class="btn-filter" onclick="Dashboard.applyFilters()">Apply Filters</button>
                         <button class="btn-clear" onclick="Dashboard.clearFilters()">Clear</button>
-                        <button class="import-btn" onclick="Dashboard.importExcel()">📁 Import Excel</button>
-                        <input type="file" id="excelFileInputDashboard" accept=".xlsx, .xls" style="display: none;" onchange="Dashboard.handleExcelImport(event)">
                     </div>
                 </div>
 
@@ -6857,6 +6827,7 @@
             allQuotes: [],
             filteredQuotes: [],
             currentSort: { field: 'dateCreated', order: 'desc' },
+            currentStatusFilter: null,  // Track current status filter from cards
 
             // Initialize Dashboard
             async init() {
@@ -6947,11 +6918,6 @@
                     this.applyFilters();
                 });
 
-                // Status filter
-                document.getElementById('statusFilter').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-
                 // Date filter
                 document.getElementById('dateFilter').addEventListener('change', () => {
                     this.applyFilters();
@@ -6966,10 +6932,21 @@
                 });
             },
 
+            // Filter by status when clicking on stat cards
+            filterByStatus(status) {
+                // If clicking same card, clear filter (show all)
+                if (this.currentStatusFilter === status) {
+                    this.currentStatusFilter = null;
+                } else {
+                    this.currentStatusFilter = status === 'all' ? null : status;
+                }
+                
+                this.applyFilters();
+            },
+
             // Apply filters
             applyFilters() {
                 const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                const statusFilter = document.getElementById('statusFilter').value;
                 const dateFilter = document.getElementById('dateFilter').value;
 
                 this.filteredQuotes = this.allQuotes.filter(quote => {
@@ -6980,8 +6957,8 @@
                         quote.id.toLowerCase().includes(searchTerm) ||
                         (quote.customerName && quote.customerName.toLowerCase().includes(searchTerm));
 
-                    // Status filter
-                    const matchesStatus = !statusFilter || quote.status === statusFilter;
+                    // Status filter from stat cards
+                    const matchesStatus = !this.currentStatusFilter || quote.status === this.currentStatusFilter;
 
                     // Date filter
                     const matchesDate = !dateFilter || 
@@ -6997,8 +6974,8 @@
             // Clear filters
             clearFilters() {
                 document.getElementById('searchInput').value = '';
-                document.getElementById('statusFilter').value = '';
                 document.getElementById('dateFilter').value = '';
+                this.currentStatusFilter = null;  // Clear status filter
                 this.applyFilters();
             },
 
@@ -7165,122 +7142,6 @@
             viewQuote(quoteId) {
                 // Navigate to Module 3 within the same page
                 App.showQuoteDetails(quoteId);
-            },
-
-            importExcel() {
-                document.getElementById('excelFileInputDashboard').click();
-            },
-
-            async handleExcelImport(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                try {
-                    const data = await file.arrayBuffer();
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-                    if (jsonData.length === 0) {
-                        alert('No data found in the Excel file.');
-                        return;
-                    }
-
-                    // Create a new quote from Excel data
-                    const newQuote = this.createQuoteFromExcel(jsonData);
-                    
-                    // Get existing quotes
-                    const quotes = JSON.parse(localStorage.getItem('paskal_quotes') || '[]');
-                    
-                    // Add new quote
-                    quotes.push(newQuote);
-                    
-                    // Save to localStorage
-                    localStorage.setItem('paskal_quotes', JSON.stringify(quotes));
-                    
-                    // Refresh dashboard
-                    this.loadQuotes();
-                    this.renderDashboard();
-                    
-                    alert(`Quote ${newQuote.id} imported successfully!`);
-                    
-                    // Clear file input
-                    event.target.value = '';
-                } catch (error) {
-                    console.error('Error importing Excel:', error);
-                    alert('Failed to import Excel file: ' + error.message);
-                }
-            },
-
-            createQuoteFromExcel(jsonData) {
-                // Generate new quote ID
-                const quotes = JSON.parse(localStorage.getItem('paskal_quotes') || '[]');
-                const maxId = quotes.length > 0 
-                    ? Math.max(...quotes.map(q => parseInt(q.id.replace('Q-', '')))) 
-                    : 0;
-                const newId = `Q-${String(maxId + 1).padStart(4, '0')}`;
-
-                // Map Excel rows to items
-                const items = jsonData.map((row, index) => ({
-                    id: index + 1,
-                    itemNum: index + 1,
-                    grower: row['Grower'] || '',
-                    shipTo: row['Ship To'] || '',
-                    reqDate: row['Req. Delivery Date'] || '',
-                    estimatedDeliveryDate: row['Estimated Delivery Date'] || '',
-                    hookType: row['Hook Type'] || '',
-                    hookSize: row['Hook Size'] || '',
-                    crop: row['Crop'] || '',
-                    twineType: row['Twine Type'] || '',
-                    colors: this.parseColors(row['Twine Color']),
-                    wireLength: row['Twine on Hook (m)'] || 0,
-                    freeFallLength: row['Free Fall (m)'] || 0,
-                    totalLength: row['Total Twine'] || 0,
-                    actualUnits: row['Units'] || 0,
-                    unitsPerBox: row['Units/Box'] || 0,
-                    actualBoxes: row['Boxes'] || 0,
-                    pn: row['PN (product number)'] || '',
-                    transportationType1: row['Transportation Type 1'] || row['Transportation Type'] || '',
-                    transportationCost1: row['Transportation Cost 1'] || row['Transportation Cost'] || '',
-                    transportationType2: row['Transportation Type 2'] || '',
-                    transportationCost2: row['Transportation Cost 2'] || '',
-                    incoterms: row['Final Destination Incoterms'] || '',
-                    currency: row['Currency'] || '',
-                    lastPrice: row['Last Price'] || '',
-                    boxesPerPallet: row['Boxes per Pallet'] || 64,
-                    totalPallets: row['Total Pallets'] || 0
-                }));
-
-                return {
-                    id: newId,
-                    dateCreated: new Date().toISOString(),
-                    items: items,
-                    summary: {
-                        totalItems: items.length,
-                        totalUnits: items.reduce((sum, item) => sum + (parseFloat(item.actualUnits) || 0), 0),
-                        totalBoxes: items.reduce((sum, item) => sum + (parseFloat(item.actualBoxes) || 0), 0)
-                    },
-                    status: 'Pending'
-                };
-            },
-
-            parseColors(colorString) {
-                if (!colorString) return [];
-                
-                // If it's a single color
-                if (!colorString.includes('×') && !colorString.includes(',')) {
-                    return [{ color: colorString.trim(), quantity: 1 }];
-                }
-                
-                // If it's multiple colors with quantities (e.g., "Red×5, Blue×3")
-                return colorString.split(',').map(part => {
-                    const trimmed = part.trim();
-                    if (trimmed.includes('×')) {
-                        const [color, qty] = trimmed.split('×');
-                        return { color: color.trim(), quantity: parseInt(qty) || 1 };
-                    }
-                    return { color: trimmed, quantity: 1 };
-                });
             }
         };
 
@@ -8404,101 +8265,6 @@
 
         function goBack() {
             App.showDashboard();
-        }
-
-        // ============= EXCEL IMPORT =============
-        function importExcel() {
-            document.getElementById('excelFileInput').click();
-        }
-
-        function handleExcelImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-                    // Parse Excel data and update currentQuote.items
-                    parseExcelData(jsonData);
-                    
-                    showAlert('success', 'Excel file imported successfully!');
-                    renderItemsTable();
-                    renderSummaryCards();
-                } catch (error) {
-                    console.error('Error importing Excel:', error);
-                    showAlert('error', 'Failed to import Excel file: ' + error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function parseExcelData(jsonData) {
-            // Find header row (row 23 in the Excel, but 0-indexed in array)
-            const headerRowIndex = 22; // Row 23 (0-indexed)
-            const headers = jsonData[headerRowIndex];
-            
-            // Parse data rows (starting from row 24)
-            const newItems = [];
-            for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
-                const row = jsonData[i];
-                if (!row || row.length === 0 || !row[2]) continue; // Skip empty rows
-                
-                const item = {
-                    itemNum: newItems.length + 1,
-                    grower: row[2] || '',
-                    shipTo: row[3] || '',
-                    hookType: row[4] || '',
-                    hookSize: row[5] || '',
-                    crop: row[6] || '',
-                    twineType: row[7] || '',
-                    twineColor: row[8] || '',
-                    twineOnHook: row[10] || '',
-                    freeFall: row[11] || '',
-                    totalTwine: row[12] || '',
-                    units: row[13] || '',
-                    reqDeliveryDate: formatExcelDate(row[15]) || '',
-                    pn: row[23] || '',
-                    unitsPerBox: row[25] || '',
-                    boxes: row[26] || '',
-                    actualBoxes: row[27] || row[26] || '',
-                    actualUnits: row[28] || row[13] || '',
-                    transportationType: '',
-                    transportationCost: '',
-                    currency: '',
-                    pricePer1000: '',
-                    lastPrice: '',
-                    boxesPerPallet: 64,
-                    totalPallets: '0.00'
-                };
-                
-                newItems.push(item);
-            }
-            
-            // Update currentQuote.items
-            currentQuote.items = newItems;
-            saveQuote();
-        }
-
-        function formatExcelDate(excelDate) {
-            if (!excelDate) return '';
-            
-            // If it's already a string in YYYY-MM-DD format
-            if (typeof excelDate === 'string' && excelDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                return excelDate;
-            }
-            
-            // If it's an Excel serial number
-            if (typeof excelDate === 'number') {
-                const date = XLSX.SSF.parse_date_code(excelDate);
-                return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`;
-            }
-            
-            return '';
         }
 
         // ============= UTILITY FUNCTIONS =============
