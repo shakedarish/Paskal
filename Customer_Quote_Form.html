@@ -2763,6 +2763,22 @@ const QuoteUI = {
             // Show success modal
             this.showSuccessModal(quoteData);
             
+            // CRITICAL: Clear form data after successful submit
+            // This prevents "Save as Draft" modal from appearing when switching tabs
+            QuoteData.items = [];
+            QuoteData.nextId = 1;
+            QuoteData.addItem();
+            this.editingQuoteId = null;
+            
+            // Clear special requests
+            const sr = document.getElementById('specialRequests');
+            if (sr) sr.value = '';
+            const cc = document.getElementById('charCount');
+            if (cc) cc.textContent = '0';
+            
+            // Save cleared state to localStorage
+            QuoteData.save();
+            
         } catch (error) {
             console.error('Error in createQuoteAndShowModal:', error);
             this.showAlert('Error creating quote: ' + error.message, 'error');
@@ -4570,11 +4586,13 @@ const OrdersManager = {
                     <tr>
                         <th>#</th>
                         <th>Final Customer</th>
+                        <th>Req. Delivery Date</th>
                         <th>Ship To</th>
                         <th>Hook Type</th>
                         <th>Size</th>
                         <th>Twine</th>
                         <th>Total Twine (m)</th>
+                        <th>Units</th>
                         <th>PN (product number)</th>
                     </tr>
                 </thead>
@@ -4586,11 +4604,13 @@ const OrdersManager = {
                 <tr>
                     <td>${idx + 1}</td>
                     <td>${item.grower || '-'}</td>
+                    <td>${item.reqDate || '-'}</td>
                     <td>${item.shipTo || '-'}</td>
                     <td>${item.hookType || '-'}</td>
                     <td>${item.hookSize === '180' ? '18' : item.hookSize === '220' ? '22' : item.hookSize || '-'}</td>
                     <td>${CONFIG.TWINE_DISPLAY_NAMES[item.twineType] || item.twineType || '-'}</td>
                     <td>${item.totalLength ? item.totalLength.toFixed(1) : '-'}</td>
+                    <td>${item.quantity ? parseInt(item.quantity).toLocaleString() : '-'}</td>
                     <td><code>${item.pn || '-'}</code></td>
                 </tr>
             `;
