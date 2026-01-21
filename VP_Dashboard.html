@@ -1410,6 +1410,56 @@
         const QuoteDetails = {
             quote: null,
             
+            // Helper: Get available transportation options based on production site
+            getTransportationOptions(productionSite) {
+                if (!productionSite) {
+                    // No production site selected - return empty to force selection
+                    return [];
+                }
+                
+                if (productionSite === 'Mexico') {
+                    // Mexico: Only Truck
+                    return ['Truck'];
+                } else {
+                    // Turkey, Israel: All options
+                    return ['Container 20HC', 'Container 40HC', 'Container 40HC Sterilized', 'Truck', 'LCL (Partial)'];
+                }
+            },
+            
+            // Helper: Get boxes per pallet based on transport type and production site
+            getBoxesPerPallet(transportType, productionSite) {
+                const baseMapping = {
+                    'Container 20HC': 64,
+                    'Container 40HC': 72,
+                    'Container 40HC Sterilized': 64,
+                    'LCL (Partial)': 72
+                };
+                
+                if (transportType === 'Truck') {
+                    // Truck boxes depend on production site
+                    return productionSite === 'Mexico' ? 64 : 72;  // Mexico: 64, Turkey/Israel: 72
+                }
+                
+                return baseMapping[transportType] || 72;
+            },
+            
+            // Helper: Get max pallets based on transport type and production site
+            getMaxPallets(transportType, productionSite) {
+                const baseMapping = {
+                    'Container 20HC': 10,
+                    'Container 40HC': 21,
+                    'Container 40HC Sterilized': 18,
+                    'LCL (Partial)': 999  // Flexible
+                };
+                
+                if (transportType === 'Truck') {
+                    // Truck pallets depend on production site
+                    return productionSite === 'Mexico' ? 26 : 23;  // Mexico: 26, Turkey/Israel: 23
+                }
+                
+                return baseMapping[transportType] || 21;
+            },
+            
             render(quoteId) {
                 this.loadQuote(quoteId);
                 this.renderQuoteInfo();
@@ -1438,6 +1488,13 @@
                     productionSiteSelect.value = this.quote.productionSite;
                 } else if (productionSiteSelect) {
                     productionSiteSelect.value = '';
+                }
+                
+                // Lock Production Site if quote is approved
+                if (productionSiteSelect && this.quote.status === 'Approved') {
+                    productionSiteSelect.disabled = true;
+                } else if (productionSiteSelect) {
+                    productionSiteSelect.disabled = false;
                 }
             },
             
@@ -1523,6 +1580,10 @@
                     return;
                 }
                 
+                // Check if quote is approved - if yes, disable all fields
+                const isApproved = this.quote.status === 'Approved';
+                const disabledAttr = isApproved ? 'disabled' : '';
+                
                 // Build header without radio buttons
                 let headerHTML = `
                     <thead>
@@ -1569,10 +1630,11 @@
                     let boxesPerPallet = '';
                     let totalPallets = '';
                     
-                    if (selectedTransport === 1 && item.transportationType1) {
-                        boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || '';
-                    } else if (selectedTransport === 2 && item.transportationType2) {
-                        boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || '';
+                    const selectedTransportType = selectedTransport === 1 ? item.transportationType1 : 
+                                                   selectedTransport === 2 ? item.transportationType2 : null;
+                    
+                    if (selectedTransportType) {
+                        boxesPerPallet = this.getBoxesPerPallet(selectedTransportType, this.quote.productionSite);
                     }
                     
                     if (boxesPerPallet && (item.boxes || item.actualBoxes)) {
@@ -1605,19 +1667,23 @@
                             <td class="cell-locked">${index + 1}</td>
                             <td class="cell-editable">
                                 <input type="text" value="${item.grower || ''}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'grower', this.value)">
+                                    onchange="QuoteDetails.updateItem(${index}, 'grower', this.value)"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-editable">
                                 <input type="text" value="${item.shipTo || ''}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'shipTo', this.value)">
+                                    onchange="QuoteDetails.updateItem(${index}, 'shipTo', this.value)"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-editable">
                                 <input type="date" value="${item.reqDate || item.reqDeliveryDate || ''}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'reqDate', this.value)">
+                                    onchange="QuoteDetails.updateItem(${index}, 'reqDate', this.value)"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-editable">
                                 <input type="date" value="${item.estimatedDeliveryDate || ''}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'estimatedDeliveryDate', this.value)">
+                                    onchange="QuoteDetails.updateItem(${index}, 'estimatedDeliveryDate', this.value)"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-locked">${item.hookType || ''}</td>
                             <td class="cell-locked">${item.hookSize || ''}</td>
@@ -1629,7 +1695,8 @@
                             <td class="cell-locked">${item.totalLength || item.totalTwine || ''}</td>
                             <td class="cell-editable">
                                 <input type="text" value="${unitsFormatted}" 
-                                    onchange="QuoteDetails.updateItem(${index}, 'units', this.value.replace(/,/g, ''))">
+                                    onchange="QuoteDetails.updateItem(${index}, 'units', this.value.replace(/,/g, ''))"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-locked">${item.unitsPerBox || ''}</td>
                             <td class="cell-locked">${item.boxes || item.actualBoxes || ''}</td>
@@ -1639,16 +1706,17 @@
                                     <input type="radio" name="transport-${index}" value="1" 
                                         class="transport-radio" data-item-index="${index}"
                                         ${selectedTransport === 1 ? 'checked' : ''}
-                                        ${selectedTransport === 2 ? 'disabled' : ''}>
+                                        ${selectedTransport === 2 || isApproved ? 'disabled' : ''}>
                                     <select class="transport-select" 
                                         onchange="QuoteDetails.updateItem(${index}, 'transportationType1', this.value)"
-                                        ${selectedTransport === 2 ? 'disabled' : ''}>
+                                        ${selectedTransport === 2 || isApproved ? 'disabled' : ''}>
                                         <option value="">Select...</option>
-                                        <option value="Container 20HC" ${item.transportationType1 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
-                                        <option value="Container 40HC" ${item.transportationType1 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
-                                        <option value="Container 40HC Sterilized" ${item.transportationType1 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
-                                        <option value="Truck" ${item.transportationType1 === 'Truck' || item.transportationType1 === 'Truck (Europe)' || item.transportationType1 === 'Truck (Americas)' ? 'selected' : ''}>Truck</option>
-                                        <option value="LCL (Partial)" ${item.transportationType1 === 'LCL (Partial)' || item.transportationType1 === 'LCL' ? 'selected' : ''}>LCL (Partial)</option>
+                                        ${this.getTransportationOptions(this.quote.productionSite).map(opt => {
+                                            const isSelected = item.transportationType1 === opt || 
+                                                (opt === 'Truck' && (item.transportationType1 === 'Truck (Europe)' || item.transportationType1 === 'Truck (Americas)')) ||
+                                                (opt === 'LCL (Partial)' && item.transportationType1 === 'LCL');
+                                            return `<option value="${opt}" ${isSelected ? 'selected' : ''}>${opt}</option>`;
+                                        }).join('')}
                                     </select>
                                 </div>
                             </td>
@@ -1657,6 +1725,7 @@
                                     onchange="QuoteDetails.updateItem(${index}, 'transportationCost1', this.value)"
                                     onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
                                     placeholder="Cost"
+                                    ${selectedTransport === 2 || isApproved ? 'disabled' : ''}>
                                     ${selectedTransport === 2 ? 'disabled' : ''}>
                             </td>
                             <td class="transport-cell cell-editable ${transport2Class}">
@@ -1664,16 +1733,17 @@
                                     <input type="radio" name="transport-${index}" value="2" 
                                         class="transport-radio" data-item-index="${index}"
                                         ${selectedTransport === 2 ? 'checked' : ''}
-                                        ${selectedTransport === 1 ? 'disabled' : ''}>
+                                        ${selectedTransport === 1 || isApproved ? 'disabled' : ''}>
                                     <select class="transport-select" 
                                         onchange="QuoteDetails.updateItem(${index}, 'transportationType2', this.value)"
-                                        ${selectedTransport === 1 ? 'disabled' : ''}>
+                                        ${selectedTransport === 1 || isApproved ? 'disabled' : ''}>
                                         <option value="">Select...</option>
-                                        <option value="Container 20HC" ${item.transportationType2 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
-                                        <option value="Container 40HC" ${item.transportationType2 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
-                                        <option value="Container 40HC Sterilized" ${item.transportationType2 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
-                                        <option value="Truck" ${item.transportationType2 === 'Truck' || item.transportationType2 === 'Truck (Europe)' || item.transportationType2 === 'Truck (Americas)' ? 'selected' : ''}>Truck</option>
-                                        <option value="LCL (Partial)" ${item.transportationType2 === 'LCL (Partial)' || item.transportationType2 === 'LCL' ? 'selected' : ''}>LCL (Partial)</option>
+                                        ${this.getTransportationOptions(this.quote.productionSite).map(opt => {
+                                            const isSelected = item.transportationType2 === opt || 
+                                                (opt === 'Truck' && (item.transportationType2 === 'Truck (Europe)' || item.transportationType2 === 'Truck (Americas)')) ||
+                                                (opt === 'LCL (Partial)' && item.transportationType2 === 'LCL');
+                                            return `<option value="${opt}" ${isSelected ? 'selected' : ''}>${opt}</option>`;
+                                        }).join('')}
                                     </select>
                                 </div>
                             </td>
@@ -1682,10 +1752,10 @@
                                     onchange="QuoteDetails.updateItem(${index}, 'transportationCost2', this.value)"
                                     onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
                                     placeholder="Cost"
-                                    ${selectedTransport === 1 ? 'disabled' : ''}>
+                                    ${selectedTransport === 1 || isApproved ? 'disabled' : ''}>
                             </td>
                             <td class="cell-editable">
-                                <select onchange="QuoteDetails.updateItem(${index}, 'incoterms', this.value)">
+                                <select onchange="QuoteDetails.updateItem(${index}, 'incoterms', this.value)" ${disabledAttr}>
                                     <option value="">Select...</option>
                                     <option value="CIF" ${item.incoterms === 'CIF' ? 'selected' : ''}>CIF</option>
                                     <option value="DDP" ${item.incoterms === 'DDP' ? 'selected' : ''}>DDP</option>
@@ -1694,7 +1764,7 @@
                                 </select>
                             </td>
                             <td class="cell-editable">
-                                <select onchange="QuoteDetails.updateItem(${index}, 'currency', this.value)">
+                                <select onchange="QuoteDetails.updateItem(${index}, 'currency', this.value)" ${disabledAttr}>
                                     <option value="">Select...</option>
                                     <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
                                     <option value="EUR" ${item.currency === 'EUR' ? 'selected' : ''}>EUR</option>
@@ -1706,13 +1776,15 @@
                                 <input type="text" value="${item.pricePer1000 || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'pricePer1000', this.value)"
                                     onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
-                                    placeholder="Price">
+                                    placeholder="Price"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-editable">
                                 <input type="text" value="${item.lastPrice || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'lastPrice', this.value)"
                                     onblur="this.value = this.value ? parseFloat(this.value.replace(/,/g,'')).toLocaleString('en-US', {maximumFractionDigits: 2}) : ''"
-                                    placeholder="Price">
+                                    placeholder="Price"
+                                    ${disabledAttr}>
                             </td>
                             <td class="cell-calculated">${boxesPerPallet}</td>
                             <td class="cell-calculated">${totalPallets}</td>
@@ -1756,6 +1828,15 @@
             },
             
             updateItem(index, field, value) {
+                // Validation: Check if production site is selected when choosing transportation
+                if ((field === 'transportationType1' || field === 'transportationType2') && value) {
+                    if (!this.quote.productionSite) {
+                        alert('⚠️ Please Select Production Site First!\n\nYou must select a production site before choosing transportation type.\n\nThe transportation options depend on the selected production site.');
+                        this.renderItemsTable(); // Re-render to reset the dropdown
+                        return;
+                    }
+                }
+                
                 this.quote.items[index][field] = value;
                 
                 // Update related fields
@@ -1792,30 +1873,14 @@
             
             updateProductionSite() {
                 const productionSite = document.getElementById('productionSiteSelect').value;
-                const remarksSection = document.getElementById('generalRemarksSection');
-                const remarksText = document.getElementById('generalRemarksText');
                 
-                // General Remarks content for each production site
-                const remarks = {
-                    'Israel': 'Production site from Israel is only for Turbo Hook for either 40HC or 20HC.',
-                    'Turkey': `Remarks to shipments from Turkey:
-1. The prices quoted are based on 40ft high containers with incoterms CIF or full truck to the requested distributor destination, or, to Paskal Spain, or, to Paskal Netherlands B.V.
-2. In the case of partial shipments, the prices will be based on incoterms EXW Turkey.
-3. Orders from Turkey can be either Turbo or Tail hooks.`,
-                    'Mexico': `Remarks to shipments from Mexico:
-1. Shipment via land by truck only.
-2. Orders from Mexico can be either Turbo or Tail hooks.
-3. Each order must be approved by Paskal, with a production and shipment schedule.
-4. For orders exceeding 100k units per season, advanced planning is required.`
-                };
-                
-                // Show/hide remarks based on production site
-                if (remarks[productionSite]) {
-                    remarksText.textContent = remarks[productionSite];
-                    remarksSection.style.display = 'block';
-                } else {
-                    remarksSection.style.display = 'none';
+                // Update quote object
+                if (this.quote) {
+                    this.quote.productionSite = productionSite;
                 }
+                
+                // Re-render items table to update transportation options
+                this.renderItemsTable();
             },
             
             async approveQuote() {
