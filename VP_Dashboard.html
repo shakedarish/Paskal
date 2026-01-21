@@ -897,10 +897,8 @@
                         <select id="productionSiteSelect" style="width: 100%;" onchange="QuoteDetails.updateProductionSite()">
                             <option value="">Select Production Site...</option>
                             <option value="Turkey">Turkey</option>
-                            <option value="Mexico">Mexico</option>
-                            <option value="Tunisia">Tunisia</option>
-                            <option value="Netherlands">Netherlands</option>
                             <option value="Israel">Israel</option>
+                            <option value="Mexico">Mexico</option>
                         </select>
                     </div>
                 </div>
@@ -1125,13 +1123,11 @@
         
         // Boxes per pallet mapping based on transportation type
         const BOXES_PER_PALLET = {
+            'Container 20HC': 64,
             'Container 40HC': 72,
             'Container 40HC Sterilized': 64,
-            'Container 20HC': 64,
-            'Truck (Europe)': 72,
-            'Truck (Americas)': 64,
-            'LCL': 72,
-            'Air Freight': 72
+            'Truck': 72,  // Default: 72 for Turkey/Israel, will be adjusted to 64 for Mexico
+            'LCL (Partial)': 72
         };
 
         // ===== APP CONTROLLER =====
@@ -1648,13 +1644,11 @@
                                         onchange="QuoteDetails.updateItem(${index}, 'transportationType1', this.value)"
                                         ${selectedTransport === 2 ? 'disabled' : ''}>
                                         <option value="">Select...</option>
+                                        <option value="Container 20HC" ${item.transportationType1 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
                                         <option value="Container 40HC" ${item.transportationType1 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
                                         <option value="Container 40HC Sterilized" ${item.transportationType1 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
-                                        <option value="Container 20HC" ${item.transportationType1 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
-                                        <option value="Truck (Europe)" ${item.transportationType1 === 'Truck (Europe)' ? 'selected' : ''}>Truck (Europe)</option>
-                                        <option value="Truck (Americas)" ${item.transportationType1 === 'Truck (Americas)' ? 'selected' : ''}>Truck (Americas)</option>
-                                        <option value="LCL" ${item.transportationType1 === 'LCL' ? 'selected' : ''}>LCL</option>
-                                        <option value="Air Freight" ${item.transportationType1 === 'Air Freight' ? 'selected' : ''}>Air Freight</option>
+                                        <option value="Truck" ${item.transportationType1 === 'Truck' || item.transportationType1 === 'Truck (Europe)' || item.transportationType1 === 'Truck (Americas)' ? 'selected' : ''}>Truck</option>
+                                        <option value="LCL (Partial)" ${item.transportationType1 === 'LCL (Partial)' || item.transportationType1 === 'LCL' ? 'selected' : ''}>LCL (Partial)</option>
                                     </select>
                                 </div>
                             </td>
@@ -1675,13 +1669,11 @@
                                         onchange="QuoteDetails.updateItem(${index}, 'transportationType2', this.value)"
                                         ${selectedTransport === 1 ? 'disabled' : ''}>
                                         <option value="">Select...</option>
+                                        <option value="Container 20HC" ${item.transportationType2 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
                                         <option value="Container 40HC" ${item.transportationType2 === 'Container 40HC' ? 'selected' : ''}>Container 40HC</option>
                                         <option value="Container 40HC Sterilized" ${item.transportationType2 === 'Container 40HC Sterilized' ? 'selected' : ''}>Container 40HC Sterilized</option>
-                                        <option value="Container 20HC" ${item.transportationType2 === 'Container 20HC' ? 'selected' : ''}>Container 20HC</option>
-                                        <option value="Truck (Europe)" ${item.transportationType2 === 'Truck (Europe)' ? 'selected' : ''}>Truck (Europe)</option>
-                                        <option value="Truck (Americas)" ${item.transportationType2 === 'Truck (Americas)' ? 'selected' : ''}>Truck (Americas)</option>
-                                        <option value="LCL" ${item.transportationType2 === 'LCL' ? 'selected' : ''}>LCL</option>
-                                        <option value="Air Freight" ${item.transportationType2 === 'Air Freight' ? 'selected' : ''}>Air Freight</option>
+                                        <option value="Truck" ${item.transportationType2 === 'Truck' || item.transportationType2 === 'Truck (Europe)' || item.transportationType2 === 'Truck (Americas)' ? 'selected' : ''}>Truck</option>
+                                        <option value="LCL (Partial)" ${item.transportationType2 === 'LCL (Partial)' || item.transportationType2 === 'LCL' ? 'selected' : ''}>LCL (Partial)</option>
                                     </select>
                                 </div>
                             </td>
