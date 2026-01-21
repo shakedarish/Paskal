@@ -697,7 +697,7 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <div class="logo">
+                    <div class="logo" style="background: white; padding: 8px 12px; border-radius: 8px;">
                         <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal Logo" style="height: 75px; width: auto;">
                     </div>
                     <div class="header-text">
@@ -793,7 +793,7 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <div class="logo">
+                    <div class="logo" style="background: white; padding: 8px 12px; border-radius: 8px;">
                         <img src="https://i.imgur.com/0L7qKHI.png" alt="Paskal Logo" style="height: 75px; width: auto;">
                     </div>
                 </div>
@@ -942,10 +942,34 @@
                 
                 currentProfile = profile;
                 
+                // Debug: Log profile data
+                console.log('Profile loaded from profiles table:', profile);
+                console.log('Profile name:', profile.name);
+                console.log('Profile email:', profile.email);
+                
+                // Try to get additional data from sales_managers table if it exists
+                let salesManagerName = profile.name;
+                try {
+                    const { data: salesManager, error: smError } = await window.supabase
+                        .from('sales_managers')
+                        .select('name')
+                        .eq('user_id', session.user.id)
+                        .single();
+                    
+                    if (!smError && salesManager && salesManager.name) {
+                        console.log('Name from sales_managers table:', salesManager.name);
+                        salesManagerName = salesManager.name;
+                    }
+                } catch (e) {
+                    console.log('sales_managers table not available or error:', e);
+                }
+                
                 // Update display - show sales manager name instead of company name
                 const nameDisplay = document.getElementById('salesManagerName');
                 if (nameDisplay) {
-                    nameDisplay.textContent = profile.name || profile.email || 'Sales Manager';
+                    const displayName = salesManagerName || profile.email || 'Sales Manager';
+                    console.log('Setting display name to:', displayName);
+                    nameDisplay.textContent = displayName;
                 }
                 
                 sessionStorage.removeItem('checking_auth');
