@@ -96,9 +96,7 @@
         }
 
         .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            text-align: right;
         }
 
         .user-info {
@@ -108,13 +106,14 @@
         }
 
         .user-name {
-            font-size: 1rem;
-            font-weight: 500;
-            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--paskal-green);
         }
         
         .user-info-box {
-            /* Removed margin-right - using gap in flexbox */
+            text-align: right;
+            margin-right: 15px;
         }
 
         .btn-logout {
@@ -300,36 +299,6 @@
             background: #b91c1c;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-        }
-
-        /* Optimize Shipments Button */
-        .btn-optimize {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            white-space: nowrap;
-        }
-
-        .btn-optimize:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-optimize:active {
-            transform: translateY(0);
         }
 
         /* Quotes Table */
@@ -777,10 +746,13 @@
                 </div>
             </div>
             <div class="header-right">
+                <div class="user-info-box">
+                    <div class="user-info">Logged in as:</div>
+                    <div class="user-name" id="userName">Loading...</div>
+                </div>
                 <button class="back-to-dashboard-btn" id="headerBackBtn" style="display: none;" onclick="App.showDashboard()">
                     ← Back to Dashboard
                 </button>
-                <span class="user-name" id="userName" style="color: white; font-weight: 500;">Loading...</span>
                 <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
             </div>
         </div>
@@ -794,6 +766,10 @@
                     <div class="stat-card total">
                         <div class="stat-label">Total Quotes</div>
                         <div class="stat-value" id="statTotal">0</div>
+                    </div>
+                    <div class="stat-card pending">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="statPending">0</div>
                     </div>
                     <div class="stat-card awaiting">
                         <div class="stat-label">Awaiting Approval</div>
@@ -819,6 +795,7 @@
                         <label>Filter by Status</label>
                         <select id="statusFilter">
                             <option value="" selected>All Statuses</option>
+                            <option value="Pending">Pending</option>
                             <option value="Awaiting Approval">WAITING FOR VP APPROVAL</option>
                             <option value="Approved">Approved</option>
                             <option value="Rejected">Rejected</option>
@@ -831,9 +808,6 @@
                     <div class="filter-buttons">
                         <button class="btn btn-primary" onclick="Dashboard.applyFilters()">Apply Filters</button>
                         <button class="btn btn-secondary" onclick="Dashboard.clearFilters()">Clear</button>
-                        <a href="VP_Shipment_Optimization.html" class="btn-optimize" title="Optimize Shipments for Maximum Efficiency">
-                            📊 Optimize Shipments
-                        </a>
                     </div>
                 </div>
 
@@ -905,12 +879,6 @@
                     </div>
                 </div>
 
-                <!-- General Remarks (shown based on Production Site) -->
-                <div id="generalRemarksSection" style="display: none; background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #d1d5db;">
-                    <h4 style="color: #002C5B; margin-top: 0; margin-bottom: 10px;">General Remarks:</h4>
-                    <div id="generalRemarksText" style="color: #4b5563; line-height: 1.6; white-space: pre-line;"></div>
-                </div>
-
                 <!-- Items Table -->
                 <div class="items-table-container">
                     <table class="items-table" id="itemsTable">
@@ -919,7 +887,7 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="action-buttons" id="actionButtons">
+                <div class="action-buttons">
                     <button class="btn btn-approve" onclick="QuoteDetails.approveQuote()">✓ Approve Quote</button>
                     <button class="btn btn-reject" onclick="QuoteDetails.rejectQuote()">✗ Reject Quote</button>
                 </div>
@@ -1011,14 +979,9 @@
                 
                 currentProfile = profile;
                 
-                console.log('Profile loaded:', { name: profile.name, email: profile.email, role: profile.role });
-                
                 const nameDisplay = document.getElementById('userName');
                 if (nameDisplay) {
-                    // Display name from profile, fallback to email if name is empty
-                    const displayName = profile.name && profile.name.trim() !== '' ? profile.name : profile.email;
-                    nameDisplay.textContent = displayName;
-                    console.log('Displaying name:', displayName);
+                    nameDisplay.textContent = profile.name || profile.email || 'VP Sales';
                 }
                 
                 sessionStorage.removeItem('checking_auth');
@@ -1092,34 +1055,24 @@
                     });
                 }
                 
-                console.log('Profiles map:', profilesMap);
-                
                 // Map to quote format
-                return quotes.map(dbQuote => {
-                    const customerProfile = profilesMap[dbQuote.customer_id];
-                    const customerName = customerProfile?.name || customerProfile?.email || dbQuote.customer_name || 'Unknown';
-                    
-                    console.log(`Quote ${dbQuote.id}: customer_id=${dbQuote.customer_id}, profile name=${customerProfile?.name}, final name=${customerName}`);
-                    
-                    return {
-                        id: dbQuote.id,
-                        customerName: customerName,
-                        company: dbQuote.company_name || customerProfile?.company_name || 'N/A',
-                        dateCreated: dbQuote.created_at?.split('T')[0] || '',
-                        reqDeliveryDate: dbQuote.req_delivery_date || 'N/A',
-                        totalItems: dbQuote.total_items || 0,
-                        totalUnits: dbQuote.total_units || 0,
-                        totalBoxes: dbQuote.total_boxes || 0,
-                        totalWeight: dbQuote.total_weight || 0,
-                        totalPallets: dbQuote.total_pallets || 0,
-                        status: dbQuote.status || 'Pending',
-                        items: dbQuote.items || [],
-                        productionSite: dbQuote.production_site || '',
-                        generalRemarks: dbQuote.general_remarks || '',
-                        rejectionReason: dbQuote.rejection_reason || '',
-                        _dbData: dbQuote
-                    };
-                });
+                return quotes.map(dbQuote => ({
+                    id: dbQuote.id,
+                    customerName: profilesMap[dbQuote.customer_id]?.name || dbQuote.customer_name || 'Unknown',
+                    company: dbQuote.company_name || profilesMap[dbQuote.customer_id]?.company_name || 'N/A',
+                    dateCreated: dbQuote.created_at?.split('T')[0] || '',
+                    reqDeliveryDate: dbQuote.req_delivery_date || 'N/A',
+                    totalItems: dbQuote.total_items || 0,
+                    totalUnits: dbQuote.total_units || 0,
+                    totalBoxes: dbQuote.total_boxes || 0,
+                    totalWeight: dbQuote.total_weight || 0,
+                    status: dbQuote.status || 'Pending',
+                    items: dbQuote.items || [],
+                    productionSite: dbQuote.production_site || '',
+                    generalRemarks: dbQuote.general_remarks || '',
+                    rejectionReason: dbQuote.rejection_reason || '',
+                    _dbData: dbQuote
+                }));
                 
             } catch (err) {
                 console.error('Error loading quotes:', err);
@@ -1151,13 +1104,13 @@
             },
             
             setupEventListeners() {
-                // Production site change updates are saved when quote is approved
+                // Production site change
                 const productionSiteSelect = document.getElementById('productionSiteSelect');
                 if (productionSiteSelect) {
                     productionSiteSelect.addEventListener('change', () => {
                         if (this.currentQuote) {
                             this.currentQuote.productionSite = productionSiteSelect.value;
-                            // Note: Changes saved to Supabase only on approve/reject
+                            this.saveCurrentQuote();
                         }
                     });
                 }
@@ -1167,11 +1120,9 @@
                 document.getElementById('dashboardView').classList.add('active');
                 document.getElementById('detailsView').classList.remove('active');
                 
-                // Hide back button, show logout button in header
+                // Hide back button in header
                 const backBtn = document.getElementById('headerBackBtn');
-                const logoutBtn = document.querySelector('.btn-logout');
                 if (backBtn) backBtn.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 
                 await Dashboard.render();
             },
@@ -1179,13 +1130,6 @@
             showQuoteDetails(quoteId) {
                 document.getElementById('dashboardView').classList.remove('active');
                 document.getElementById('detailsView').classList.add('active');
-                
-                // Show back button, hide logout button in header
-                const backBtn = document.getElementById('headerBackBtn');
-                const logoutBtn = document.querySelector('.btn-logout');
-                if (backBtn) backBtn.style.display = 'inline-block';
-                if (logoutBtn) logoutBtn.style.display = 'none';
-                
                 QuoteDetails.render(quoteId);
             },
             
@@ -1201,71 +1145,9 @@
                 }
             },
             
-            async saveQuoteToSupabase(quote) {
-                try {
-                    // Calculate total pallets from items
-                    let totalPallets = 0;
-                    if (quote.items) {
-                        quote.items.forEach(item => {
-                            const selectedTransport = item.selectedTransportation;
-                            let boxesPerPallet = 0;
-                            
-                            if (selectedTransport === 1 && item.transportationType1) {
-                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType1] || 0;
-                            } else if (selectedTransport === 2 && item.transportationType2) {
-                                boxesPerPallet = BOXES_PER_PALLET[item.transportationType2] || 0;
-                            }
-                            
-                            if (boxesPerPallet) {
-                                const itemBoxes = parseInt(item.boxes || item.actualBoxes || 0);
-                                totalPallets += itemBoxes / boxesPerPallet;
-                            }
-                        });
-                    }
-                    
-                    // Get req_delivery_date from first item (all items should have same date)
-                    const reqDeliveryDate = quote.items && quote.items.length > 0 && quote.items[0].reqDate
-                        ? quote.items[0].reqDate
-                        : (quote.items[0]?.reqDeliveryDate || null);
-                    
-                    console.log('Saving to Supabase:', {
-                        id: quote.id,
-                        status: quote.status,
-                        total_pallets: totalPallets,
-                        req_delivery_date: reqDeliveryDate
-                    });
-                    
-                    const { data, error } = await window.supabase
-                        .from('quotes')
-                        .update({
-                            status: quote.status,
-                            production_site: quote.productionSite,
-                            general_remarks: quote.generalRemarks,
-                            rejection_reason: quote.rejectionReason,
-                            req_delivery_date: reqDeliveryDate,
-                            total_pallets: totalPallets,
-                            items: quote.items,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', quote.id);
-                    
-                    if (error) {
-                        console.error('Error saving quote:', error);
-                        throw error;
-                    }
-                    
-                    console.log('Quote saved successfully to Supabase');
-                    return true;
-                } catch (err) {
-                    console.error('Failed to save quote:', err);
-                    alert('Error saving quote. Please try again.');
-                    return false;
-                }
-            },
-            
             getAllQuotes() {
-                // Return quotes from Dashboard instead of localStorage
-                return Dashboard.quotes || [];
+                const quotesJson = localStorage.getItem('paskal_quotes');
+                return quotesJson ? JSON.parse(quotesJson) : [];
             }
         };
 
@@ -1287,11 +1169,13 @@
             
             updateStatistics() {
                 const total = this.quotes.length;
+                const pending = this.quotes.filter(q => q.status === 'Pending').length;
                 const awaiting = this.quotes.filter(q => q.status === 'Awaiting Approval').length;
                 const approved = this.quotes.filter(q => q.status === 'Approved').length;
                 const rejected = this.quotes.filter(q => q.status === 'Rejected').length;
                 
                 document.getElementById('statTotal').textContent = total;
+                document.getElementById('statPending').textContent = pending;
                 document.getElementById('statAwaiting').textContent = awaiting;
                 document.getElementById('statApproved').textContent = approved;
                 document.getElementById('statRejected').textContent = rejected;
@@ -1370,8 +1254,12 @@
                         });
                     }
                     
-                    // Use totalWeight from database (already calculated and stored)
-                    const totalWeight = quote.totalWeight || 0;
+                    // Calculate total weight from items - try weightPerCarton first
+                    const totalWeight = quote.items ? quote.items.reduce((sum, item) => {
+                        const boxes = parseInt(item.boxes || item.actualBoxes || 0);
+                        const weight = parseFloat(item.weightPerCarton || item.weightPerBox || item.weight || item.totalWeight || 0);
+                        return sum + (boxes * weight);
+                    }, 0).toFixed(2) : '0.00';
                     
                     // Format date created (handle both DD/MM/YY and MM/DD/YY formats)
                     let formattedDate = quote.dateCreated;
@@ -1407,7 +1295,7 @@
                             <td>${totalUnits.toLocaleString()}</td>
                             <td>${totalBoxes}</td>
                             <td>${totalPallets.toFixed(2)}</td>
-                            <td><strong>${parseFloat(totalWeight).toFixed(2)}</strong></td>
+                            <td><strong>${totalWeight}</strong></td>
                             <td><span class="status-badge status-${statusClass}">${displayStatus}</span></td>
                         </tr>
                     `;
@@ -1420,26 +1308,30 @@
         const QuoteDetails = {
             quote: null,
             
+            // Helper function to format numbers with commas (1,000)
+            formatNumber(value) {
+                if (!value || value === '') return '';
+                // Remove existing commas and parse
+                const num = parseFloat(String(value).replace(/,/g, ''));
+                if (isNaN(num)) return value;
+                // Format with commas
+                return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
+            },
+            
             render(quoteId) {
                 this.loadQuote(quoteId);
                 this.renderQuoteInfo();
                 this.renderSummaryCards();
                 this.renderItemsTable();
-                this.updateActionButtons();
+                
+                // Show back button in header
+                const backBtn = document.getElementById('headerBackBtn');
+                if (backBtn) backBtn.style.display = 'inline-block';
             },
             
             loadQuote(quoteId) {
                 const quotes = App.getAllQuotes();
                 this.quote = quotes.find(q => q.id === quoteId);
-                
-                // Check if quote was found
-                if (!this.quote) {
-                    console.error('Quote not found:', quoteId);
-                    alert('Quote not found. Please return to dashboard.');
-                    App.showDashboard();
-                    return;
-                }
-                
                 App.currentQuote = this.quote;
                 
                 // Set production site if already selected
@@ -1513,18 +1405,6 @@
                 document.getElementById('summaryPallets').textContent = totalPallets.toFixed(2);
             },
             
-            updateActionButtons() {
-                const actionButtons = document.getElementById('actionButtons');
-                if (!actionButtons) return;
-                
-                // Hide buttons if quote is already approved or rejected
-                if (this.quote.status === 'Approved' || this.quote.status === 'Rejected') {
-                    actionButtons.style.display = 'none';
-                } else {
-                    actionButtons.style.display = 'flex';
-                }
-            },
-            
             renderItemsTable() {
                 const table = document.getElementById('itemsTable');
                 
@@ -1540,8 +1420,8 @@
                             <th style="min-width: 60px;">Item #</th>
                             <th style="min-width: 100px;">Grower</th>
                             <th style="min-width: 100px;">Ship To</th>
-                            <th style="min-width: 120px;">Req. Delivery Date</th>
-                            <th style="min-width: 140px;">Est. Delivery Date</th>
+                            <th style="min-width: 180px;">Req. Delivery Date</th>
+                            <th style="min-width: 180px;">Est. Delivery Date</th>
                             <th style="min-width: 90px;">Hook Type</th>
                             <th style="min-width: 90px;">Hook Size</th>
                             <th style="min-width: 90px;">Crop</th>
@@ -1665,7 +1545,7 @@
                                 </div>
                             </td>
                             <td class="transport-cell cell-editable ${transport1Class}">
-                                <input type="text" value="${item.transportationCost1 || ''}"
+                                <input type="text" value="${this.formatNumber(item.transportationCost1) || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'transportationCost1', this.value)"
                                     placeholder="Cost"
                                     ${selectedTransport === 2 ? 'disabled' : ''}>
@@ -1691,7 +1571,7 @@
                                 </div>
                             </td>
                             <td class="transport-cell cell-editable ${transport2Class}">
-                                <input type="text" value="${item.transportationCost2 || ''}"
+                                <input type="text" value="${this.formatNumber(item.transportationCost2) || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'transportationCost2', this.value)"
                                     placeholder="Cost"
                                     ${selectedTransport === 1 ? 'disabled' : ''}>
@@ -1715,12 +1595,12 @@
                                 </select>
                             </td>
                             <td class="cell-editable">
-                                <input type="text" value="${item.pricePer1000 || ''}"
+                                <input type="text" value="${this.formatNumber(item.pricePer1000) || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'pricePer1000', this.value)"
                                     placeholder="Price">
                             </td>
                             <td class="cell-editable">
-                                <input type="text" value="${item.lastPrice || ''}"
+                                <input type="text" value="${this.formatNumber(item.lastPrice) || ''}"
                                     onchange="QuoteDetails.updateItem(${index}, 'lastPrice', this.value)"
                                     placeholder="Price">
                             </td>
@@ -1749,6 +1629,7 @@
                         if (currentSelection === selectedOption) {
                             e.preventDefault();
                             this.quote.items[itemIndex].selectedTransportation = null;
+                            App.saveCurrentQuote();
                             
                             // Re-render to update UI
                             this.renderItemsTable();
@@ -1756,6 +1637,7 @@
                         } else {
                             // Normal selection
                             this.quote.items[itemIndex].selectedTransportation = selectedOption;
+                            App.saveCurrentQuote();
                             
                             // Re-render to update UI
                             this.renderItemsTable();
@@ -1793,6 +1675,8 @@
                     this.quote.items[index].actualBoxes = value;
                 }
                 
+                App.saveCurrentQuote();
+                
                 // If transportation type changed or boxes changed, recalculate
                 if (field === 'transportationType1' || field === 'transportationType2' || field === 'boxes' || field === 'units') {
                     this.renderItemsTable();
@@ -1828,7 +1712,7 @@
                 }
             },
             
-            async approveQuote() {
+            approveQuote() {
                 // Validation: Production Site
                 const productionSite = document.getElementById('productionSiteSelect').value;
                 if (!productionSite) {
@@ -1860,9 +1744,7 @@
                 this.quote.productionSite = productionSite;
                 this.quote.approvedDate = new Date().toISOString().split('T')[0];
                 
-                // Save to Supabase
-                const saved = await App.saveQuoteToSupabase(this.quote);
-                if (!saved) return;
+                App.saveCurrentQuote();
                 
                 alert('✅ Quote Approved Successfully!\n\nThe Sales Manager has been notified.');
                 App.showDashboard();
@@ -1877,7 +1759,7 @@
                 document.getElementById('rejectionReason').value = '';
             },
             
-            async confirmReject() {
+            confirmReject() {
                 const reason = document.getElementById('rejectionReason').value.trim();
                 
                 if (!reason) {
@@ -1890,9 +1772,7 @@
                 this.quote.rejectionReason = reason;
                 this.quote.rejectedDate = new Date().toISOString().split('T')[0];
                 
-                // Save to Supabase
-                const saved = await App.saveQuoteToSupabase(this.quote);
-                if (!saved) return;
+                App.saveCurrentQuote();
                 
                 this.closeRejectModal();
                 alert('❌ Quote Rejected\n\nThe Sales Manager has been notified with your feedback.');
@@ -1943,6 +1823,7 @@
                 document.getElementById('roundUpModal').classList.remove('active');
                 this.renderItemsTable();
                 this.renderSummaryCards();
+                App.saveCurrentQuote();
             }
         };
 
