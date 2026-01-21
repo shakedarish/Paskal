@@ -7407,20 +7407,35 @@
                     const twineType = item.twineType || '';
                     const isBio = twineType === 'Bio250' || twineType === 'Bio390';
                     
-                    return `
-                        <div style="text-align: center;">
-                            <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
-                                ${colorsText}
-                            </div>
-                            ${!isApproved ? `<div style="font-size: 0.85rem; color: #444;">
-                                For change 
-                                <a href="#" 
-                                   onclick="event.preventDefault(); ${isBio && validColors.length > 1 ? \`showAlert('error', 'Color sequence not available for Bio twines');\` : \`openColorsModal(${itemIndex});\`}" 
-                                   style="color: #00AFE6; text-decoration: underline; font-weight: 600; cursor: pointer;">
-                                    click here
-                                </a>
-                            </div>` : ''}
-                        </div>`;
+                    if (isApproved) {
+                        // If approved, just show colors without edit link
+                        return `
+                            <div style="text-align: center;">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
+                                    ${colorsText}
+                                </div>
+                            </div>`;
+                    } else {
+                        // If not approved, show with edit link
+                        const clickHandler = isBio && validColors.length > 1 
+                            ? "event.preventDefault(); showAlert('error', 'Color sequence not available for Bio twines');" 
+                            : `event.preventDefault(); openColorsModal(${itemIndex});`;
+                        
+                        return `
+                            <div style="text-align: center;">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
+                                    ${colorsText}
+                                </div>
+                                <div style="font-size: 0.85rem; color: #444;">
+                                    For change 
+                                    <a href="#" 
+                                       onclick="${clickHandler}" 
+                                       style="color: #00AFE6; text-decoration: underline; font-weight: 600; cursor: pointer;">
+                                        click here
+                                    </a>
+                                </div>
+                            </div>`;
+                    }
                 
                 case 'transportationType':
                 case 'transportationType1':
