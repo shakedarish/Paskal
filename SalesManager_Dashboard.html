@@ -7244,6 +7244,21 @@
                             item.transportationCost1 = item.transportationCost;
                         }
                         
+                        // CRITICAL FIX: Preserve original customer quantity
+                        // Store the original quantity from customer (if not already stored)
+                        if (!item.originalQuantity) {
+                            // Use 'quantity' field which is what customer entered
+                            item.originalQuantity = item.quantity || item.actualUnits || 0;
+                        }
+                        
+                        // ALWAYS reset actualUnits to original customer quantity when loading
+                        // This prevents the "+1" bug when reopening the quote
+                        item.actualUnits = parseInt(item.originalQuantity) || 0;
+                        
+                        // Recalculate actualBoxes based on original quantity
+                        const unitsPerBox = parseInt(item.unitsPerBox) || 1;
+                        item.actualBoxes = Math.ceil(item.actualUnits / unitsPerBox);
+                        
                         // Initialize new fields if missing
                         if (!item.estimatedDeliveryDate) item.estimatedDeliveryDate = '';
                         if (!item.transportationType1) item.transportationType1 = '';
@@ -7326,8 +7341,8 @@
             const header = document.getElementById('tableHeader');
             const body = document.getElementById('tableBody');
             
-            // Check if quote is approved - if yes, disable all editable fields
-            const isApproved = currentQuote.status === 'Approved';
+            // Check if quote is approved OR waiting for VP approval - if yes, disable all editable fields
+            const isApproved = currentQuote.status === 'Approved' || currentQuote.status === 'Waiting VP Approval';
 
             // Define columns (25 total - removed Boxes per Pallet)
             const columns = [
@@ -7495,6 +7510,16 @@
                                 <option value="GBP" ${value === 'GBP' ? 'selected' : ''}>GBP</option>
                             </select>`;
                 
+                case 'transportationCost1':
+                case 'transportationCost2':
+                case 'lastPrice':
+                    // Format with thousand separators
+                    const formattedValue = value ? parseFloat(value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '';
+                    return `<input type="text" value="${formattedValue}" 
+                            onblur="handleCostBlur(${itemIndex}, '${key}', this.value)" 
+                            placeholder="0.00"
+                            ${disabledAttr}>`;
+                
                 default:
                     return `<input type="number" value="${value}" step="0.01"
                             onblur="updateField(${itemIndex}, '${key}', this.value)"
@@ -7590,6 +7615,13 @@
             // Clean the value from commas
             const cleanValue = String(value).replace(/,/g, '');
             updateField(itemIndex, key, cleanValue);
+        }
+
+        function handleCostBlur(itemIndex, key, value) {
+            // Clean the value from commas and parse as float
+            const cleanValue = String(value).replace(/,/g, '');
+            const numericValue = parseFloat(cleanValue) || 0;
+            updateField(itemIndex, key, numericValue);
         }
 
         // ============= COLOR SEQUENCE MANAGEMENT =============
@@ -8136,6 +8168,9 @@
             currentQuote.items.forEach((item, index) => {
                 const itemMissing = [];
                 
+                if (!item.estimatedDeliveryDate) {
+                    itemMissing.push('Estimated Delivery Date');
+                }
                 if (!item.transportationType1 && !item.transportationType) {
                     itemMissing.push('Transportation Type 1');
                 }
