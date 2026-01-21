@@ -746,13 +746,13 @@
                 </div>
             </div>
             <div class="header-right">
+                <button class="back-to-dashboard-btn" id="headerBackBtn" style="display: none;" onclick="App.showDashboard()">
+                    ← Back to Dashboard
+                </button>
                 <div class="user-info-box">
                     <div class="user-info">Logged in as:</div>
                     <div class="user-name" id="userName">Loading...</div>
                 </div>
-                <button class="back-to-dashboard-btn" id="headerBackBtn" style="display: none;" onclick="App.showDashboard()">
-                    ← Back to Dashboard
-                </button>
                 <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
             </div>
         </div>
@@ -1308,13 +1308,11 @@
         const QuoteDetails = {
             quote: null,
             
-            // Helper function to format numbers with commas (1,000)
+            // Format numbers with commas (1000 -> 1,000)
             formatNumber(value) {
                 if (!value || value === '') return '';
-                // Remove existing commas and parse
                 const num = parseFloat(String(value).replace(/,/g, ''));
                 if (isNaN(num)) return value;
-                // Format with commas
                 return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
             },
             
