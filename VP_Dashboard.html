@@ -302,36 +302,6 @@
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
         }
 
-        /* Optimize Shipments Button */
-        .btn-optimize {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            white-space: nowrap;
-        }
-
-        .btn-optimize:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-optimize:active {
-            transform: translateY(0);
-        }
-
         /* Quotes Table */
         .table-container {
             overflow-x: auto;
@@ -791,19 +761,19 @@
             <div id="dashboardView" class="view active">
                 <!-- Statistics Cards -->
                 <div class="stats-container">
-                    <div class="stat-card total">
+                    <div class="stat-card total" onclick="Dashboard.filterByStatus('all')" style="cursor: pointer;">
                         <div class="stat-label">Total Quotes</div>
                         <div class="stat-value" id="statTotal">0</div>
                     </div>
-                    <div class="stat-card awaiting">
+                    <div class="stat-card awaiting" onclick="Dashboard.filterByStatus('Waiting VP Approval')" style="cursor: pointer;">
                         <div class="stat-label">Awaiting Approval</div>
                         <div class="stat-value" id="statAwaiting">0</div>
                     </div>
-                    <div class="stat-card approved">
+                    <div class="stat-card approved" onclick="Dashboard.filterByStatus('Approved')" style="cursor: pointer;">
                         <div class="stat-label">Approved</div>
                         <div class="stat-value" id="statApproved">0</div>
                     </div>
-                    <div class="stat-card rejected">
+                    <div class="stat-card rejected" onclick="Dashboard.filterByStatus('Rejected')" style="cursor: pointer;">
                         <div class="stat-label">Rejected</div>
                         <div class="stat-value" id="statRejected">0</div>
                     </div>
@@ -816,24 +786,12 @@
                         <input type="text" id="searchInput" placeholder="Enter quote ID or customer name...">
                     </div>
                     <div class="filter-group">
-                        <label>Filter by Status</label>
-                        <select id="statusFilter">
-                            <option value="" selected>All Statuses</option>
-                            <option value="Awaiting Approval">WAITING FOR VP APPROVAL</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
                         <label>Filter by Date</label>
                         <input type="date" id="dateFilter">
                     </div>
                     <div class="filter-buttons">
                         <button class="btn btn-primary" onclick="Dashboard.applyFilters()">Apply Filters</button>
                         <button class="btn btn-secondary" onclick="Dashboard.clearFilters()">Clear</button>
-                        <a href="VP_Shipment_Optimization.html" class="btn-optimize" title="Optimize Shipments for Maximum Efficiency">
-                            📊 Optimize Shipments
-                        </a>
                     </div>
                 </div>
 
@@ -1271,6 +1229,7 @@
         const Dashboard = {
             quotes: [],
             filteredQuotes: [],
+            currentStatusFilter: null,  // Track current status filter from cards
             
             async render() {
                 await this.loadQuotes();
@@ -1280,6 +1239,18 @@
             
             async loadQuotes() {
                 this.quotes = await loadAllQuotes();
+            },
+            
+            // Filter by status when clicking on stat cards
+            filterByStatus(status) {
+                // If clicking same card, clear filter (show all)
+                if (this.currentStatusFilter === status) {
+                    this.currentStatusFilter = null;
+                } else {
+                    this.currentStatusFilter = status === 'all' ? null : status;
+                }
+                
+                this.applyFilters();
             },
             
             updateStatistics() {
@@ -1296,7 +1267,6 @@
             
             applyFilters() {
                 const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                const statusFilter = document.getElementById('statusFilter').value;
                 const dateFilter = document.getElementById('dateFilter').value;
                 
                 this.filteredQuotes = this.quotes.filter(quote => {
@@ -1305,8 +1275,8 @@
                         quote.id.toLowerCase().includes(searchTerm) ||
                         quote.customerName.toLowerCase().includes(searchTerm);
                     
-                    // Status filter
-                    const matchesStatus = !statusFilter || quote.status === statusFilter;
+                    // Status filter from stat cards
+                    const matchesStatus = !this.currentStatusFilter || quote.status === this.currentStatusFilter;
                     
                     // Date filter
                     const matchesDate = !dateFilter || quote.dateCreated === dateFilter;
@@ -1319,8 +1289,8 @@
             
             clearFilters() {
                 document.getElementById('searchInput').value = '';
-                document.getElementById('statusFilter').value = '';
                 document.getElementById('dateFilter').value = '';
+                this.currentStatusFilter = null;  // Clear status filter
                 this.applyFilters();
             },
             
@@ -1404,7 +1374,7 @@
                             <td>${totalUnits.toLocaleString()}</td>
                             <td>${totalBoxes}</td>
                             <td>${totalPallets.toFixed(2)}</td>
-                            <td><strong>${parseFloat(totalWeight).toFixed(2)}</strong></td>
+                            <td><strong>${parseFloat(totalWeight).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
                             <td><span class="status-badge status-${statusClass}">${displayStatus}</span></td>
                         </tr>
                     `;
