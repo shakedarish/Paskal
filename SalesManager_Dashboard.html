@@ -7617,11 +7617,29 @@
             updateField(itemIndex, key, cleanValue);
         }
 
-        function handleCostBlur(itemIndex, key, value) {
+        async function handleCostBlur(itemIndex, key, value) {
+            console.log(`handleCostBlur called: itemIndex=${itemIndex}, key=${key}, value=${value}`);
+            
             // Clean the value from commas and parse as float
             const cleanValue = String(value).replace(/,/g, '');
             const numericValue = parseFloat(cleanValue) || 0;
-            updateField(itemIndex, key, numericValue);
+            
+            console.log(`Cleaned value: ${cleanValue}, Numeric: ${numericValue}`);
+            
+            // Update the field
+            const item = currentQuote.items[itemIndex];
+            item[key] = numericValue;
+            
+            console.log(`About to save and re-render...`);
+            
+            // CRITICAL: Re-render table immediately BEFORE saving to show formatted value instantly
+            renderItemsTable();
+            renderSummaryCards();
+            
+            // Save to database in background (don't wait)
+            saveQuote();
+            
+            console.log(`Table re-rendered and save initiated!`);
         }
 
         // ============= COLOR SEQUENCE MANAGEMENT =============
